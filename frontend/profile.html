@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>POS – Profile</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ─── CSS Variables ─────────────────────────────────────── */
+:root {
+  --sidebar-w: 260px;
+  --sidebar-collapsed: 72px;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --accent-hover: #4338ca;
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --sidebar-bg: #0f172a;
+  --sidebar-hover: rgba(255,255,255,0.06);
+  --sidebar-active: rgba(79,70,229,0.25);
+  --sidebar-text: #cbd5e1;
+  --sidebar-icon: #94a3b8;
+  --green: #10b981;
+  --green-soft: #d1fae5;
+  --orange: #f59e0b;
+  --orange-soft: #fef3c7;
+  --red: #ef4444;
+  --red-soft: #fee2e2;
+  --blue: #3b82f6;
+  --blue-soft: #dbeafe;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 24px rgba(0,0,0,0.10);
+  --transition: 0.25s cubic-bezier(.4,0,.2,1);
+  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Syne', sans-serif;
+}
+
+body.dark-mode {
+  --bg: #0b1120;
+  --surface: #141d2e;
+  --surface2: #1a2540;
+  --border: #1e2d45;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --sidebar-bg: #080e1a;
+  --accent-soft: #1e1b4b;
+  --green-soft: #064e3b;
+  --orange-soft: #451a03;
+  --red-soft: #450a0a;
+  --blue-soft: #1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow-x: hidden; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ─── Sidebar Overlay ───────────────────────────────────── */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); z-index: 1040;
+}
+.sidebar-overlay.show { display: block; }
+
+/* ─── Sidebar ───────────────────────────────────────────── */
+#sidebarMenu {
+  width: var(--sidebar-w); min-height: 100vh; background: var(--sidebar-bg);
+  display: flex; flex-direction: column; flex-shrink: 0;
+  position: fixed; top: 0; left: 0; z-index: 1050;
+  transition: width var(--transition), left var(--transition);
+  overflow: hidden; border-right: 1px solid rgba(255,255,255,0.04);
+}
+#sidebarMenu.collapsed { width: var(--sidebar-collapsed); }
+
+@media (max-width: 991px) {
+  #sidebarMenu { left: calc(-1 * var(--sidebar-w)); }
+  #sidebarMenu.mobile-open { left: 0; }
+  #sidebarMenu.collapsed { width: var(--sidebar-w); left: calc(-1 * var(--sidebar-w)); }
+  #sidebarMenu.collapsed.mobile-open { left: 0; width: var(--sidebar-w); }
+}
+
+.sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  white-space: nowrap; overflow: hidden;
+}
+.brand-icon {
+  width: 36px; height: 36px; background: var(--accent); border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 17px; color: white;
+}
+.brand-text {
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+  color: #fff; letter-spacing: -0.3px; opacity: 1;
+  transition: opacity var(--transition), width var(--transition);
+}
+#sidebarMenu.collapsed .brand-text { opacity: 0; width: 0; }
+
+.sidebar-actions {
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-btn {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  color: var(--sidebar-text); border-radius: var(--radius-sm); padding: 8px 10px;
+  cursor: pointer; font-size: 0.82rem; font-family: var(--font-body);
+  display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+.sidebar-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.sidebar-btn i { font-size: 1rem; flex-shrink: 0; }
+.sidebar-btn .btn-label { opacity: 1; transition: opacity var(--transition); }
+#sidebarMenu.collapsed .sidebar-btn .btn-label { opacity: 0; width: 0; overflow: hidden; }
+
+.sidebar-nav { padding: 10px; flex: 1; overflow-y: auto; overflow-x: hidden; }
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+.sidebar-nav .nav-label {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #475569; padding: 12px 10px 4px; white-space: nowrap; overflow: hidden;
+  transition: opacity var(--transition);
+}
+#sidebarMenu.collapsed .nav-label { opacity: 0; }
+.sidebar-nav a {
+  color: var(--sidebar-text); text-decoration: none; display: flex; align-items: center;
+  gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm);
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap; overflow: hidden; position: relative; font-size: 0.88rem; font-weight: 500;
+}
+.sidebar-nav a i { font-size: 1.05rem; flex-shrink: 0; color: var(--sidebar-icon); transition: color var(--transition); }
+.sidebar-nav a:hover { background: var(--sidebar-hover); color: #fff; }
+.sidebar-nav a:hover i { color: #fff; }
+.sidebar-nav a.active { background: var(--sidebar-active); color: #a5b4fc; }
+.sidebar-nav a.active i { color: #a5b4fc; }
+.sidebar-nav span { transition: opacity var(--transition); }
+#sidebarMenu.collapsed .sidebar-nav span { opacity: 0; width: 0; overflow: hidden; }
+
+#sidebarMenu.collapsed .sidebar-nav a::after {
+  content: attr(data-title); position: absolute; left: 60px;
+  background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 6px;
+  font-size: 0.8rem; opacity: 0; pointer-events: none; transition: opacity var(--transition);
+  z-index: 9999; white-space: nowrap;
+}
+#sidebarMenu.collapsed .sidebar-nav a:hover::after { opacity: 1; }
+@media (max-width: 991px) { #sidebarMenu.collapsed .sidebar-nav a::after { display: none; } }
+
+.reports-toggle { display: flex; justify-content: space-between; align-items: center; }
+.reports-toggle .chevron { transition: transform var(--transition); flex-shrink: 0; }
+.reports-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+#sidebarMenu.collapsed .reports-toggle .chevron { opacity: 0; }
+.sub-nav { padding-left: 8px; }
+.sub-nav a { padding: 7px 10px; font-size: 0.84rem; }
+
+/* ─── Main Content ──────────────────────────────────────── */
+.main-content {
+  flex: 1; margin-left: var(--sidebar-w); min-height: 100vh;
+  transition: margin-left var(--transition); display: flex; flex-direction: column;
+}
+#sidebarMenu.collapsed ~ .main-content { margin-left: var(--sidebar-collapsed); }
+@media (max-width: 991px) { .main-content { margin-left: 0 !important; } }
+
+/* ─── Top Bar ───────────────────────────────────────────── */
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; position: sticky; top: 0; z-index: 100;
+  transition: background var(--transition), border-color var(--transition);
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.mobile-toggle {
+  display: none; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); width: 38px; height: 38px; align-items: center;
+  justify-content: center; cursor: pointer; color: var(--text); font-size: 1.1rem;
+  transition: background var(--transition);
+}
+.mobile-toggle:hover { background: var(--border); }
+@media (max-width: 991px) { .mobile-toggle { display: flex; } }
+.topbar-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.breadcrumb-bar { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); }
+.breadcrumb-bar a { color: var(--muted); text-decoration: none; }
+.breadcrumb-bar a:hover { color: var(--accent); }
+.breadcrumb-bar .sep { color: var(--border); }
+
+/* ─── Page Body ─────────────────────────────────────────── */
+.page-body { padding: 28px 28px 40px; flex: 1; }
+@media (max-width: 576px) { .page-body { padding: 16px 14px 32px; } }
+
+/* ─── Skeleton loader ───────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--border) 25%, var(--surface2) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+  display: inline-block;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ─── Toast ─────────────────────────────────────────────── */
+#toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+}
+.toast-msg {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 16px; font-size: 0.86rem; color: var(--text); box-shadow: var(--shadow-md);
+  display: flex; align-items: center; gap: 8px; min-width: 240px;
+  animation: slideIn 0.25s ease;
+}
+.toast-msg.success { border-left: 3px solid var(--green); }
+.toast-msg.error   { border-left: 3px solid var(--red); }
+@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ─── Profile Hero ──────────────────────────────────────── */
+.profile-hero {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 28px 28px 20px; box-shadow: var(--shadow); margin-bottom: 24px;
+  position: relative; overflow: hidden;
+  transition: background var(--transition), border-color var(--transition);
+}
+.profile-hero::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 88px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #a855f7 100%); z-index: 0;
+}
+.profile-hero-inner {
+  position: relative; z-index: 1; display: flex; align-items: flex-end;
+  gap: 20px; flex-wrap: wrap;
+}
+.profile-avatar-wrap { position: relative; margin-top: 24px; }
+.profile-avatar {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: #fff;
+  border: 4px solid var(--surface); box-shadow: var(--shadow-md); flex-shrink: 0;
+}
+.avatar-status {
+  position: absolute; bottom: 6px; right: 4px; width: 14px; height: 14px;
+  background: var(--green); border: 2px solid var(--surface); border-radius: 50%;
+}
+.profile-info { padding-bottom: 4px; flex: 1; min-width: 200px; }
+.profile-info h2 {
+  font-family: var(--font-display); font-size: 1.45rem; font-weight: 700;
+  color: var(--text); line-height: 1.2; margin-bottom: 4px;
+}
+.profile-info .role-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--accent-soft); color: var(--accent); border-radius: 20px;
+  padding: 3px 10px; font-size: 0.78rem; font-weight: 600; margin-bottom: 6px;
+}
+.profile-info p { font-size: 0.86rem; color: var(--muted); display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+.profile-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; padding-bottom: 4px; align-self: flex-end; }
+@media (max-width: 576px) {
+  .profile-hero { padding: 20px 16px 16px; }
+  .profile-actions { width: 100%; justify-content: flex-start; }
+}
+
+/* ─── Stat Cards ────────────────────────────────────────── */
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px;
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+}
+.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+.stat-icon.green  { background: var(--green-soft);  color: var(--green); }
+.stat-icon.orange { background: var(--orange-soft); color: var(--orange); }
+.stat-icon.blue   { background: var(--blue-soft);   color: var(--blue); }
+.stat-icon.purple { background: var(--accent-soft); color: var(--accent); }
+.stat-body { flex: 1; min-width: 0; }
+.stat-body .stat-label { font-size: 0.78rem; font-weight: 500; color: var(--muted); margin-bottom: 2px; }
+.stat-body .stat-value { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; color: var(--text); }
+.stat-body .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
+
+/* ─── Section Cards ─────────────────────────────────────── */
+.section-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
+  transition: background var(--transition), border-color var(--transition);
+}
+.section-card .card-header {
+  background: transparent; border-bottom: 1px solid var(--border); padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.section-card .card-header h6 {
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 700;
+  color: var(--text); margin: 0; display: flex; align-items: center; gap: 8px;
+}
+.section-card .card-header h6 i { color: var(--accent); }
+.section-card .card-body { padding: 20px; }
+
+.info-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.info-row:last-child { border-bottom: none; }
+.info-row .info-icon {
+  width: 34px; height: 34px; background: var(--accent-soft); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
+  color: var(--accent); flex-shrink: 0; margin-top: 1px;
+}
+.info-row .info-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 1px; }
+.info-row .info-value { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+
+.activity-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.activity-item:last-child { border-bottom: none; }
+.activity-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.activity-dot.green  { background: var(--green); }
+.activity-dot.orange { background: var(--orange); }
+.activity-dot.blue   { background: var(--blue); }
+.activity-dot.red    { background: var(--red); }
+.activity-dot.purple { background: var(--accent); }
+.activity-text { font-size: 0.86rem; color: var(--text); line-height: 1.4; }
+.activity-time { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+.perm-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.perm-item:last-child { border-bottom: none; }
+.perm-label { font-size: 0.86rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.perm-label i { color: var(--muted); font-size: 1rem; }
+
+.toggle-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 20px; transition: background var(--transition); }
+.toggle-slider::before {
+  content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px;
+  background: white; border-radius: 50%; transition: transform var(--transition);
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+/* ─── Buttons ───────────────────────────────────────────── */
+.btn-pos-primary {
+  background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm);
+  padding: 8px 18px; font-size: 0.86rem; font-weight: 600; font-family: var(--font-body);
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  transition: background var(--transition), transform var(--transition); text-decoration: none;
+}
+.btn-pos-primary:hover { background: var(--accent-hover); transform: translateY(-1px); color: #fff; }
+.btn-pos-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.btn-pos-ghost {
+  background: transparent; color: var(--muted); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 8px 16px; font-size: 0.86rem; font-weight: 500;
+  font-family: var(--font-body); cursor: pointer; display: inline-flex; align-items: center;
+  gap: 6px; transition: all var(--transition);
+}
+.btn-pos-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--text); }
+
+.pos-badge { display: inline-flex; align-items: center; border-radius: 20px; padding: 3px 10px; font-size: 0.75rem; font-weight: 600; }
+.pos-badge.green  { background: var(--green-soft);  color: var(--green); }
+.pos-badge.orange { background: var(--orange-soft); color: var(--orange); }
+.pos-badge.red    { background: var(--red-soft);    color: var(--red); }
+
+.section-title {
+  font-family: var(--font-display); font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 12px; padding-left: 2px;
+}
+
+/* ─── Modal ─────────────────────────────────────────────── */
+.modal-content {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
+.modal-header { border-bottom: 1px solid var(--border); padding: 16px 20px; }
+.modal-footer { border-top: 1px solid var(--border); padding: 14px 20px; }
+.modal-title { font-family: var(--font-display); font-weight: 700; color: var(--text); font-size: 1rem; }
+.dark-mode .btn-close {
+    filter: invert(1);
+}
+.form-label { font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.form-control {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.88rem; padding: 9px 12px;
+  transition: border-color var(--transition), background var(--transition);
+}
+.form-control:focus { background: var(--surface); border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); color: var(--text); outline: none; }
+body.dark-mode .btn-close { filter: invert(1); }
+</style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+<div class="sidebar-overlay" id="overlay"></div>
+
+<!-- ═══ SIDEBAR ═══════════════════════════════════════════ -->
+<nav id="sidebarMenu">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="bi bi-bag-check-fill"></i></div>
+    <span class="brand-text">CodexLabs POS</span>
+  </div>
+  <div class="sidebar-actions">
+    <button class="sidebar-btn" id="collapseSidebar">
+      <i class="bi bi-layout-sidebar-inset"></i>
+      <span class="btn-label">Collapse Menu</span>
+    </button>
+    <button class="sidebar-btn" id="darkModeToggle">
+      <i class="bi bi-moon" id="modeIcon"></i>
+      <span class="btn-label" id="modeLabel">Dark Mode</span>
+    </button>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-label">Main</div>
+    <a href="Dashboard.html" data-title="Dashboard"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+    <a href="sale.html" data-title="New Sale"><i class="bi bi-cart-plus"></i><span>New Sale</span></a>
+    <a href="product.html" data-title="Products"><i class="bi bi-box-seam"></i><span>Products</span></a>
+    <a class="reports-toggle" data-bs-toggle="collapse" href="#reportsMenu" aria-expanded="true" data-title="Reports">
+      <span style="display:flex;align-items:center;gap:10px;"><i class="bi bi-bar-chart-line"></i><span>Reports</span></span>
+      <i class="bi bi-chevron-down chevron" style="font-size:0.75rem;"></i>
+    </a>
+    <div class="collapse show sub-nav" id="reportsMenu">
+      <a href="report.html" data-title="Sales"><i class="bi bi-graph-up"></i><span>Sales</span></a>
+      <a href="transaction_history.html" data-title="Transactions"><i class="bi bi-receipt"></i><span>Transactions</span></a>
+      <a href="refund.html" data-title="Refunds"><i class="bi bi-arrow-counterclockwise"></i><span>Refunds</span></a>
+    </div>
+    <div class="nav-label">Management</div>
+    <a href="inventory.html" data-title="Inventory"><i class="bi bi-clipboard-check"></i><span>Inventory</span></a>
+    <a href="customer.html" data-title="Customers"><i class="bi bi-people"></i><span>Customers</span></a>
+    <a href="supplier.html" data-title="Suppliers"><i class="bi bi-truck"></i><span>Suppliers</span></a>
+    <a href="users.html" data-title="Users"><i class="bi bi-person-badge"></i><span>Users</span></a>
+    <div class="nav-label">Account</div>
+    <a href="profile.html" class="active" data-title="Profile"><i class="bi bi-person-circle"></i><span>Profile</span></a>
+    <a href="settings.html" data-title="Settings"><i class="bi bi-gear"></i><span>Settings</span></a>
+  </div>
+</nav>
+
+<!-- ═══ MAIN CONTENT ══════════════════════════════════════ -->
+<div class="main-content" id="mainContent">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+      <div>
+        <div class="topbar-title">My Profile</div>
+        <div class="breadcrumb-bar">
+          <a href="Dashboard.html">Home</a>
+          <span class="sep">/</span>
+          <span>Profile</span>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn-pos-primary" onclick="location.href='sale.html'">
+        <i class="bi bi-cart-plus"></i>
+        <span class="d-none d-sm-inline">New Sale</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- ── Profile Hero ── -->
+    <div class="profile-hero">
+      <div class="profile-hero-inner">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar" id="profileAvatar">…</div>
+          <div class="avatar-status"></div>
+        </div>
+        <div class="profile-info">
+          <div class="role-badge"><i class="bi bi-shield-check"></i> <span id="heroRole">Loading…</span></div>
+          <h2 id="heroName"><span class="skeleton" style="width:160px;height:24px;">&nbsp;</span></h2>
+          <p><i class="bi bi-envelope" style="color:var(--accent);"></i> <span id="heroEmail">—</span></p>
+          <p><i class="bi bi-telephone" style="color:var(--green);"></i> <span id="heroPhone">—</span></p>
+          <p><i class="bi bi-geo-alt" style="color:var(--orange);"></i> Nairobi, Kenya</p>
+        </div>
+        <div class="profile-actions">
+          <button class="btn-pos-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+            <i class="bi bi-pencil"></i> Edit Profile
+          </button>
+          <button class="btn-pos-ghost" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+            <i class="bi bi-lock"></i> Change Password
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Stat Cards ── -->
+    <div class="section-title">Performance Overview</div>
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+          <div class="stat-body">
+            <div class="stat-label">Total Sales</div>
+            <div class="stat-value" id="statTotalSales"><span class="skeleton" style="width:100px;height:20px;">&nbsp;</span></div>
+            <div class="stat-sub" id="statTotalSalesSub">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="bi bi-receipt"></i></div>
+          <div class="stat-body">
+            <div class="stat-label">Transactions</div>
+            <div class="stat-value" id="statTransactions"><span class="skeleton" style="width:60px;height:20px;">&nbsp;</span></div>
+            <div class="stat-sub">Total processed</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="bi bi-people"></i></div>
+          <div class="stat-body">
+            <div class="stat-label">Items Sold</div>
+            <div class="stat-value" id="statItemsSold"><span class="skeleton" style="width:60px;height:20px;">&nbsp;</span></div>
+            <div class="stat-sub">Total units</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="bi bi-clock-history"></i></div>
+          <div class="stat-body">
+            <div class="stat-label">Last Login</div>
+            <div class="stat-value" id="statLastLogin" style="font-size:1rem;">—</div>
+            <div class="stat-sub">Nairobi, KE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Details Grid ── -->
+    <div class="row g-3 mb-4">
+
+      <!-- Personal Info -->
+      <div class="col-12 col-lg-6">
+        <div class="section-card h-100">
+          <div class="card-header">
+            <h6><i class="bi bi-person-lines-fill"></i> Personal Information</h6>
+            <button class="btn-pos-ghost" style="padding:5px 10px;font-size:0.78rem;" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+              <i class="bi bi-pencil"></i> Edit
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-person"></i></div>
+              <div><div class="info-label">Full Name</div><div class="info-value" id="infoFullName">—</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-at"></i></div>
+              <div><div class="info-label">Username</div><div class="info-value" id="infoUsername">—</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-envelope"></i></div>
+              <div><div class="info-label">Email Address</div><div class="info-value" id="infoEmail">—</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-telephone"></i></div>
+              <div><div class="info-label">Phone Number</div><div class="info-value" id="infoPhone">—</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-geo-alt"></i></div>
+              <div><div class="info-label">Location</div><div class="info-value">Nairobi, Kenya</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account & Role -->
+      <div class="col-12 col-lg-6">
+        <div class="section-card h-100">
+          <div class="card-header">
+            <h6><i class="bi bi-shield-lock"></i> Account & Role</h6>
+            <span class="pos-badge green"><i class="bi bi-check-circle me-1"></i> Active</span>
+          </div>
+          <div class="card-body">
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-person-badge"></i></div>
+              <div><div class="info-label">Role</div><div class="info-value" id="infoRole">—</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-building"></i></div>
+              <div><div class="info-label">Business ID</div><div class="info-value" id="infoBusinessId">—</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-hash"></i></div>
+              <div><div class="info-label">User ID</div><div class="info-value" id="infoUserId">—</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-key"></i></div>
+              <div>
+                <div class="info-label">Change Password</div>
+                <div class="info-value">
+                  <button class="btn-pos-ghost" style="padding:4px 10px;font-size:0.78rem;" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    <i class="bi bi-lock"></i> Update
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"><i class="bi bi-phone"></i></div>
+              <div><div class="info-label">Two-Factor Auth</div><div class="info-value" style="display:flex;align-items:center;gap:8px;">Enabled <span class="pos-badge green">On</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Permissions + Activity ── -->
+    <div class="row g-3 mb-4">
+
+      <!-- Permissions -->
+      <div class="col-12 col-lg-5">
+        <div class="section-card h-100">
+          <div class="card-header"><h6><i class="bi bi-toggles"></i> Permissions</h6></div>
+          <div class="card-body">
+            <div class="perm-item">
+              <span class="perm-label"><i class="bi bi-cart-check"></i> Process Sales</span>
+              <label class="toggle-switch"><input type="checkbox" checked disabled><span class="toggle-slider"></span></label>
+            </div>
+            <div class="perm-item">
+              <span class="perm-label"><i class="bi bi-box-seam"></i> Manage Products</span>
+              <label class="toggle-switch"><input type="checkbox" checked disabled><span class="toggle-slider"></span></label>
+            </div>
+            <div class="perm-item">
+              <span class="perm-label"><i class="bi bi-people"></i> View Customers</span>
+              <label class="toggle-switch"><input type="checkbox" checked disabled><span class="toggle-slider"></span></label>
+            </div>
+            <div class="perm-item">
+              <span class="perm-label"><i class="bi bi-bar-chart-line"></i> Access Reports</span>
+              <label class="toggle-switch"><input type="checkbox" checked disabled><span class="toggle-slider"></span></label>
+            </div>
+            <div class="perm-item">
+              <span class="perm-label"><i class="bi bi-arrow-counterclockwise"></i> Process Refunds</span>
+              <label class="toggle-switch"><input type="checkbox" id="permRefunds" disabled><span class="toggle-slider"></span></label>
+            </div>
+            <div class="perm-item">
+              <span class="perm-label"><i class="bi bi-person-plus"></i> Manage Users</span>
+              <label class="toggle-switch"><input type="checkbox" id="permUsers" disabled><span class="toggle-slider"></span></label>
+            </div>
+            <div class="perm-item">
+              <span class="perm-label"><i class="bi bi-truck"></i> Manage Suppliers</span>
+              <label class="toggle-switch"><input type="checkbox" id="permSuppliers" disabled><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="col-12 col-lg-7">
+        <div class="section-card h-100">
+          <div class="card-header">
+            <h6><i class="bi bi-activity"></i> Recent Activity</h6>
+            <button class="btn-pos-ghost" style="padding:5px 10px;font-size:0.78rem;" onclick="location.href='transaction_history.html'">View All</button>
+          </div>
+          <div class="card-body" id="activityFeed">
+            <!-- filled by JS -->
+            <div class="activity-item">
+              <div class="activity-dot purple"></div>
+              <div><div class="activity-text"><span class="skeleton" style="width:220px;height:14px;">&nbsp;</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /.page-body -->
+</div><!-- /.main-content -->
+
+
+<!-- ═══ EDIT PROFILE MODAL ═════════════════════════════════ -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil-square me-2" style="color:var(--accent);"></i>Edit Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="editProfileError" class="alert alert-danger d-none" style="font-size:0.85rem;border-radius:var(--radius-sm);"></div>
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" id="editFullName" placeholder="John Doe">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="editEmail" placeholder="you@example.com">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" class="form-control" id="editPhone" placeholder="+254 700 000 000">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pos-ghost" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn-pos-primary" id="saveProfileBtn" onclick="saveProfile()">
+          <i class="bi bi-check2"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ CHANGE PASSWORD MODAL ══════════════════════════════ -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-lock me-2" style="color:var(--accent);"></i>Change Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="pwError" class="alert alert-danger d-none" style="font-size:0.85rem;border-radius:var(--radius-sm);"></div>
+        <div class="mb-3">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="pwEmail" placeholder="Confirm your email">
+        </div>
+        <p style="font-size:0.82rem;color:var(--muted);">We'll send a password reset link to that address.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pos-ghost" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn-pos-primary" id="sendResetBtn" onclick="sendPasswordReset()">
+          <i class="bi bi-send"></i> Send Reset Link
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  /* ─── Config ────────────────────────────────────────────── */
+  const BASE_URL = "/api";
+
+  /* ─── Auth helpers ──────────────────────────────────────── */
+  function getToken() {
+    return localStorage.getItem("access_token");
+  }
+
+  function authHeaders() {
+    return {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`
+    };
+  }
+
+  /* ─── Toast ─────────────────────────────────────────────── */
+  function showToast(msg, type = "success") {
+    const c = document.getElementById("toast-container");
+    if (!c) return;
+
+    const el = document.createElement("div");
+    el.className = `toast-msg ${type}`;
+    el.innerHTML = `
+      <i class="bi bi-${type === "success" ? "check-circle-fill" : "exclamation-circle-fill"}"
+         style="color:var(--${type === "success" ? "green" : "red"});"></i>
+      ${msg}
+    `;
+    c.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  /* ─── Helpers ───────────────────────────────────────────── */
+  function fmtCurrency(n) {
+    return "KES " + Number(n || 0).toLocaleString("en-KE");
+  }
+
+  function initials(name = "") {
+    return name
+      .split(" ")
+      .map(w => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "?";
+  }
+
+  function capitalise(s) {
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  }
+
+  /* ─── PROFILE RENDER ────────────────────────────────────── */
+  function populateUser(user) {
+    const business = JSON.parse(localStorage.getItem("business") || "{}");
+
+    const name =
+      user.fullname ||
+      user.full_name ||
+      user.username ||
+      "User";
+
+    const role = user.role || "user";
+
+    const businessName =
+      business.business_name ||
+      business.name ||
+      "—";
+
+    /* HERO */
+    const heroName = document.getElementById("heroName");
+    const heroRole = document.getElementById("heroRole");
+    const heroEmail = document.getElementById("heroEmail");
+    const heroPhone = document.getElementById("heroPhone");
+    const avatar = document.getElementById("profileAvatar");
+
+    if (heroName) heroName.textContent = name;
+    if (heroRole) heroRole.textContent = capitalise(role);
+    if (heroEmail) heroEmail.textContent = user.email || "—";
+    if (heroPhone) heroPhone.textContent = user.phone || "—";
+    if (avatar) avatar.textContent = initials(name);
+
+    /* INFO PANEL */
+    const infoFullName = document.getElementById("infoFullName");
+    const infoUsername = document.getElementById("infoUsername");
+    const infoEmail = document.getElementById("infoEmail");
+    const infoPhone = document.getElementById("infoPhone");
+    const infoRole = document.getElementById("infoRole");
+    const infoBusinessId = document.getElementById("infoBusinessId");
+    const infoUserId = document.getElementById("infoUserId");
+
+    if (infoFullName) infoFullName.textContent = name;
+    if (infoUsername) infoUsername.textContent = user.username || "—";
+    if (infoEmail) infoEmail.textContent = user.email || "—";
+    if (infoPhone) infoPhone.textContent = user.phone || "—";
+    if (infoRole) infoRole.textContent = capitalise(role);
+
+    if (infoBusinessId)
+      infoBusinessId.textContent = user.business_id ? `#${user.business_id}` : "—";
+
+    if (infoUserId)
+      infoUserId.textContent = user.id ? `#${user.id}` : "—";
+
+    /* MODALS */
+    const editFullName = document.getElementById("editFullName");
+    const editEmail = document.getElementById("editEmail");
+    const editPhone = document.getElementById("editPhone");
+    const pwEmail = document.getElementById("pwEmail");
+
+    if (editFullName) editFullName.value = name;
+    if (editEmail) editEmail.value = user.email || "";
+    if (editPhone) editPhone.value = user.phone || "";
+    if (pwEmail) pwEmail.value = user.email || "";
+  }
+  /* ─── STATS ─────────────────────────────────────────────── */
+  function populateStats(o) {
+    document.getElementById("statTotalSales").textContent = fmtCurrency(o.total_sales);
+    document.getElementById("statTransactions").textContent = (o.total_transactions || 0).toLocaleString();
+    document.getElementById("statItemsSold").textContent = (o.total_products_sold || 0).toLocaleString();
+
+    const now = new Date();
+    document.getElementById("statLastLogin").textContent =
+      `Today, ${now.toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}`;
+  }
+
+  /* ─── ACTIVITY ─────────────────────────────────────────── */
+  function populateActivity(sales) {
+    const feed = document.getElementById("activityFeed");
+    if (!feed) return;
+
+    if (!sales || sales.length === 0) {
+      feed.innerHTML = `<p style="color:var(--muted)">No recent activity</p>`;
+      return;
+    }
+
+    feed.innerHTML = sales.slice(0, 7).map(sale => `
+      <div class="activity-item">
+        <div>
+          <strong>#INV-${sale.sale_id}</strong>
+          — ${fmtCurrency(sale.total_amount)}
+        </div>
+      </div>
+    `).join("");
+  }
+
+  /* ─── SIDEBAR TOGGLE ───────────────────────────── */
+
+  const sidebar = document.getElementById("sidebarMenu");
+  const overlay = document.getElementById("overlay");
+  const collapseBtn = document.getElementById("collapseSidebar");
+  const mobileToggle = document.getElementById("sidebarToggle");
+
+  function toggleSidebarCollapse() {
+    sidebar.classList.toggle("collapsed");
+  }
+
+  function openMobileSidebar() {
+    sidebar.classList.add("mobile-open");
+    overlay.classList.add("show");
+  }
+
+  function closeMobileSidebar() {
+    sidebar.classList.remove("mobile-open");
+    overlay.classList.remove("show");
+  }
+
+  /* Desktop collapse */
+  if (collapseBtn) {
+    collapseBtn.addEventListener("click", toggleSidebarCollapse);
+  }
+
+  /* Mobile open */
+  if (mobileToggle) {
+    mobileToggle.addEventListener("click", openMobileSidebar);
+  }
+
+  /* Click overlay to close */
+  if (overlay) {
+    overlay.addEventListener("click", closeMobileSidebar);
+  }
+
+  /* ─── API CALLS ─────────────────────────────────────────── */
+  async function fetchIdentity() {
+    const res = await fetch(`${BASE_URL}/auth/auth/identity`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error("Identity failed");
+    return res.json();
+  }
+
+  async function fetchOverview() {
+    const res = await fetch(`${BASE_URL}/services/sales/overview`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error("Overview failed");
+    return res.json();
+  }
+
+  async function fetchHistory() {
+    const res = await fetch(`${BASE_URL}/services/sales/history`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error("History failed");
+    return res.json();
+  }
+
+  /* ─── INIT ─────────────────────────────────────────────── */
+  async function init() {
+    try {
+      const [identity, overview, history] = await Promise.allSettled([
+        fetchIdentity(),
+        fetchOverview(),
+        fetchHistory()
+      ]);
+
+      /* USER */
+      if (identity.status === "fulfilled") {
+        const apiUser = identity.value;
+
+        const cached = JSON.parse(localStorage.getItem("user") || "{}");
+
+        const user = { ...cached, ...apiUser };
+
+        populateUser(user);
+
+        // keep localStorage synced
+        localStorage.setItem("user", JSON.stringify(user));
+      } else {
+        showToast("Failed to load user", "error");
+      }
+
+      /* STATS */
+      if (overview.status === "fulfilled") {
+        populateStats(overview.value);
+      }
+
+      /* ACTIVITY */
+      if (history.status === "fulfilled") {
+        populateActivity(history.value.sales || []);
+      }
+
+    } catch (err) {
+      console.error(err);
+      showToast("Dashboard error", "error");
+    }
+  }
+
+  /* ─── BOOT ─────────────────────────────────────────────── */
+  init();
+</script>
+</body>
+</html>

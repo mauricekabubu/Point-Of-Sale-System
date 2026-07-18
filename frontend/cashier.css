@@ -1,0 +1,107 @@
+body {
+    height: 100%;
+    margin: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+    transition: 0.3s;
+}
+
+body.dark {
+    background: #121212;
+    color: white;
+}
+
+.toggle-mode {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 1.3rem;
+}
+
+.login-card {   
+    margin-top: 20px;
+    width: 100%;
+    max-width: 350px;
+    padding: 30px;
+    border-radius: 15px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: 0.3s;
+    text-align: center;
+}
+
+body.dark .login-card {
+    background: #1e1e1e;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #0dcaf0;
+    margin-bottom: 15px;
+}
+
+.instructions {
+    font-size: 0.9rem;
+    color: gray;
+    margin-bottom: 15px;
+}
+
+body.dark .instructions {
+    color: #ccc;
+}
+
+#pin {
+    width: 80%;
+    font-size: 1.5rem;
+    text-align: center;
+    letter-spacing: 0.3rem;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.keypad button {
+    font-size: 1.5rem;
+    padding: 15px 0;
+    border-radius: 10px;
+    border: none;
+    background: #0dcaf0;
+    color: white;
+    transition: 0.2s;
+}
+
+.keypad button:hover {
+    background: #0bb5d1;
+    transform: translateY(-2px);
+}
+
+.keypad button.delete {
+    background: #f44336;
+}
+
+.keypad button.delete:hover {
+    background: #d32f2f;
+}
+
+.btn-login {
+    margin-top: 20px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+a{
+    text-decoration: none;
+    text-align: center;
+    font: bold;
+    color: white;
+}

@@ -1,0 +1,74 @@
+body {
+    background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+    font-family: 'Segoe UI', sans-serif;
+    transition: 0.3s;
+}
+
+body.dark {
+    background: #121212;
+    color: white;
+}
+
+.container-box {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+body.dark .container-box {
+    background: #1e1e1e;
+}
+
+.title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #0dcaf0;
+}
+
+.section-title {
+    margin-top: 20px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #0dcaf0;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+}
+
+.btn-info {
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.toggle-mode {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 1.3rem;
+}
+
+.links a, .signup a {
+    text-decoration: none;
+    color: #0dcaf0;
+    font-size: 0.9rem;
+}
+
+.links a:hover, .signup a:hover {
+    text-decoration: underline;
+}
+
+.signup {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.input-group-text {
+    cursor: pointer;
+}

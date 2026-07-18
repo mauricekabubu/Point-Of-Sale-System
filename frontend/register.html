@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <title>POS Register Page</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f4f5f7;
+            --panel-bg: #0e1b2e;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --input-border: #dde1e9;
+            --input-border-focus: #2563eb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --brand: #2563eb;
+            --brand-hover: #1d4ed8;
+            --brand-subtle: #eff6ff;
+            --section-label: #6b7280;
+            --separator: #f0f2f5;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+            --radius: 10px;
+            --radius-lg: 16px;
+            --transition: 0.18s ease;
+        }
+
+        body.dark {
+            --bg: #0a1120;
+            --panel-bg: #060d1a;
+            --card-bg: #1e293b;
+            --input-bg: #2d3f55;
+            --input-border: #3d5068;
+            --input-border-focus: #60a5fa;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --brand: #3b82f6;
+            --brand-hover: #60a5fa;
+            --brand-subtle: #1e3a5f;
+            --section-label: #7c9ab8;
+            --separator: #243447;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        /* LEFT PANEL */
+        .brand-panel {
+            width: 42%;
+            min-height: 100vh;
+            background: var(--panel-bg);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 48px 40px;
+            overflow: hidden;
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37,99,235,0.22) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -60px;
+            left: -60px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .brand-top { position: relative; z-index: 1; }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 56px;
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--brand);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 17px;
+        }
+
+        .logo-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+
+        .brand-headline {
+            font-family: 'Syne', sans-serif;
+            font-size: 34px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.18;
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
+        }
+
+        .brand-headline span {
+            color: #60a5fa;
+        }
+
+        .brand-sub {
+            font-size: 15px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.6;
+            max-width: 300px;
+        }
+
+        .brand-features {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 48px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255,255,255,0.65);
+            font-size: 14px;
+        }
+
+        .feature-dot {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 8px;
+            background: rgba(37,99,235,0.25);
+            border: 1px solid rgba(96,165,250,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #60a5fa;
+            font-size: 13px;
+        }
+
+        .brand-footer {
+            position: relative;
+            z-index: 1;
+            font-size: 12px;
+            color: rgba(255,255,255,0.28);
+            letter-spacing: 0.3px;
+        }
+
+        /* ILLUSTRATION */
+        .brand-illustration {
+            position: relative;
+            z-index: 1;
+            margin: 40px 0 0;
+        }
+
+        .stat-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 3px; }
+        .stat-val { font-size: 20px; font-weight: 600; color: #fff; font-family: 'Syne', sans-serif; }
+        .stat-badge {
+            background: rgba(34,197,94,0.15);
+            color: #4ade80;
+            font-size: 11px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            border: 1px solid rgba(74,222,128,0.2);
+        }
+
+        /* RIGHT PANEL */
+        .form-panel {
+            flex: 1;
+            min-height: 100vh;
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        .form-inner {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .form-header {
+            margin-bottom: 36px;
+        }
+
+        .form-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.4px;
+            margin-bottom: 6px;
+            transition: color var(--transition);
+        }
+
+        .form-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: color var(--transition);
+        }
+
+        /* SECTION CARDS */
+        .form-section {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            padding: 24px 24px 20px;
+            margin-bottom: 16px;
+            transition: background var(--transition), box-shadow var(--transition);
+        }
+
+        .section-header {
+            margin-bottom: 18px;
+        }
+
+        .section-step {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 4px;
+        }
+
+        .step-num {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            border-radius: 6px;
+            background: var(--brand-subtle);
+            color: var(--brand);
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        .section-name {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--brand);
+            transition: color var(--transition);
+        }
+
+        .section-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            padding-left: 31px;
+            transition: color var(--transition);
+        }
+
+        .section-divider {
+            height: 1px;
+            background: var(--separator);
+            margin: 0 0 18px;
+            transition: background var(--transition);
+        }
+
+        /* INPUTS */
+        .field-row {
+            margin-bottom: 12px;
+        }
+
+        .form-control, .form-select {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            font-size: 14px;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color var(--transition), background var(--transition), box-shadow var(--transition), color var(--transition);
+        }
+
+        .form-control::placeholder, .form-select option[disabled] {
+            color: var(--text-muted);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--input-border-focus);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+
+        .form-control:hover:not(:focus), .form-select:hover:not(:focus) {
+            border-color: #b0b8cc;
+        }
+
+        body.dark .form-control:hover:not(:focus),
+        body.dark .form-select:hover:not(:focus) {
+            border-color: #4f6880;
+        }
+
+        .form-control[readonly] {
+            background: var(--separator);
+            color: var(--text-muted);
+            cursor: default;
+        }
+
+        /* PASSWORD */
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group .form-control {
+            padding-right: 42px;
+        }
+
+        .input-group-text {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            transition: color var(--transition);
+            z-index: 2;
+        }
+
+        .input-group-text:hover { color: var(--text-secondary); }
+
+        .field-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding-left: 2px;
+            transition: color var(--transition);
+        }
+
+        /* SELECT */
+        .form-select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+
+        /* CHECKBOXES */
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pay-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: border-color var(--transition), background var(--transition);
+        }
+
+        .pay-option:hover { border-color: var(--brand); background: var(--brand-subtle); }
+
+        .pay-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--brand);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .pay-label {
+            font-size: 14px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: color var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .pay-icon {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 0.2px;
+            transition: color var(--transition);
+        }
+
+        /* BUTTON */
+        .btn-register {
+            width: 100%;
+            padding: 13px;
+            background: var(--brand);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.1px;
+        }
+
+        .btn-register:hover {
+            background: var(--brand-hover);
+            box-shadow: 0 4px 16px rgba(37,99,235,0.25);
+        }
+
+        .btn-register:active { transform: scale(0.99); }
+
+        /* FOOTER */
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            transition: color var(--transition);
+        }
+
+        .form-footer a {
+            color: var(--brand);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .form-footer a:hover { text-decoration: underline; }
+
+        .trust-line {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: color var(--transition);
+        }
+
+        .trust-line span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* DARK TOGGLE */
+        .toggle-mode {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--input-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            color: var(--text-secondary);
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), color var(--transition);
+        }
+
+        .toggle-mode:hover { color: var(--text-primary); border-color: var(--brand); }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .brand-panel {
+                width: 100%;
+                min-height: auto;
+                position: static;
+                height: auto;
+                padding: 32px 24px;
+            }
+            .brand-headline { font-size: 26px; }
+            .stat-cards { display: none; }
+            .brand-illustration { display: none; }
+            .brand-features { flex-direction: row; flex-wrap: wrap; margin-top: 24px; }
+            .form-panel { padding: 32px 20px; }
+            .form-section { padding: 20px 18px 16px; }
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toggle-mode" onclick="toggleMode()" title="Toggle dark mode">
+        <i class="bi bi-moon" id="modeIcon"></i>
+    </div>
+
+    <!-- LEFT BRANDING PANEL -->
+    <div class="brand-panel">
+        <div class="brand-top">
+            <div class="brand-logo">
+                <div class="logo-icon"><i class="bi bi-grid-1x2-fill"></i></div>
+                <span class="logo-name">CodexLabs POS</span>
+            </div>
+
+            <h2 class="brand-headline">Manage your<br>store <span>smarter.</span></h2>
+            <p class="brand-sub">One platform to run your sales, track inventory, and grow your business — all in one place.</p>
+
+            <div class="brand-features">
+                <div class="feature-item">
+                    <div class="feature-dot"><i class="bi bi-lightning-fill"></i></div>
+                    Fast checkout, every time
+                </div>
+                <div class="feature-item">
+                    <div class="feature-dot"><i class="bi bi-bar-chart-fill"></i></div>
+                    Real-time sales analytics
+                </div>
+                <div class="feature-item">
+                    <div class="feature-dot"><i class="bi bi-shield-check-fill"></i></div>
+                    Secure & cloud-synced
+                </div>
+                <div class="feature-item">
+                    <div class="feature-dot"><i class="bi bi-phone-fill"></i></div>
+                    Mobile & M-Pesa ready
+                </div>
+            </div>
+
+            <div class="brand-illustration">
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Today's Revenue</div>
+                            <div class="stat-val">KES 84,230</div>
+                        </div>
+                        <div class="stat-badge">+12.4%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Orders Processed</div>
+                            <div class="stat-val">347</div>
+                        </div>
+                        <div class="stat-badge">+8.1%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="brand-footer">© 2025 SiftPOS · Nairobi, Kenya</div>
+    </div>
+
+    <!-- RIGHT FORM PANEL -->
+    <div class="form-panel">
+        <div class="form-inner">
+
+            <div class="form-header">
+                <h1>Create your POS account</h1>
+                <p>Set up in under 2 minutes. No credit card required.</p>
+            </div>
+
+            <form onsubmit="registerUser(event)">
+
+                <!-- SECTION 1: BASIC INFO -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="section-step">
+                            <div class="step-num">1</div>
+                            <span class="section-name">Basic Information</span>
+                        </div>
+                        <p class="section-desc">Tell us who you are</p>
+                    </div>
+                    <div class="section-divider"></div>
+
+                    <div class="field-row">
+                        <input type="text" class="form-control" placeholder="Full Name" required>
+                    </div>
+
+                    <div class="field-row">
+                        <input type="text" class="form-control" placeholder="Username" required>
+                    </div>
+
+                    <div class="field-row">
+                        <input type="email" class="form-control" placeholder="Email Address" required>
+                    </div>
+
+                    <div class="field-row">
+                        <input type="tel" class="form-control" placeholder="Phone Number (e.g. 07XXXXXXXX)" required>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="input-group">
+                            <input type="password" id="password" class="form-control" placeholder="Password" required>
+                            <span class="input-group-text" onclick="togglePassword('password')">
+                                <i class="bi bi-eye" id="icon-password"></i>
+                            </span>
+                        </div>
+                        <div class="field-hint">Use at least 8 characters with a number or symbol</div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="input-group">
+                            <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" required>
+                            <span class="input-group-text" onclick="togglePassword('confirmPassword')">
+                                <i class="bi bi-eye" id="icon-confirmPassword"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: BUSINESS INFO -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="section-step">
+                            <div class="step-num">2</div>
+                            <span class="section-name">Business Information</span>
+                        </div>
+                        <p class="section-desc">Help us tailor your POS experience</p>
+                    </div>
+                    <div class="section-divider"></div>
+
+                    <div class="field-row">
+                        <input type="text" class="form-control" placeholder="Business Name" required>
+                    </div>
+
+                    <div class="field-row">
+                        <select class="form-select" id="businessTypeSelect">
+                            <option value="" selected disabled>Business Type</option>
+                            <option>Retail Shop</option>
+                            <option>Grocery</option>
+                            <option>Electronics</option>
+                            <option>Pharmacy</option>
+                            <option>Supermarket</option>
+                            <option>Clothing shop</option>
+                        </select>
+                    </div>
+
+                    <div class="field-row">
+                        <input type="text" class="form-control" placeholder="City (e.g., Nairobi)">
+                    </div>
+
+                    <div class="field-row">
+                        <input type="text" class="form-control" placeholder="Address (optional)">
+                    </div>
+                </div>
+
+                <!-- SECTION 3: POS SETUP -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <div class="section-step">
+                            <div class="step-num">3</div>
+                            <span class="section-name">POS Setup Details</span>
+                        </div>
+                        <p class="section-desc">Configure your point of sale preferences</p>
+                    </div>
+                    <div class="section-divider"></div>
+
+                    <div class="field-row">
+                        <div class="field-label">Currency</div>
+                        <input type="text" class="form-control" value="KES — Kenyan Shilling" readonly>
+                    </div>
+
+                    <div class="field-row">
+                        <input type="number" class="form-control" placeholder="Tax / VAT (%) e.g. 16">
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field-label">Default Payment Methods</div>
+                        <div class="payment-methods">
+                            <label class="pay-option">
+                                <input class="form-check-input" type="checkbox" checked>
+                                <span class="pay-label">
+                                    <i class="bi bi-cash-coin pay-icon"></i>
+                                    Cash
+                                </span>
+                            </label>
+                            <label class="pay-option">
+                                <input class="form-check-input" type="checkbox" checked>
+                                <span class="pay-label">
+                                    <i class="bi bi-phone pay-icon"></i>
+                                    Mobile Money
+                                </span>
+                            </label>
+                            <label class="pay-option">
+                                <input class="form-check-input" type="checkbox">
+                                <span class="pay-label">
+                                    <i class="bi bi-credit-card pay-icon"></i>
+                                    Card
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBMIT -->
+                <button type="submit" class="btn-register">
+                    <i class="bi bi-rocket-takeoff"></i>
+                    Create Account
+                </button>
+
+                <div class="form-footer">
+                    Already have an account? <a href="index.html">Sign in</a>
+                </div>
+
+                <div class="trust-line">
+                    <span><i class="bi bi-shield-lock-fill"></i> Secure</span>
+                    <span><i class="bi bi-lightning-charge-fill"></i> Fast</span>
+                    <span><i class="bi bi-patch-check-fill"></i> Trusted POS System</span>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function showToast(message, type = "success") {
+        const colors = { success: "#16a34a", danger: "#dc2626", warning: "#d97706", info: "#2563eb" };
+        const icons  = { success: "bi-check-circle-fill", danger: "bi-x-circle-fill", warning: "bi-exclamation-triangle-fill", info: "bi-info-circle-fill" };
+
+        let toast = document.getElementById("inline-toast");
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "inline-toast";
+            toast.style.cssText = `
+                position:fixed; top:20px; left:50%; transform:translateX(-50%);
+                padding:12px 20px; border-radius:10px; color:#fff; font-size:14px;
+                display:flex; align-items:center; gap:9px; z-index:9999;
+                box-shadow:0 4px 20px rgba(0,0,0,0.2); font-family:'DM Sans',sans-serif;
+                transition:opacity 0.3s ease;
+            `;
+            document.body.appendChild(toast);
+        }
+
+        // Reset opacity instantly before updating content to handle rapid repeat calls
+        toast.style.transition = "none";
+        toast.style.opacity = "1";
+        toast.offsetHeight; // force reflow
+        toast.style.transition = "opacity 0.3s ease";
+
+        toast.style.background = colors[type] || colors.success;
+        toast.innerHTML = `<i class="bi ${icons[type]}"></i> ${message}`;
+
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => { toast.style.opacity = "0"; }, type === "danger" ? 6000 : 4000);
+    }
+
+    function toggleMode() {
+        document.body.classList.toggle("dark");
+        const icon = document.getElementById("modeIcon");
+        icon.className = document.body.classList.contains("dark") ? "bi bi-sun" : "bi bi-moon";
+    }
+
+    function togglePassword(id) {
+        const input = document.getElementById(id);
+        const icon  = document.getElementById("icon-" + id);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.className = "bi bi-eye-slash";
+        } else {
+            input.type = "password";
+            icon.className = "bi bi-eye";
+        }
+    }
+
+    async function registerUser(event) {
+        event.preventDefault();
+        const form = event.target;
+
+        const fullName        = form.querySelector("input[placeholder='Full Name']").value;
+        const username        = form.querySelector("input[placeholder='Username']").value;
+        const email           = form.querySelector("input[type='email']").value;
+        const phone           = form.querySelector("input[type='tel']").value;
+        const password        = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        const businessName    = form.querySelector("input[placeholder='Business Name']").value;
+        const businessType    = document.getElementById("businessTypeSelect").value;
+        const city            = form.querySelector("input[placeholder='City (e.g., Nairobi)']").value;
+        const address         = form.querySelector("input[placeholder='Address (optional)']").value;
+        const tax             = form.querySelector("input[type='number']").value;
+
+        if (password !== confirmPassword) {
+            showToast("Passwords do not match.", "danger");
+            return;
+        }
+
+        if (!businessType) {
+            showToast("Please select a business type.", "warning");
+            return;
+        }
+
+        const btn = form.querySelector(".btn-register");
+        const btnOriginal = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Creating account…';
+
+        let registrationSuccessful = false;
+
+        try {
+            const response = await fetch("/api/auth/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    full_name: fullName, username, email, phone, password,
+                    business_name: businessName, business_type: businessType,
+                    city, address, tax
+                })
+            });
+
+            let data = {};
+            try { data = await response.json(); } catch (_) {}
+
+            if (!response.ok) {
+                showToast(data.error || "Registration failed. Please try again.", "danger");
+                return;
+            }
+
+            // Success
+            registrationSuccessful = true;
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> Account created!';
+            showToast(data.message || "Account created! Redirecting…", "success");
+            setTimeout(() => window.location.href = "index.html", 1500);
+
+        } catch (error) {
+            console.error(error);
+            showToast("Could not reach the server. Please check your connection.", "danger");
+        } finally {
+            if (!registrationSuccessful) {
+                btn.disabled = false;
+                btn.innerHTML = btnOriginal;
+            }
+        }
+    }
+</script>
+</body>
+</html>

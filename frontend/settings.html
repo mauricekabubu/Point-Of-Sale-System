@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings · POS System</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ═══════════════════════════════════════
+   DESIGN TOKENS — LIGHT
+═══════════════════════════════════════ */
+:root {
+  --bg:              #f4f5f7;
+  --surface:         #ffffff;
+  --surface-2:       #f8f9fb;
+  --surface-3:       #f1f3f6;
+  --border:          rgba(0,0,0,.08);
+  --border-light:    rgba(0,0,0,.05);
+  --text-primary:    #0d0f12;
+  --text-secondary:  #5a6272;
+  --text-muted:      #9aa3b2;
+  --accent:          #2a5ef4;
+  --accent-light:    #eef2ff;
+  --accent-hover:    #1a4de3;
+  --accent-subtle:   rgba(42,94,244,.08);
+  --success:         #059669;
+  --success-light:   #ecfdf5;
+  --warning:         #c97b00;
+  --warning-light:   #fffbeb;
+  --danger:          #dc2626;
+  --danger-light:    #fef2f2;
+  --sb-bg:           #18202e;
+  --sb-bg-2:         #1e2840;
+  --sb-border:       rgba(255,255,255,.055);
+  --sb-text:         #8a97b0;
+  --sb-text-hover:   #e8edf5;
+  --sb-active-bg:    rgba(42,94,244,.18);
+  --sb-active-text:  #93b4ff;
+  --sb-active-bar:   #2a5ef4;
+  --sb-label:        rgba(138,151,176,.45);
+  --shadow-xs:       0 1px 2px rgba(0,0,0,.04);
+  --shadow-sm:       0 1px 4px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+  --shadow-md:       0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-lg:       0 16px 48px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.06);
+  --r-xs:  4px; --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
+  --sidebar-w: 240px; --header-h: 60px;
+  --font:      'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --t-fast: .15s ease; --t-base: .22s cubic-bezier(.4,0,.2,1); --t-slow: .35s cubic-bezier(.4,0,.2,1);
+}
+
+[data-theme="dark"] {
+  --bg:              #0d1117;
+  --surface:         #161b27;
+  --surface-2:       #1c2334;
+  --surface-3:       #212b3d;
+  --border:          rgba(255,255,255,.08);
+  --border-light:    rgba(255,255,255,.05);
+  --text-primary:    #e8edf5;
+  --text-secondary:  #8a97b0;
+  --text-muted:      #56637a;
+  --accent:          #4f7ef8;
+  --accent-light:    rgba(79,126,248,.12);
+  --accent-hover:    #3d6df5;
+  --accent-subtle:   rgba(79,126,248,.1);
+  --success:         #10b981;
+  --success-light:   rgba(16,185,129,.12);
+  --warning:         #f59e0b;
+  --warning-light:   rgba(245,158,11,.1);
+  --danger:          #f87171;
+  --danger-light:    rgba(248,113,113,.1);
+  --sb-bg:           #0d1117;
+  --sb-bg-2:         #161b27;
+  --sb-text:         #56637a;
+  --sb-text-hover:   #c8d3e8;
+  --sb-active-bg:    rgba(79,126,248,.15);
+  --sb-active-text:  #7ba8ff;
+  --sb-active-bar:   #4f7ef8;
+  --sb-label:        rgba(86,99,122,.6);
+  --shadow-xs:       0 1px 2px rgba(0,0,0,.2);
+  --shadow-sm:       0 1px 4px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.2);
+  --shadow-md:       0 4px 16px rgba(0,0,0,.35), 0 1px 4px rgba(0,0,0,.2);
+  --shadow-lg:       0 16px 48px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.3);
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--t-base), color var(--t-base);
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ── Sidebar ── */
+#sidebarMenu {
+  position: fixed; top: 0; left: 0;
+  width: var(--sidebar-w); height: 100vh;
+  background: var(--sb-bg);
+  overflow-y: auto; z-index: 1050;
+  padding: 0 10px 20px;
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--sb-border);
+  transition: left var(--t-base), background var(--t-base);
+}
+#sidebarMenu .sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 18px 10px 16px;
+  border-bottom: 1px solid var(--sb-border);
+  margin-bottom: 8px; flex-shrink: 0;
+}
+#sidebarMenu .sidebar-logo .logo-mark {
+  width: 30px; height: 30px; background: var(--accent);
+  border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #fff; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(42,94,244,.4);
+}
+#sidebarMenu .sidebar-logo span { font-size: 13.5px; font-weight: 600; color: #e8edf5; letter-spacing: -.015em; }
+.nav-label {
+  margin: 20px 0 4px 10px; font-size: 10px; font-weight: 700;
+  color: var(--sb-label); text-transform: uppercase; letter-spacing: .1em;
+}
+#sidebarMenu a {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: var(--r-sm);
+  color: var(--sb-text); text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  transition: background var(--t-fast), color var(--t-fast);
+  position: relative; letter-spacing: -.005em;
+}
+#sidebarMenu a i { font-size: 14px; opacity: .7; flex-shrink: 0; width: 16px; text-align: center; transition: opacity var(--t-fast); }
+#sidebarMenu a:hover { background: rgba(255,255,255,.05); color: var(--sb-text-hover); }
+#sidebarMenu a:hover i { opacity: 1; }
+#sidebarMenu a.active { background: var(--sb-active-bg); color: var(--sb-active-text); }
+#sidebarMenu a.active i { opacity: 1; }
+#sidebarMenu a.active::before {
+  content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 18px; background: var(--sb-active-bar); border-radius: 0 3px 3px 0;
+}
+#sidebarOverlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px); z-index: 1040; display: none;
+}
+
+/* ── Header ── */
+.top-header {
+  position: sticky; top: 0; height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; padding: 0 28px;
+  z-index: 900; gap: 12px;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--t-base), border-color var(--t-base);
+}
+[data-theme="dark"] .top-header { background: rgba(22,27,39,.92); }
+.top-header .page-title { font-size: 15px; font-weight: 600; letter-spacing: -.02em; display: flex; align-items: center; gap: 7px; }
+.top-header .page-title i { font-size: 14px; color: var(--text-muted); }
+.top-header .breadcrumb-sep { color: var(--border); font-size: 16px; font-weight: 300; }
+.top-header .breadcrumb-current { font-size: 13px; color: var(--text-muted); font-weight: 400; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.theme-toggle {
+  width: 34px; height: 34px; border-radius: var(--r-sm);
+  border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--text-secondary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.theme-toggle:hover { background: var(--surface-3); color: var(--text-primary); transform: rotate(15deg); }
+.mobile-toggle {
+  display: none; width: 34px; height: 34px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); cursor: pointer; color: var(--text-secondary);
+  font-size: 16px; align-items: center; justify-content: center;
+  transition: background var(--t-fast);
+}
+.mobile-toggle:hover { background: var(--surface-3); }
+
+/* ── Layout ── */
+.main-content {
+  margin-left: var(--sidebar-w); background: var(--bg); min-height: 100vh;
+  display: flex; flex-direction: column;
+  transition: margin var(--t-base), background var(--t-base);
+}
+.content-body { padding: 32px 28px; flex: 1; max-width: 980px; }
+
+/* ── Setting cards ── */
+.setting-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+  overflow: hidden; margin-bottom: 0;
+  transition: box-shadow var(--t-base), transform var(--t-base), background var(--t-base), border-color var(--t-base);
+}
+.setting-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.setting-header {
+  display: flex; align-items: center; gap: 13px;
+  padding: 20px 22px 18px; border-bottom: 1px solid var(--border-light);
+  background: var(--surface);
+}
+.setting-header .header-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+}
+.header-icon.blue  { background: var(--accent-light); color: var(--accent); }
+.header-icon.green { background: var(--success-light); color: var(--success); }
+.header-icon.amber { background: var(--warning-light); color: var(--warning); }
+.header-icon.slate { background: var(--surface-3); color: var(--text-secondary); }
+.setting-header .header-text .card-title { font-size: 14px; font-weight: 600; letter-spacing: -.015em; line-height: 1.3; }
+.setting-header .header-text .card-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.card-body { padding: 22px; background: var(--surface); transition: background var(--t-base); }
+.info-row {
+  display: flex; align-items: baseline;
+  padding: 10px 0; border-bottom: 1px solid var(--border-light); gap: 16px;
+}
+.info-row:last-child { border-bottom: none; padding-bottom: 2px; }
+.info-label { font-size: 11.5px; color: var(--text-muted); font-weight: 500; min-width: 80px; flex-shrink: 0; }
+.info-value { font-size: 13.5px; color: var(--text-primary); font-weight: 500; }
+.badge-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600;
+  background: var(--accent-light); color: var(--accent);
+  border: 1px solid rgba(42,94,244,.12);
+}
+.sys-meta {
+  display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);
+  padding: 10px 0; border-bottom: 1px solid var(--border-light);
+}
+.sys-meta:last-child { border-bottom: none; }
+.sys-meta i { color: var(--text-muted); font-size: 14px; width: 16px; text-align: center; }
+.sys-meta .sys-key { min-width: 80px; color: var(--text-muted); font-size: 11.5px; font-weight: 500; }
+.sys-meta .sys-val { font-weight: 600; color: var(--text-primary); font-size: 13px; }
+.security-notice {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px; background: var(--warning-light);
+  border: 1px solid rgba(201,123,0,.15); border-radius: var(--r-sm);
+  font-size: 12.5px; color: var(--warning); margin-bottom: 18px;
+}
+[data-theme="dark"] .security-notice { border-color: rgba(245,158,11,.2); }
+.security-notice i { margin-top: 1px; flex-shrink: 0; }
+
+/* ── Buttons ── */
+.btn {
+  font-family: var(--font); font-size: 13px; font-weight: 500;
+  border-radius: 10px; padding: 8px 16px; border: none; cursor: pointer;
+  transition: background var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast), color var(--t-fast);
+  display: inline-flex; align-items: center; gap: 6px; line-height: 1; letter-spacing: -.01em;
+}
+.btn:active { transform: scale(.965); }
+.btn-primary { background: var(--accent); color: #fff !important; box-shadow: 0 1px 4px rgba(42,94,244,.35); }
+.btn-primary:hover { background: var(--accent-hover); box-shadow: 0 3px 12px rgba(42,94,244,.45); color: #fff !important; }
+.btn-success { background: var(--success); color: #fff !important; box-shadow: 0 1px 4px rgba(5,150,105,.3); }
+.btn-success:hover { background: #047857; box-shadow: 0 3px 10px rgba(5,150,105,.4); color: #fff !important; }
+.btn-warning { background: var(--warning-light); color: var(--warning) !important; border: 1px solid rgba(201,123,0,.18); }
+.btn-warning:hover { background: #fef3c7; color: var(--warning) !important; }
+[data-theme="dark"] .btn-warning { background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.2); }
+[data-theme="dark"] .btn-warning:hover { background: rgba(245,158,11,.2); }
+.btn-dark { background: var(--sb-bg); color: var(--sb-text-hover) !important; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+.btn-dark:hover { background: #0d1117; color: #fff !important; }
+[data-theme="dark"] .btn-dark { background: var(--surface-3); color: var(--text-primary) !important; border: 1px solid var(--border); }
+[data-theme="dark"] .btn-dark:hover { background: var(--surface-2); }
+.btn-secondary { background: var(--surface-2); color: var(--text-secondary) !important; border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--surface-3); color: var(--text-primary) !important; }
+.btn-sm { font-size: 12.5px; padding: 7px 14px; border-radius: 9px; }
+.btn:disabled { opacity: .6; cursor: not-allowed; transform: none !important; }
+
+/* ── Modals ── */
+.modal-content {
+  border: 1px solid var(--border); border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg); font-family: var(--font); overflow: hidden;
+  animation: modalIn .22s cubic-bezier(.34,1.1,.64,1);
+  background: var(--surface);
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-header {
+  background: var(--surface); border-bottom: 1px solid var(--border-light);
+  padding: 22px 24px; display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h5 { font-size: 15px; font-weight: 600; letter-spacing: -.02em; }
+.btn-close { opacity: .35; transition: opacity var(--t-fast), transform var(--t-fast); }
+[data-theme="dark"] .btn-close { filter: invert(1); }
+.btn-close:hover { opacity: .7; transform: rotate(90deg); }
+.modal-body { padding: 24px; background: var(--surface); }
+.modal-footer {
+  padding: 16px 24px; background: var(--surface-2);
+  border-top: 1px solid var(--border-light);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+.modal-body.row { display: flex; flex-wrap: wrap; gap: 16px; }
+.modal-body.row .col-lg-6, .modal-body.row .col-12 { padding: 0; }
+
+/* ── Inputs ── */
+.form-control, .form-select {
+  font-family: var(--font); font-size: 13.5px;
+  border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  padding: 10px 14px; background: var(--surface-2); color: var(--text-primary);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+  line-height: 1.5; height: 42px;
+}
+.form-control::placeholder { color: var(--text-muted); }
+.form-control:focus, .form-select:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle); background: var(--surface); color: var(--text-primary);
+}
+.input-group .form-control { border-right: none; border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.input-group .form-control:focus { box-shadow: none; }
+.input-group .btn-outline-secondary {
+  border: 1.5px solid var(--border); border-left: 1px solid var(--border-light);
+  background: var(--surface-2); color: var(--text-secondary);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0; padding: 0 12px; height: 42px;
+  transition: background var(--t-fast), color var(--t-fast);
+  display: flex; align-items: center;
+}
+.input-group .btn-outline-secondary:hover { background: var(--surface-3); color: var(--text-primary); }
+.input-group-stack { display: flex; flex-direction: column; gap: 16px; }
+.input-label {
+  display: block; font-size: 11.5px; font-weight: 600;
+  color: var(--text-secondary); margin-bottom: 7px; letter-spacing: .01em;
+}
+[data-theme="dark"] .modal-backdrop { opacity: .6; }
+
+/* ── Toast ── */
+#toast-container {
+  position: fixed; bottom: 24px; right: 24px;
+  display: flex; flex-direction: column; gap: 8px; z-index: 9999;
+}
+.toast-msg {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-radius: var(--r-md);
+  font-size: 13px; font-weight: 500; color: #fff;
+  box-shadow: var(--shadow-lg); min-width: 260px;
+  animation: toastIn .25s cubic-bezier(.34,1.1,.64,1);
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
+.toast-msg.success { background: var(--success); }
+.toast-msg.error   { background: var(--danger); }
+.toast-msg i       { font-size: 15px; flex-shrink: 0; }
+
+/* ── Skeleton loader ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--r-xs); display: inline-block;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── Responsive ── */
+@media (max-width: 991px) {
+  #sidebarMenu { left: calc(-1 * var(--sidebar-w)); }
+  #sidebarMenu.show { left: 0; }
+  .main-content { margin-left: 0; }
+  .top-header { padding: 0 16px; }
+  .content-body { padding: 20px 16px; }
+  .mobile-toggle { display: inline-flex; }
+}
+.row.g-4 { gap: 1.25rem 1rem; --bs-gutter-x: 1rem; --bs-gutter-y: 1.25rem; }
+</style>
+</head>
+
+<body>
+<div id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<div id="toast-container"></div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav id="sidebarMenu">
+  <div class="sidebar-logo">
+    <div class="logo-mark"><i class="bi bi-bag-heart-fill"></i></div>
+    <span>CodexLabs POS</span>
+  </div>
+  <a href="Dashboard.html"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+  <a href="sale.html"><i class="bi bi-cart-plus"></i><span>New Sale</span></a>
+  <a href="product.html"><i class="bi bi-box-seam"></i><span>Products</span></a>
+  <div class="nav-label">Reports</div>
+  <a href="report.html"><i class="bi bi-graph-up"></i><span>Sales</span></a>
+  <a href="transaction_history.html"><i class="bi bi-receipt"></i><span>Transactions</span></a>
+  <a href="refund.html"><i class="bi bi-arrow-counterclockwise"></i><span>Refunds</span></a>
+  <div class="nav-label">Management</div>
+  <a href="inventory.html"><i class="bi bi-clipboard-check"></i><span>Inventory</span></a>
+  <a href="customer.html"><i class="bi bi-people"></i><span>Customers</span></a>
+  <a href="supplier.html"><i class="bi bi-truck"></i><span>Suppliers</span></a>
+  <a href="users.html"><i class="bi bi-person-badge"></i><span>Users</span></a>
+  <div class="nav-label">Account</div>
+  <a href="profile.html"><i class="bi bi-person-circle"></i><span>Profile</span></a>
+  <div class="nav-label">Settings</div>
+  <a href="settings.html" class="active"><i class="bi bi-gear"></i><span>Settings</span></a>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main-content">
+
+  <header class="top-header">
+    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+    <span class="page-title"><i class="bi bi-gear"></i> Settings</span>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">Account &amp; System</span>
+    <div class="header-right">
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme" onclick="toggleTheme()">
+        <i class="bi bi-sun" id="themeIcon"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="content-body">
+    <div class="container-fluid px-0">
+      <div class="row g-4">
+
+        <!-- ─── PROFILE ─── -->
+        <div class="col-lg-6 col-12">
+          <div class="card setting-card">
+            <div class="setting-header">
+              <div class="header-icon blue"><i class="bi bi-person-circle"></i></div>
+              <div class="header-text">
+                <div class="card-title">Profile Information</div>
+                <div class="card-sub">Manage your account details</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <span class="info-label">Full Name</span>
+                <span class="info-value" id="disp-full_name"><span class="skeleton" style="width:110px;height:14px;"></span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Username</span>
+                <span class="info-value" id="disp-username" style="font-family:var(--font-mono);font-size:12.5px;"><span class="skeleton" style="width:80px;height:14px;"></span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Email</span>
+                <span class="info-value" id="disp-email"><span class="skeleton" style="width:140px;height:14px;"></span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Phone</span>
+                <span class="info-value" id="disp-phone"><span class="skeleton" style="width:100px;height:14px;"></span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Location</span>
+                <span class="info-value" id="disp-location"><span class="skeleton" style="width:80px;height:14px;"></span></span>
+              </div>
+              <div style="margin-top:20px;">
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#profileModal" onclick="openProfileModal()">
+                  <i class="bi bi-pencil"></i> Edit Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── BUSINESS ─── -->
+        <div class="col-lg-6 col-12">
+          <div class="card setting-card">
+            <div class="setting-header">
+              <div class="header-icon green"><i class="bi bi-shop"></i></div>
+              <div class="header-text">
+                <div class="card-title">Business Info</div>
+                <div class="card-sub">Company details &amp; category</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <span class="info-label">Business</span>
+                <span class="info-value" id="disp-biz-name"><span class="skeleton" style="width:120px;height:14px;"></span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Type</span>
+                <span class="info-value" id="disp-biz-type"><span class="skeleton" style="width:80px;height:14px;"></span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">City</span>
+                <span class="info-value" id="disp-biz-city"><span class="skeleton" style="width:70px;height:14px;"></span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Address</span>
+                <span class="info-value" id="disp-biz-address"><span class="skeleton" style="width:130px;height:14px;"></span></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Tax Rate</span>
+                <span class="info-value" id="disp-biz-tax"><span class="skeleton" style="width:40px;height:14px;"></span></span>
+              </div>
+              <div style="margin-top:20px;">
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#businessModal" onclick="openBusinessModal()">
+                  <i class="bi bi-pencil"></i> Edit Business
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── SECURITY ─── -->
+        <div class="col-lg-6 col-12">
+          <div class="card setting-card">
+            <div class="setting-header">
+              <div class="header-icon amber"><i class="bi bi-shield-lock"></i></div>
+              <div class="header-text">
+                <div class="card-title">Security</div>
+                <div class="card-sub">Password &amp; access settings</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="security-notice">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>Use a strong password with letters, numbers, and symbols. Update regularly.</span>
+              </div>
+              <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#passwordModal">
+                <i class="bi bi-key"></i> Change Password
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── SYSTEM ─── -->
+        <div class="col-lg-6 col-12">
+          <div class="card setting-card">
+            <div class="setting-header">
+              <div class="header-icon slate"><i class="bi bi-sliders"></i></div>
+              <div class="header-text">
+                <div class="card-title">System Settings</div>
+                <div class="card-sub">POS configuration &amp; preferences</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="sys-meta">
+                <i class="bi bi-percent"></i>
+                <span class="sys-key">Tax Rate</span>
+                <span class="sys-val" id="disp-sys-tax">—</span>
+              </div>
+              <div class="sys-meta">
+                <i class="bi bi-currency-exchange"></i>
+                <span class="sys-key">Currency</span>
+                <span class="sys-val">KSh (Kenyan Shilling)</span>
+              </div>
+              <div style="margin-top:20px;">
+                <button class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#businessModal" onclick="openBusinessModal()">
+                  <i class="bi bi-tools"></i> Configure System
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- PROFILE MODAL -->
+<div class="modal fade" id="profileModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>Edit Profile</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body row g-3">
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Full Name</label>
+          <input id="inp-full_name" class="form-control" placeholder="Full Name">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Username</label>
+          <input id="inp-username" class="form-control" placeholder="Username">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Email</label>
+          <input id="inp-email" class="form-control" type="email" placeholder="Email">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Phone</label>
+          <input id="inp-phone" class="form-control" placeholder="Phone">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Location</label>
+          <input id="inp-location" class="form-control" placeholder="Location">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="saveProfileBtn" onclick="saveProfile()">
+          <i class="bi bi-check2"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUSINESS MODAL -->
+<div class="modal fade" id="businessModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>Edit Business</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body row g-3">
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Business Name</label>
+          <input id="inp-biz-name" class="form-control" placeholder="Business Name">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Business Type</label>
+          <input id="inp-biz-type" class="form-control" placeholder="e.g. Electronics, Grocery">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label class="input-label">City</label>
+          <input id="inp-biz-city" class="form-control" placeholder="City">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Address</label>
+          <input id="inp-biz-address" class="form-control" placeholder="Street address">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label class="input-label">Tax Rate (%)</label>
+          <input id="inp-biz-tax" class="form-control" type="number" min="0" max="100" step="0.1" placeholder="e.g. 16">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" id="saveBusinessBtn" onclick="saveBusiness()">
+          <i class="bi bi-check2"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal fade" id="passwordModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>Change Password</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group-stack">
+          <div>
+            <label class="input-label">Current Password</label>
+            <div class="input-group">
+              <input type="password" id="currentPassword" class="form-control" placeholder="Enter current password">
+              <button class="btn btn-outline-secondary" onclick="togglePassword('currentPassword', this)"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div>
+            <label class="input-label">New Password</label>
+            <div class="input-group">
+              <input type="password" id="newPassword" class="form-control" placeholder="Min. 8 characters">
+              <button class="btn btn-outline-secondary" onclick="togglePassword('newPassword', this)"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div>
+            <label class="input-label">Confirm New Password</label>
+            <div class="input-group">
+              <input type="password" id="confirmPassword" class="form-control" placeholder="Repeat new password">
+              <button class="btn btn-outline-secondary" onclick="togglePassword('confirmPassword', this)"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-warning" id="savePasswordBtn" onclick="changePassword()">
+          <i class="bi bi-key"></i> Update Password
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  /* ═══════════════════════════════════════
+    CONFIG
+    NOTE: must match the origin used in index.html's login fetch
+    (that file calls http://127.0.0.1:5000 — "localhost" is a DIFFERENT
+    origin to the browser and can silently break the session/CORS).
+    No trailing slash here — paths below already start with "/".
+  ═══════════════════════════════════════ */
+  const BASE_URL = "/api";
+  /* ════════════════════════════════════
+    AUTH / STORAGE HELPERS
+    index.html's loginUser() stores:
+      localStorage.access_token  = string
+      localStorage.refresh_token = string
+      localStorage.user          = JSON string of the full user object
+      localStorage.business      = JSON string of the full business object
+    There is NO separate "user_id" / "business_id" key — the id lives
+    inside those JSON objects. That mismatch is why nothing loaded.
+  ═══════════════════════════════════════ */
+  function getToken() {
+    return localStorage.getItem("access_token") || sessionStorage.getItem("access_token") || "";
+  }
+
+  function getStoredUser() {
+    const raw = localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (!raw) return {};
+    try { return JSON.parse(raw) || {}; } catch (e) { return {}; }
+  }
+
+  function getStoredBusiness() {
+    const raw = localStorage.getItem("business") || sessionStorage.getItem("business");
+    if (!raw) return {};
+    try { return JSON.parse(raw) || {}; } catch (e) { return {}; }
+  }
+
+  // Field name fallbacks below (id / user_id, name / business_name, etc.)
+  // are defensive guesses — open devtools console on load, check the
+  // "Stored user:" / "Stored business:" logs, and trim these to match
+  // your actual API response shape if anything still shows "—".
+  function getUserId() {
+    const u = getStoredUser();
+    return u.id || u.user_id || u.ID || 0;
+  }
+
+  function getBusinessId() {
+    const b = getStoredBusiness();
+    return b.id || b.business_id || b.ID || 0;
+  }
+
+  async function apiFetch(path, options = {}) {
+    const token = getToken();
+    const res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  /* ═══════════════════════════════════════
+    TOAST
+  ═══════════════════════════════════════ */
+  function showToast(message, type = "success") {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = `toast-msg ${type}`;
+    toast.innerHTML = `<i class="bi bi-${type === "success" ? "check-circle-fill" : "exclamation-circle-fill"}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.transition = "opacity .3s, transform .3s";
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(12px)";
+      setTimeout(() => toast.remove(), 320);
+    }, 3500);
+  }
+
+  /* ═══════════════════════════════════════
+    BUTTON LOADING STATE
+  ═══════════════════════════════════════ */
+  function setLoading(btn, loading) {
+    if (loading) {
+      btn.dataset.original = btn.innerHTML;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm" style="width:13px;height:13px;border-width:2px;"></span> Saving…`;
+      btn.disabled = true;
+    } else {
+      btn.innerHTML = btn.dataset.original || btn.innerHTML;
+      btn.disabled = false;
+    }
+  }
+
+  /* ═══════════════════════════════════════
+    PAGE LOAD — render from cached login data
+    instantly, then refresh from the API
+  ═══════════════════════════════════════ */
+  const state = { user: {}, business: {} };
+
+  async function loadSettings() {
+    if (!getToken()) {
+      window.location.href = "index.html";
+      return;
+    }
+
+    // 1. We already have the full user/business objects from login —
+    //    render them immediately, no need to wait on a network call.
+    state.user = getStoredUser();
+    state.business = getStoredBusiness();
+    console.log("Stored user:", state.user);
+    console.log("Stored business:", state.business);
+    renderProfile(state.user);
+    renderBusiness(state.business);
+
+    // 2. Then refresh in the background in case data changed elsewhere.
+    const userId = getUserId();
+    if (userId) {
+      const { ok, data } = await apiFetch(`/routes/setting/profile/${userId}`, { method: "GET" })
+        .catch(() => ({ ok: false, data: {} }));
+      if (ok && data) {
+        state.user = data.user || data;
+        localStorage.setItem("user", JSON.stringify(state.user));
+        renderProfile(state.user);
+      }
+    } else {
+      console.warn("No user id found in stored 'user' object — check field names.");
+    }
+
+    const businessId = getBusinessId();
+    if (businessId) {
+      const { ok, data } = await apiFetch(`/routes/setting/business/${businessId}`, { method: "GET" })
+        .catch(() => ({ ok: false, data: {} }));
+      if (ok && data) {
+        state.business = data.business || data;
+        localStorage.setItem("business", JSON.stringify(state.business));
+        renderBusiness(state.business);
+      }
+    } else {
+      console.warn("No business id found in stored 'business' object — check field names.");
+    }
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = (value === undefined || value === null || value === "") ? "—" : value;
+  }
+
+  function renderProfile(u) {
+    setText("disp-full_name", u.full_name || u.name);
+    setText("disp-username",  u.username);
+    setText("disp-email",     u.email);
+    setText("disp-phone",     u.phone || u.phone_number);
+    setText("disp-location",  u.location || u.city);
+  }
+
+  function renderBusiness(b) {
+    setText("disp-biz-name",    b.name || b.business_name);
+    setText("disp-biz-type",    b.type || b.business_type || b.category);
+    setText("disp-biz-city",    b.city);
+    setText("disp-biz-address", b.address || b.street_address);
+    const taxRaw = b.tax ?? b.tax_rate ?? b.taxRate;
+    const taxVal = (taxRaw !== undefined && taxRaw !== null) ? `${taxRaw}%` : "—";
+    setText("disp-biz-tax",  taxVal);
+    setText("disp-sys-tax",  taxVal);
+  }
+
+  /* ═══════════════════════════════════════
+    PROFILE MODAL — pre-fill on open
+  ═══════════════════════════════════════ */
+  function openProfileModal() {
+    const u = state.user;
+    document.getElementById("inp-full_name").value = u.full_name || u.name || "";
+    document.getElementById("inp-username").value  = u.username  || "";
+    document.getElementById("inp-email").value     = u.email     || "";
+    document.getElementById("inp-phone").value     = u.phone || u.phone_number || "";
+    document.getElementById("inp-location").value  = u.location || u.city || "";
+  }
+
+  async function saveProfile() {
+    const btn = document.getElementById("saveProfileBtn");
+    setLoading(btn, true);
+
+    const userId = getUserId();
+    const payload = {
+      full_name: document.getElementById("inp-full_name").value.trim(),
+      username:  document.getElementById("inp-username").value.trim(),
+      email:     document.getElementById("inp-email").value.trim(),
+      phone:     document.getElementById("inp-phone").value.trim(),
+      location:  document.getElementById("inp-location").value.trim(),
+    };
+
+    const { ok, status, data } = await apiFetch(`/routes/setting/profile/${userId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+
+    setLoading(btn, false);
+
+    if (ok) {
+      state.user = { ...state.user, ...(data.user || payload) };
+      // Save under the SAME key index.html's login uses, so other pages
+      // (and a future page load here) see the update.
+      localStorage.setItem("user", JSON.stringify(state.user));
+      renderProfile(state.user);
+      bootstrap.Modal.getInstance(document.getElementById("profileModal")).hide();
+      showToast("Profile updated successfully");
+    } else {
+      const msg = data.message || (status === 409 ? "Username or email already in use" : "Update failed. Try again.");
+      showToast(msg, "error");
+    }
+  }
+
+  /* ═══════════════════════════════════════
+    BUSINESS MODAL — pre-fill on open
+  ═══════════════════════════════════════ */
+  function openBusinessModal() {
+    const b = state.business;
+    document.getElementById("inp-biz-name").value    = b.name || b.business_name || "";
+    document.getElementById("inp-biz-type").value    = b.type || b.business_type || b.category || "";
+    document.getElementById("inp-biz-city").value    = b.city || "";
+    document.getElementById("inp-biz-address").value = b.address || b.street_address || "";
+    const taxRaw = b.tax ?? b.tax_rate ?? b.taxRate;
+    document.getElementById("inp-biz-tax").value     = (taxRaw !== undefined && taxRaw !== null) ? taxRaw : "";
+  }
+
+  async function saveBusiness() {
+    const btn = document.getElementById("saveBusinessBtn");
+    setLoading(btn, true);
+
+    const businessId = getBusinessId();
+    const payload = {
+      name:    document.getElementById("inp-biz-name").value.trim(),
+      type:    document.getElementById("inp-biz-type").value.trim(),
+      city:    document.getElementById("inp-biz-city").value.trim(),
+      address: document.getElementById("inp-biz-address").value.trim(),
+      tax:     parseFloat(document.getElementById("inp-biz-tax").value) || 0,
+    };
+
+    const { ok, data } = await apiFetch(`/routes/setting/business/${businessId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+
+    setLoading(btn, false);
+
+    if (ok) {
+      state.business = { ...state.business, ...(data.business || payload) };
+      localStorage.setItem("business", JSON.stringify(state.business));
+      renderBusiness(state.business);
+      bootstrap.Modal.getInstance(document.getElementById("businessModal")).hide();
+      showToast("Business updated successfully");
+    } else {
+      showToast(data.message || "Update failed. Try again.", "error");
+    }
+  }
+
+  /* ═══════════════════════════════════════
+    PASSWORD
+  ═══════════════════════════════════════ */
+  async function changePassword() {
+    const btn = document.getElementById("savePasswordBtn");
+
+    const currentPassword = document.getElementById("currentPassword").value;
+    const newPassword     = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showToast("All password fields are required.", "error");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast("New passwords do not match.", "error");
+      return;
+    }
+    if (newPassword.length < 8) {
+      showToast("Password must be at least 8 characters.", "error");
+      return;
+    }
+
+    setLoading(btn, true);
+
+    const userId = getUserId();
+    const { ok, status, data } = await apiFetch(`/routes/setting/profile/${userId}/change-password`, {
+      method: "PUT",
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword, confirm_password: confirmPassword }),
+    });
+
+    setLoading(btn, false);
+
+    if (ok) {
+      document.getElementById("currentPassword").value = "";
+      document.getElementById("newPassword").value     = "";
+      document.getElementById("confirmPassword").value = "";
+      bootstrap.Modal.getInstance(document.getElementById("passwordModal")).hide();
+      showToast("Password updated successfully");
+    } else {
+      const msg = status === 401 ? "Current password is incorrect."
+                : status === 400 ? (data.message || "Passwords do not match.")
+                : (data.message || "Update failed. Try again.");
+      showToast(msg, "error");
+    }
+  }
+
+  /* ═══════════════════════════════════════
+    UI HELPERS
+  ═══════════════════════════════════════ */
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebarMenu");
+    const overlay = document.getElementById("sidebarOverlay");
+    sidebar.classList.toggle("show");
+    overlay.style.display = sidebar.classList.contains("show") ? "block" : "none";
+  }
+
+  function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    const icon  = btn.querySelector("i");
+    if (input.type === "password") {
+      input.type = "text";
+      icon.classList.replace("bi-eye", "bi-eye-slash");
+    } else {
+      input.type = "password";
+      icon.classList.replace("bi-eye-slash", "bi-eye");
+    }
+  }
+
+  function applyTheme(theme) {
+    document.body.setAttribute("data-theme", theme);
+    const icon = document.getElementById("themeIcon");
+    if (icon) icon.className = theme === "dark" ? "bi bi-moon-stars" : "bi bi-sun";
+  }
+
+  function toggleTheme() {
+    const next = (document.body.getAttribute("data-theme") || "light") === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("pos-theme", next); } catch(e) {}
+  }
+
+
+
+  /* ═══════════════════════════════════════
+    INIT
+  ═══════════════════════════════════════ */
+  (function () {
+    /* Theme */
+    try {
+      const saved = localStorage.getItem("pos-theme");
+      if (saved) { applyTheme(saved); }
+      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        applyTheme("dark");
+      }
+    } catch(e) {}
+
+    /* Load data */
+    loadSettings();
+  })();
+</script>
+</body>
+</html>

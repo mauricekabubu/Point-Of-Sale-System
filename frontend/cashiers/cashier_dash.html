@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodexLabs POS — Cashier Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Sidebar */
+  --sidebar-bg: #fff;
+  --sidebar-text: #a1a1aa;
+  --sidebar-active-bg: rgba(99,102,241,0.15);
+  --sidebar-active-text: #818cf8;
+  --sidebar-w: 220px;
+  --sidebar-w-col: 64px;
+  --top-h: 56px;
+
+  /* Light mode */
+  --bg: #f4f4f5;
+  --surface: #ffffff;
+  --surface2: #f9f9fb;
+  --surface3: #f1f1f3;
+  --text1: #18181b;
+  --text2: #71717a;
+  --text3: #a1a1aa;
+  --border: rgba(0,0,0,0.07);
+  --border-strong: rgba(0,0,0,0.12);
+
+  /* Brand */
+  --indigo: #6366f1;
+  --indigo-dark: #4f46e5;
+  --indigo-soft: rgba(99,102,241,0.10);
+  --green: #22c55e;
+  --green-soft: rgba(34,197,94,0.10);
+  --green-text: #16a34a;
+  --amber: #f59e0b;
+  --amber-soft: rgba(245,158,11,0.10);
+  --amber-text: #d97706;
+  --red: #ef4444;
+  --red-soft: rgba(239,68,68,0.10);
+  --red-text: #dc2626;
+
+  /* Layout */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+}
+
+body.dark {
+  --bg: #0f0f11;
+  --surface: #18181b;
+  --surface2: #1c1c1f;
+  --surface3: #232326;
+  --text1: #f4f4f5;
+  --text2: #a1a1aa;
+  --text3: #52525b;
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
+  --green-text: #4ade80;
+  --amber-text: #fbbf24;
+  --red-text: #f87171;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text1);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background 0.25s ease, color 0.25s ease;
+  min-height: 100vh;
+}
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────── */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  transition: width 0.25s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+
+.sidebar.collapsed { width: var(--sidebar-w-col); }
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.logo-mark {
+  width: 32px; height: 32px;
+  background: var(--indigo);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-mark svg { width: 17px; height: 17px; fill: white; }
+
+.logo-text {
+  color: #f4f4f5;
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+  opacity: 1;
+  transition: opacity 0.2s;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .logo-text { opacity: 0; width: 0; }
+
+/* Nav */
+.sidebar-nav {
+  padding: 12px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sidebar-nav::-webkit-scrollbar { display: none; }
+
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #52525b;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 10px 10px 4px;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.2s;
+  overflow: hidden;
+}
+.sidebar.collapsed .nav-section-label { opacity: 0; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--sidebar-text);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  position: relative;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: #e4e4e7;
+}
+
+.nav-item.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 18px;
+  background: var(--indigo);
+  border-radius: 0 3px 3px 0;
+}
+
+.nav-item svg {
+  width: 16px; height: 16px;
+  flex-shrink: 0;
+  fill: currentColor;
+}
+
+.nav-label {
+  opacity: 1;
+  transition: opacity 0.2s;
+  overflow: hidden;
+  flex: 1;
+}
+.sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+
+.nav-badge {
+  background: var(--indigo);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  opacity: 1;
+  transition: opacity 0.2s;
+}
+.sidebar.collapsed .nav-badge { opacity: 0; }
+
+.sidebar-spacer { flex: 1; }
+
+/* Sidebar footer */
+.sidebar-footer {
+  padding: 10px 8px 14px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.user-row:hover { background: rgba(255,255,255,0.05); }
+
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--indigo);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.user-info { overflow: hidden; min-width: 0; }
+.user-name { color: #f4f4f5; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.user-shift { color: #71717a; font-size: 11px; white-space: nowrap; }
+.sidebar.collapsed .user-info { display: none; }
+
+/* ── MAIN ────────────────────────────────────────── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+.sidebar.collapsed ~ .main { margin-left: var(--sidebar-w-col); }
+
+/* ── TOPBAR ──────────────────────────────────────── */
+.topbar {
+  height: var(--top-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.collapse-btn {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2);
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.collapse-btn:hover { background: var(--surface2); border-color: var(--border-strong); }
+.collapse-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+.topbar-title {
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  flex: 1;
+}
+
+.topbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.topbar-breadcrumb span { color: var(--text2); font-size: 13px; }
+.topbar-breadcrumb .current { color: var(--text1); font-weight: 600; font-size: 15px; }
+.topbar-breadcrumb .sep { color: var(--text3); font-size: 13px; }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--green-soft);
+  color: var(--green-text);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green-text);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.topbar-date {
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--surface2); border-color: var(--border-strong); color: var(--text1); }
+.icon-btn svg { width: 15px; height: 15px; fill: currentColor; }
+
+/* Notification dot */
+.notif-wrap { position: relative; }
+.notif-dot {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 7px; height: 7px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 1.5px solid var(--surface);
+}
+
+/* ── CONTENT ─────────────────────────────────────── */
+.content {
+  flex: 1;
+  padding: 24px;
+  max-width: 1200px;
+}
+
+/* Section label */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* ── STAT CARDS ──────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.stat-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.stat-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.stat-icon svg { width: 17px; height: 17px; fill: currentColor; }
+
+.stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  min-height: 14px;
+}
+.stat-trend.up { color: var(--green-text); }
+.stat-trend.down { color: var(--red-text); }
+.stat-trend svg { width: 12px; height: 12px; fill: currentColor; }
+
+.stat-val {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 6px;
+}
+
+/* Decorative bg shape */
+.stat-bg-shape {
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  opacity: 0.05;
+}
+
+/* ── TWO COLUMN ──────────────────────────────────── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* ── ACTION CARDS ────────────────────────────────── */
+.actions-section { margin-bottom: 24px; }
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.action-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.15s;
+}
+.action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--border-strong);
+}
+.action-card:active { transform: translateY(-1px); }
+
+.action-icon {
+  width: 42px; height: 42px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.action-icon svg { width: 19px; height: 19px; fill: currentColor; }
+
+.action-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.action-sub { font-size: 11px; color: var(--text2); }
+
+/* ── RECENT TRANSACTIONS ─────────────────────────── */
+.card-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.panel-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-title { font-size: 14px; font-weight: 600; }
+.panel-subtitle { font-size: 12px; color: var(--text2); }
+
+.panel-actions { display: flex; align-items: center; gap: 8px; }
+
+.text-btn {
+  font-size: 12px;
+  color: var(--indigo);
+  cursor: pointer;
+  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.text-btn:hover { background: var(--indigo-soft); }
+
+/* Filter chips */
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.chip:hover { background: var(--surface2); color: var(--text1); }
+.chip.active {
+  background: var(--indigo-soft);
+  border-color: rgba(99,102,241,0.3);
+  color: var(--indigo);
+}
+
+/* Table */
+.txn-table { width: 100%; }
+
+.txn-thead {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.txn-thead th {
+  padding: 9px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+}
+.txn-thead th:last-child { text-align: right; }
+
+.txn-row {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+  cursor: pointer;
+}
+.txn-row:last-child { border-bottom: none; }
+.txn-row:hover { background: var(--surface2); }
+
+.txn-row td {
+  padding: 11px 20px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+.txn-row td:last-child { text-align: right; }
+
+.txn-id-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.txn-icon-wrap {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.txn-icon-wrap svg { width: 14px; height: 14px; fill: currentColor; }
+
+.txn-id { font-size: 12px; color: var(--text3); line-height: 1.2; }
+.txn-name { font-size: 13px; font-weight: 500; color: var(--text1); }
+
+.txn-items-cell { color: var(--text2); max-width: 200px; }
+.txn-items-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+
+.txn-amt { font-size: 14px; font-weight: 600; color: var(--text1); }
+.txn-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.status-badge::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+}
+.badge-paid { background: var(--green-soft); color: var(--green-text); }
+.badge-paid::before { background: var(--green-text); }
+.badge-refund { background: var(--red-soft); color: var(--red-text); }
+.badge-refund::before { background: var(--red-text); }
+.badge-pending { background: var(--amber-soft); color: var(--amber-text); }
+.badge-pending::before { background: var(--amber-text); }
+
+/* ── MINI CHART (CSS bar chart) ──────────────────── */
+.mini-chart {
+  padding: 12px 20px 16px;
+}
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 60px;
+}
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--indigo-soft);
+  transition: background 0.15s;
+  min-height: 4px;
+}
+.bar-col.today .bar { background: var(--indigo); }
+.bar-col:hover .bar { background: var(--indigo); opacity: 0.7; }
+.bar-label { font-size: 10px; color: var(--text3); white-space: nowrap; }
+
+/* ── SHIFT SUMMARY ───────────────────────────────── */
+.shift-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.shift-row:last-child { border-bottom: none; }
+.shift-key { color: var(--text2); }
+.shift-val { font-weight: 600; }
+.shift-val.highlight { color: var(--indigo); }
+
+/* ── MOBILE OVERLAY ──────────────────────────────── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 150;
+}
+.overlay.show { display: block; }
+
+/* ── LOADING / ERROR STATES ──────────────────────── */
+.dash-spinner {
+  width: 26px; height: 26px;
+  border: 3px solid var(--border);
+  border-top-color: var(--indigo);
+  border-radius: 50%;
+  animation: dashspin 0.7s linear infinite;
+}
+@keyframes dashspin { to { transform: rotate(360deg); } }
+
+.dash-loading-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.dash-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.dash-error-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--red-soft);
+  color: var(--red-text);
+  display: flex; align-items: center; justify-content: center;
+}
+.dash-error-icon svg { width: 18px; height: 18px; fill: currentColor; }
+
+.dash-retry-btn {
+  background: var(--indigo);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.15s;
+}
+.dash-retry-btn:hover { background: var(--indigo-dark); }
+
+.chart-empty {
+  width: 100%;
+  text-align: center;
+  color: var(--text3);
+  font-size: 12px;
+  padding: 18px 0;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .actions-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    left: calc(-1 * var(--sidebar-w));
+    transition: left 0.25s cubic-bezier(0.4,0,0.2,1), width 0.25s;
+  }
+  .sidebar.mobile-open { left: 0; }
+  .main { margin-left: 0 !important; }
+
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .actions-grid { grid-template-columns: 1fr 1fr; }
+
+  .content { padding: 16px; }
+
+  /* Hide some table columns */
+  .col-hide-mobile { display: none; }
+
+  .topbar-date { display: none; }
+
+  /* Action cards 2 cols */
+  .actions-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .stat-val { font-size: 18px; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .actions-grid { grid-template-columns: 1fr; }
+}
+
+/* ── SCROLLBAR ───────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
+</style>
+</head>
+
+<body>
+<!-- Mobile overlay -->
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm14 3a3 3 0 100-6 3 3 0 000 6z"/></svg>
+      </div>
+      <span class="logo-text" style="color:black;">CodexLabs POS</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+
+      <a href="cashier_dash.html" class="nav-item active">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a href="pos.html" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM5.4 6H19l-1.7 7H7L5.4 6zM3 2H1v2h2l3.6 7.6L5.3 14c-.1.3-.2.6-.2.9C5.1 16 6 17 7.1 17H19v-2H7.4c-.1 0-.2-.1-.2-.2l.1-.5.9-1.7H17c.7 0 1.4-.4 1.7-1l3.5-6.4c.4-.7-.1-1.5-.9-1.5H5.2L4.5 2H3z"/></svg>
+        <span class="nav-label">New Sale</span>
+      </a>
+
+      <a href="transaction.html" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+        <span class="nav-label">Transactions</span>
+      </a>
+
+      <a href="#" class="nav-item" id="logoutNav">
+        <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        <span class="nav-label">Logout</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-row" id="logoutNavFooter">
+        <div class="avatar" id="sidebarAvatar">··</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Loading…</div>
+          <div class="user-shift" id="sidebarUserShift">On shift</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main" id="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="collapse-btn" id="collapseBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
+        <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+
+      <div class="topbar-breadcrumb">
+        <span>POS</span>
+        <span class="sep">/</span>
+        <span class="current">Dashboard</span>
+      </div>
+
+      <div class="topbar-right">
+        <div class="live-badge"><div class="live-dot"></div>Live</div>
+        <span class="topbar-date" id="topbarDate"></span>
+
+        <div class="notif-wrap">
+          <button class="icon-btn" title="Notifications" aria-label="Notifications">
+            <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          </button>
+          <div class="notif-dot"></div>
+        </div>
+
+        <button class="icon-btn" id="darkBtn" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <svg id="moonIcon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+          <svg id="sunIcon" viewBox="0 0 24 24" style="display:none"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0zM7.05 18.36l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <div class="content">
+
+      <!-- STATS -->
+      <div class="section-label">Today's overview</div>
+      <div class="stats-grid" style="margin-bottom:24px">
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon" style="background:var(--indigo-soft);color:var(--indigo)">
+              <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            </div>
+            <div class="stat-trend" id="salesTrend"></div>
+          </div>
+          <div class="stat-val" id="salesVal">—</div>
+          <div class="stat-label">Total sales</div>
+          <div class="stat-sub" id="salesSub">Loading…</div>
+          <div class="stat-bg-shape" style="background:var(--indigo)"></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon" style="background:var(--amber-soft);color:var(--amber)">
+              <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+            </div>
+            <div class="stat-trend" id="txnTrend"></div>
+          </div>
+          <div class="stat-val" id="txnVal">—</div>
+          <div class="stat-label">Transactions</div>
+          <div class="stat-sub" id="txnSub">Loading…</div>
+          <div class="stat-bg-shape" style="background:var(--amber)"></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon" style="background:var(--green-soft);color:var(--green)">
+              <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+            </div>
+            <div class="stat-trend" id="itemsTrend"></div>
+          </div>
+          <div class="stat-val" id="itemsVal">—</div>
+          <div class="stat-label">Items sold</div>
+          <div class="stat-sub" id="itemsSub">Loading…</div>
+          <div class="stat-bg-shape" style="background:var(--green)"></div>
+        </div>
+
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="section-label">Quick actions</div>
+      <div class="actions-grid" style="margin-bottom:24px">
+
+        <div class="action-card" onclick="location.href='pos.html'">
+          <div class="action-icon" style="background:var(--indigo-soft);color:var(--indigo)">
+            <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM5.4 6H19l-1.7 7H7L5.4 6zM3 2H1v2h2l3.6 7.6L5.3 14c-.1.3-.2.6-.2.9C5.1 16 6 17 7.1 17H19v-2H7.4c-.1 0-.2-.1-.2-.2l.1-.5.9-1.7H17c.7 0 1.4-.4 1.7-1l3.5-6.4c.4-.7-.1-1.5-.9-1.5H5.2L4.5 2H3z"/></svg>
+          </div>
+          <div>
+            <div class="action-title">New sale</div>
+            <div class="action-sub">Open cart &amp; checkout</div>
+          </div>
+        </div>
+
+        <div class="action-card" onclick="location.href='pos.html'">
+          <div class="action-icon" style="background:var(--amber-soft);color:var(--amber)">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+          </div>
+          <div>
+            <div class="action-title">Scan product</div>
+            <div class="action-sub">Barcode scanner</div>
+          </div>
+        </div>
+
+        <div class="action-card" onclick="location.href='transaction.html'">
+          <div class="action-icon" style="background:var(--red-soft);color:var(--red)">
+            <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+          </div>
+          <div>
+            <div class="action-title">Process refund</div>
+            <div class="action-sub">Return &amp; refund</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TWO COLUMN: chart + shift summary -->
+      <div class="two-col" style="margin-bottom:24px">
+
+        <!-- Sales chart (7-day, from /services/sales/weekly_trends) -->
+        <div class="card-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Sales this week</div>
+              <div class="panel-subtitle">KES across last 7 days</div>
+            </div>
+          </div>
+          <div class="mini-chart">
+            <div class="chart-bars" id="chartBars">
+              <div class="chart-empty">Loading chart…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shift summary -->
+        <div class="card-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Shift summary</div>
+              <div class="panel-subtitle" id="shiftSubtitle">Loading…</div>
+            </div>
+            <span class="live-badge" style="font-size:10px"><div class="live-dot"></div>Active</span>
+          </div>
+          <div class="shift-row"><span class="shift-key">Shift opened</span><span class="shift-val" id="shiftOpened">—</span></div>
+          <div class="shift-row"><span class="shift-key">Time elapsed</span><span class="shift-val" id="shiftElapsed">—</span></div>
+          <div class="shift-row"><span class="shift-key">Cashier</span><span class="shift-val" id="shiftCashier">—</span></div>
+          <div id="paymentBreakdown"></div>
+          <div class="shift-row"><span class="shift-key">Refunds issued</span><span class="shift-val" id="shiftRefunds" style="color:var(--red-text)">—</span></div>
+        </div>
+
+      </div>
+
+      <!-- RECENT TRANSACTIONS -->
+      <div class="section-label">Recent transactions</div>
+      <div class="card-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Today's activity</div>
+            <div class="panel-subtitle" id="todayActivitySub">Loading…</div>
+          </div>
+          <div class="panel-actions">
+            <button class="text-btn" onclick="location.href='transaction.html'">View all →</button>
+          </div>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="filter-chips" id="filterChips">
+          <button class="chip active" data-filter="all">All</button>
+          <button class="chip" data-filter="completed">Paid</button>
+          <button class="chip" data-filter="refunded">Refunded</button>
+        </div>
+
+        <!-- Table -->
+        <table class="txn-table">
+          <thead class="txn-thead">
+            <tr>
+              <th>Transaction</th>
+              <th class="col-hide-mobile">Items</th>
+              <th class="col-hide-mobile">Time</th>
+              <th>Status</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody id="txnBody">
+            <tr><td colspan="5"><div class="dash-loading-row"><div class="dash-spinner"></div>Loading transactions…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+  /* ───────────────────────────────────────────────────────
+     CONFIG — must match the cashier login page exactly, since
+     that's where these localStorage keys get written.
+     ─────────────────────────────────────────────────────── */
+  const API_BASE = "/api";       // no trailing slash
+  const LOGIN_PAGE = "../index.html";              // this file lives in cashiers/
+
+  const TOKEN_KEY         = "nexapos_access_token";
+  const REFRESH_TOKEN_KEY = "nexapos_refresh_token";
+  const CASHIER_KEY       = "nexapos_cashier";
+  const LOGIN_TIME_KEY    = "nexapos_login_time";  // set by the login page on success
+
+  /* ── AUTH HELPERS ── */
+  function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
+
+  function getCashier() {
+    try { return JSON.parse(localStorage.getItem(CASHIER_KEY) || "null"); }
+    catch { return null; }
+  }
+
+  function authHeaders() {
+    return { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` };
+  }
+
+  function requireAuthOrRedirect() {
+    if (!getToken()) { window.location.href = LOGIN_PAGE; return false; }
+    return true;
+  }
+
+  function forceLogout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(CASHIER_KEY);
+    localStorage.removeItem(LOGIN_TIME_KEY);
+    window.location.href = LOGIN_PAGE;
+  }
+
+  async function apiGet(path) {
+    const res = await fetch(`${API_BASE}${path}`, { headers: authHeaders() });
+    if (res.status === 401) {
+      forceLogout();
+      throw new Error("Session expired.");
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Server error ${res.status}`);
+    }
+    return res.json();
+  }
+
+  /* ── SMALL UTILS ── */
+  function fmt(amount) {
+    return `KES ${Number(amount || 0).toLocaleString("en-KE", { minimumFractionDigits: 0 })}`;
+  }
+  function sum(arr) { return arr.reduce((a, b) => a + Number(b || 0), 0); }
+  function utcDateStr(date) { return date.toISOString().slice(0, 10); }
+  function escHtml(str) {
+    return String(str ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function fmtRelative(iso) {
+    if (!iso) return "—";
+    const diffMin = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    if (diffMin < 1) return "Just now";
+    if (diffMin < 60) return `${diffMin} min ago`;
+    const diffHr = Math.round(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} hr ago`;
+    const diffDay = Math.round(diffHr / 24);
+    if (diffDay === 1) return "Yesterday";
+    if (diffDay < 7) return `${diffDay} days ago`;
+    return new Date(iso).toLocaleDateString("en-KE", { day: "2-digit", month: "short" });
+  }
+  function upArrowSvg() { return '<svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>'; }
+  function downArrowSvg() { return '<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>'; }
+
+  function setTrend(elId, curr, prev) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (prev === 0 && curr === 0) { el.innerHTML = ""; return; }
+    if (prev === 0) { el.className = "stat-trend up"; el.innerHTML = upArrowSvg() + " New"; return; }
+    const pct = ((curr - prev) / prev) * 100;
+    const up = pct >= 0;
+    el.className = "stat-trend " + (up ? "up" : "down");
+    el.innerHTML = (up ? upArrowSvg() : downArrowSvg()) + " " + Math.abs(pct).toFixed(1) + "%";
+  }
+
+  /* Limited-concurrency mapper so we don't fire 100+ requests at once
+     when fetching per-sale item detail. */
+  async function mapLimit(items, limit, fn) {
+    const results = new Array(items.length);
+    let i = 0;
+    async function worker() {
+      while (i < items.length) {
+        const idx = i++;
+        results[idx] = await fn(items[idx], idx);
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+    return results;
+  }
+
+  /* ── STATE ── */
+  let allSales = [];
+  let recentTransactions = [];
+  let refundedSaleIds = new Set();
+  let currentFilter = "all";
+  let elapsedTimer = null;
+  const detailCache = new Map();
+
+  async function getSaleDetail(saleId) {
+    if (detailCache.has(saleId)) return detailCache.get(saleId);
+    try {
+      const detail = await apiGet(`/services/sales/single_sale/${saleId}`);
+      detailCache.set(saleId, detail);
+      return detail;
+    } catch (err) {
+      const fallback = { error: err.message, items: [] };
+      detailCache.set(saleId, fallback);
+      return fallback;
+    }
+  }
+
+  function sumItemQuantities(details) {
+    return details.reduce((total, d) => {
+      if (!d || d.error || !d.items) return total;
+      return total + d.items.reduce((s, i) => s + Number(i.quantity || 0), 0);
+    }, 0);
+  }
+
+  /* ── SIDEBAR / CASHIER INFO ── */
+  function renderCashierInfo() {
+    const cashier = getCashier();
+    const name = (cashier && (cashier.full_name || cashier.username)) || "Cashier";
+    const initials = name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "CA";
+    document.getElementById("sidebarAvatar").textContent = initials;
+    document.getElementById("sidebarUserName").textContent = name;
+
+    const loginIso = localStorage.getItem(LOGIN_TIME_KEY);
+    if (loginIso) {
+      const hour = new Date(loginIso).getHours();
+      const label = hour < 12 ? "☀ Morning shift" : hour < 17 ? "🌤 Afternoon shift" : "🌙 Evening shift";
+      document.getElementById("sidebarUserShift").textContent = label;
+    } else {
+      document.getElementById("sidebarUserShift").textContent = "On shift";
+    }
+  }
+
+  /* ── LOADING / ERROR STATES ── */
+  function setDashboardLoading() {
+    ["salesVal","txnVal","itemsVal"].forEach(id => document.getElementById(id).textContent = "—");
+    ["salesSub","txnSub","itemsSub"].forEach(id => document.getElementById(id).textContent = "Loading…");
+    ["salesTrend","txnTrend","itemsTrend"].forEach(id => document.getElementById(id).innerHTML = "");
+    document.getElementById("txnBody").innerHTML =
+      `<tr><td colspan="5"><div class="dash-loading-row"><div class="dash-spinner"></div>Loading transactions…</div></td></tr>`;
+    document.getElementById("chartBars").innerHTML = `<div class="chart-empty">Loading chart…</div>`;
+    document.getElementById("todayActivitySub").textContent = "Loading…";
+    document.getElementById("shiftSubtitle").textContent = "Loading…";
+  }
+
+  function setDashboardError(message) {
+    const warnIcon = '<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>';
+    document.getElementById("txnBody").innerHTML = `
+      <tr><td colspan="5">
+        <div class="dash-error">
+          <div class="dash-error-icon">${warnIcon}</div>
+          <strong style="color:var(--text1);font-size:14px;">Couldn't load dashboard data</strong>
+          <span>${escHtml(message)}</span>
+          <button class="dash-retry-btn" onclick="loadDashboard()">Retry</button>
+        </div>
+      </td></tr>`;
+    document.getElementById("chartBars").innerHTML = `<div class="chart-empty">Couldn't load chart data</div>`;
+    ["salesVal","txnVal","itemsVal"].forEach(id => document.getElementById(id).textContent = "—");
+    ["salesSub","txnSub","itemsSub"].forEach(id => document.getElementById(id).textContent = "Unavailable");
+    document.getElementById("todayActivitySub").textContent = "Unavailable";
+  }
+
+  /* ── STATS ── */
+  function renderStats({ todaySales, yesterdaySales, summaryData, itemsToday, itemsYesterday }) {
+    const totalToday = (summaryData && summaryData.sales && summaryData.sales.today_sales) || sum(todaySales.map(s => s.total_amount));
+    const totalYesterday = sum(yesterdaySales.map(s => s.total_amount));
+    document.getElementById("salesVal").textContent = fmt(totalToday);
+    setTrend("salesTrend", totalToday, totalYesterday);
+    document.getElementById("salesSub").textContent = `vs ${fmt(totalYesterday)} yesterday`;
+
+    document.getElementById("txnVal").textContent = todaySales.length;
+    setTrend("txnTrend", todaySales.length, yesterdaySales.length);
+    const diff = todaySales.length - yesterdaySales.length;
+    document.getElementById("txnSub").textContent =
+      diff === 0 ? "Same as yesterday" : `${diff > 0 ? "+" : ""}${diff} vs yesterday`;
+
+    document.getElementById("itemsVal").textContent = itemsToday;
+    setTrend("itemsTrend", itemsToday, itemsYesterday);
+    const avg = todaySales.length ? (itemsToday / todaySales.length).toFixed(1) : "0.0";
+    document.getElementById("itemsSub").textContent = `Avg ${avg} items/transaction`;
+  }
+
+  /* ── SHIFT SUMMARY ── */
+  function updateElapsed(loginDate) {
+    const el = document.getElementById("shiftElapsed");
+    if (!loginDate) { el.textContent = "—"; return; }
+    const mins = Math.max(0, Math.round((Date.now() - loginDate.getTime()) / 60000));
+    el.textContent = `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  }
+
+  function renderShiftSummary(todaySales, todayRefunds) {
+    const cashier = getCashier();
+    document.getElementById("shiftCashier").textContent =
+      (cashier && (cashier.full_name || cashier.username)) || "—";
+
+    const loginIso = localStorage.getItem(LOGIN_TIME_KEY);
+    const loginDate = loginIso ? new Date(loginIso) : null;
+
+    document.getElementById("shiftOpened").textContent =
+      loginDate ? loginDate.toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" }) : "—";
+
+    updateElapsed(loginDate);
+    clearInterval(elapsedTimer);
+    if (loginDate) elapsedTimer = setInterval(() => updateElapsed(loginDate), 60000);
+
+    if (loginDate) {
+      const hour = loginDate.getHours();
+      const label = hour < 12 ? "Morning" : hour < 17 ? "Afternoon" : "Evening";
+      document.getElementById("shiftSubtitle").textContent =
+        `${label} shift — started ${loginDate.toLocaleTimeString("en-KE",{hour:"2-digit",minute:"2-digit"})}`;
+    } else {
+      document.getElementById("shiftSubtitle").textContent = "Shift in progress";
+    }
+
+    // Payment method breakdown, built from today's real sales — no hardcoded
+    // "Cash" / "M-Pesa" rows, since any method on file for the business can show up.
+    const breakdown = {};
+    todaySales.forEach(s => {
+      const key = s.payment_method || "Other";
+      breakdown[key] = (breakdown[key] || 0) + Number(s.total_amount);
+    });
+    const container = document.getElementById("paymentBreakdown");
+    const methods = Object.keys(breakdown);
+    container.innerHTML = methods.length
+      ? methods.map(m => `
+          <div class="shift-row">
+            <span class="shift-key">${escHtml(m)} collected</span>
+            <span class="shift-val highlight">${fmt(breakdown[m])}</span>
+          </div>`).join("")
+      : `<div class="shift-row"><span class="shift-key">Payments collected</span><span class="shift-val">KES 0</span></div>`;
+
+    document.getElementById("shiftRefunds").textContent = fmt(sum(todayRefunds.map(r => r.refunded_amount)));
+  }
+
+  /* ── 7-DAY CHART ── */
+  function renderChart(weekly, todayStr) {
+    const barsEl = document.getElementById("chartBars");
+    barsEl.innerHTML = "";
+    if (!weekly.length) {
+      barsEl.innerHTML = `<div class="chart-empty">No sales recorded in the last 7 days</div>`;
+      return;
+    }
+    const max = Math.max(...weekly.map(d => Number(d.sales) || 0), 1);
+    weekly.forEach(d => {
+      const val = Number(d.sales) || 0;
+      const pct = Math.max(Math.round((val / max) * 100), 3);
+      const dayLabel = new Date(d.date + "T00:00:00Z").toLocaleDateString("en-KE", { weekday: "short", timeZone: "UTC" });
+      const col = document.createElement("div");
+      col.className = "bar-col" + (d.date === todayStr ? " today" : "");
+      col.title = `${d.date}: ${fmt(val)}`;
+      col.innerHTML = `<div class="bar" style="height:${pct}%"></div><div class="bar-label">${dayLabel}</div>`;
+      barsEl.appendChild(col);
+    });
+  }
+
+  /* ── RECENT TRANSACTIONS TABLE ── */
+  const statusLabel = { completed: "Paid", refunded: "Refunded" };
+  const statusBadgeClass = { completed: "badge-paid", refunded: "badge-refund" };
+
+  function txnStatus(saleId) { return refundedSaleIds.has(saleId) ? "refunded" : "completed"; }
+
+  function renderTxns(filter) {
+    currentFilter = filter;
+    const body = document.getElementById("txnBody");
+    const data = filter === "all" ? recentTransactions : recentTransactions.filter(t => txnStatus(t.sale_id) === filter);
+
+    if (!data.length) {
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">No transactions found</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = data.map(t => {
+      const status = txnStatus(t.sale_id);
+      const detail = detailCache.get(t.sale_id);
+      const itemsText = (detail && !detail.error && detail.items && detail.items.length)
+        ? detail.items.map(i => i.product_name).join(", ")
+        : "—";
+      const sellerName = (t.seller && (t.seller.name || t.seller.username)) || "—";
+
+      return `
+        <tr class="txn-row" onclick="location.href='transaction.html'">
+          <td>
+            <div class="txn-id-cell">
+              <div class="txn-icon-wrap" style="background:var(--indigo-soft);color:var(--indigo)">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+              </div>
+              <div>
+                <div class="txn-id">#${t.sale_id}</div>
+                <div class="txn-name">${escHtml(sellerName)}</div>
+              </div>
+            </div>
+          </td>
+          <td class="txn-items-cell col-hide-mobile"><div class="txn-items-text">${escHtml(itemsText)}</div></td>
+          <td class="col-hide-mobile" style="color:var(--text3);font-size:12px">${fmtRelative(t.date)}</td>
+          <td><span class="status-badge ${statusBadgeClass[status]}">${statusLabel[status]}</span></td>
+          <td><div class="txn-amt">${fmt(t.total_amount)}</div></td>
+        </tr>`;
+    }).join("");
+  }
+
+  document.getElementById("filterChips").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    document.querySelectorAll("#filterChips .chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    renderTxns(chip.dataset.filter);
+  });
+
+  /* ── MAIN LOAD ── */
+  async function loadDashboard() {
+    if (!requireAuthOrRedirect()) return;
+    renderCashierInfo();
+    setDashboardLoading();
+
+    try {
+      const [historyData, refundData, summaryData, weeklyData] = await Promise.all([
+        apiGet("/services/sales/history"),
+        apiGet("/services/sales/refund_history"),
+        apiGet("/services/sales/summary"),
+        apiGet("/services/sales/weekly_trends"),
+      ]);
+
+      allSales = historyData.sales || [];          // already sorted newest-first by the backend
+      const refunds = refundData.returns || [];
+      refundedSaleIds = new Set(refunds.map(r => r.sale_id));
+
+      const todayStr = utcDateStr(new Date());
+      const yestStr = utcDateStr(new Date(Date.now() - 86400000));
+
+      const todaySales = allSales.filter(s => (s.date || "").slice(0, 10) === todayStr);
+      const yesterdaySales = allSales.filter(s => (s.date || "").slice(0, 10) === yestStr);
+      const todayRefunds = refunds.filter(r => (r.date || "").slice(0, 10) === todayStr);
+
+      const [todayDetails, yesterdayDetails] = await Promise.all([
+        mapLimit(todaySales, 5, s => getSaleDetail(s.sale_id)),
+        mapLimit(yesterdaySales, 5, s => getSaleDetail(s.sale_id)),
+      ]);
+      const itemsToday = sumItemQuantities(todayDetails);
+      const itemsYesterday = sumItemQuantities(yesterdayDetails);
+
+      renderStats({ todaySales, yesterdaySales, summaryData, itemsToday, itemsYesterday });
+      renderShiftSummary(todaySales, todayRefunds);
+      renderChart(weeklyData.weekly_trend || [], todayStr);
+
+      recentTransactions = allSales.slice(0, 8);
+      await mapLimit(recentTransactions, 5, s => getSaleDetail(s.sale_id)); // warm cache for item names
+      renderTxns(currentFilter);
+
+      document.getElementById("todayActivitySub").textContent =
+        `${todaySales.length} transaction${todaySales.length === 1 ? "" : "s"} today · ${fmt(sum(todaySales.map(s => s.total_amount)))} total`;
+
+    } catch (err) {
+      setDashboardError(err.message);
+    }
+  }
+
+  /* ── LOGOUT ── */
+  document.getElementById("logoutNav").addEventListener("click", (e) => {
+    e.preventDefault();
+    forceLogout();
+  });
+
+  /* ── SIDEBAR COLLAPSE ── */
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const isMobile = () => window.innerWidth <= 768;
+
+  document.getElementById("collapseBtn").addEventListener("click", () => {
+    if (isMobile()) {
+      sidebar.classList.toggle("mobile-open");
+      overlay.classList.toggle("show");
+    } else {
+      sidebar.classList.toggle("collapsed");
+    }
+  });
+
+  overlay.addEventListener("click", () => {
+    sidebar.classList.remove("mobile-open");
+    overlay.classList.remove("show");
+  });
+
+  /* ── DARK MODE ── */
+  let isDark = localStorage.getItem("pos-theme") === "dark";
+  function applyTheme() {
+    document.body.classList.toggle("dark", isDark);
+    document.getElementById("moonIcon").style.display = isDark ? "none" : "block";
+    document.getElementById("sunIcon").style.display = isDark ? "block" : "none";
+  }
+  applyTheme();
+
+  document.getElementById("darkBtn").addEventListener("click", () => {
+    isDark = !isDark;
+    localStorage.setItem("pos-theme", isDark ? "dark" : "light");
+    applyTheme();
+  });
+
+  /* ── DATE ── */
+  document.getElementById("topbarDate").textContent =
+    new Date().toLocaleDateString("en-KE", { weekday: "short", month: "short", day: "numeric" });
+
+  /* ── INIT ── */
+  loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POS Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sidebar-w: 256px;
+  --sidebar-collapsed-w: 68px;
+  --bg:          #f7f8fc;
+  --surface:     #ffffff;
+  --surface2:    #f0f2f8;
+  --surface3:    #e8ebf4;
+  --border:      rgba(99,102,141,0.12);
+  --border-soft: rgba(99,102,141,0.07);
+  --text:        #111827;
+  --text-2:      #6b7280;
+  --text-3:      #9ca3af;
+  --accent:       #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-lt:    #eef2ff;
+  --accent-glow:  rgba(79,70,229,0.15);
+  --green:       #059669;
+  --green-lt:    #ecfdf5;
+  --green-glow:  rgba(5,150,105,0.12);
+  --orange:      #d97706;
+  --orange-lt:   #fffbeb;
+  --orange-glow: rgba(217,119,6,0.12);
+  --red:         #dc2626;
+  --red-lt:      #fef2f2;
+  --red-glow:    rgba(220,38,38,0.12);
+  --blue:        #2563eb;
+  --blue-lt:     #eff6ff;
+  --blue-glow:   rgba(37,99,235,0.12);
+  --purple:      #7c3aed;
+  --purple-lt:   #f5f3ff;
+  --purple-glow: rgba(124,58,237,0.12);
+  --teal:        #0891b2;
+  --teal-lt:     #ecfeff;
+  --sidebar-bg:           #1e293b;
+  --sidebar-text:        #94a3b8;
+  --sidebar-text-bright: #e2e8f0;
+  --sidebar-icon:        #64748b;
+  --sidebar-hover:       rgba(255,255,255,0.06);
+  --sidebar-active-bg:   rgba(99,102,241,0.18);
+  --sidebar-active:      #818cf8;
+  --sidebar-label:       #475569;
+  --sidebar-border:      rgba(255,255,255,0.05);
+  --radius:    16px;
+  --radius-sm: 10px;
+  --radius-xs: 7px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow:    0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 16px 32px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 12px rgba(0,0,0,0.06), 0 24px 48px rgba(0,0,0,0.14);
+  --tr:        0.22s cubic-bezier(.4,0,.2,1);
+  --tr-slow:   0.35s cubic-bezier(.4,0,.2,1);
+  --tr-spring: 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+
+body.dark-mode {
+  --bg:       #060b18;
+  --surface:  #0d1424;
+  --surface2: #111827;
+  --surface3: #1e293b;
+  --border:   rgba(148,163,184,0.1);
+  --border-soft: rgba(148,163,184,0.06);
+  --text:     #f1f5f9;
+  --text-2:   #94a3b8;
+  --text-3:   #64748b;
+  --accent-lt:   rgba(79,70,229,0.15);
+  --green-lt:    rgba(5,150,105,0.12);
+  --orange-lt:   rgba(217,119,6,0.12);
+  --red-lt:      rgba(220,38,38,0.12);
+  --blue-lt:     rgba(37,99,235,0.12);
+  --purple-lt:   rgba(124,58,237,0.12);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15);
+  --shadow:    0 1px 3px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.25), 0 16px 32px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 12px rgba(0,0,0,0.3), 0 24px 48px rgba(0,0,0,0.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; }
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.875rem;
+  background: var(--bg);
+  color: var(--text);
+  transition: background var(--tr-slow), color var(--tr-slow);
+  line-height: 1.6;
+}
+
+/* ═══ SIDEBAR ═══ */
+#sidebarMenu {
+  position: fixed; top: 0; left: 0;
+  width: var(--sidebar-w); height: 100vh;
+  background: var(--sidebar-bg);
+  overflow-y: auto; overflow-x: hidden;
+  transition: width var(--tr-slow), left var(--tr-slow);
+  z-index: 1050;
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--sidebar-border);
+  scrollbar-width: none;
+}
+#sidebarMenu::-webkit-scrollbar { display: none; }
+
+.sidebar-brand {
+  padding: 24px 20px 20px;
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+}
+.brand-logo {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+}
+.brand-logo i { color: #fff; font-size: 1rem; }
+.brand-name { font-size: 1rem; font-weight: 800; color: var(--sidebar-text-bright); letter-spacing: -0.3px; white-space: nowrap; transition: opacity var(--tr); }
+.brand-badge { font-size: 0.6rem; font-weight: 700; background: rgba(99,102,241,0.25); color: #818cf8; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; transition: opacity var(--tr); }
+
+#collapseSidebar {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.08);
+  color: var(--sidebar-text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  transition: background var(--tr), color var(--tr), transform var(--tr);
+  flex-shrink: 0; margin-left: auto;
+}
+#collapseSidebar:hover { background: rgba(255,255,255,0.12); color: #fff; transform: scale(1.05); }
+
+.sidebar-divider { height: 1px; background: var(--sidebar-border); margin: 4px 16px 12px; }
+
+.nav-section-label {
+  font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--sidebar-label); padding: 0 16px 6px; white-space: nowrap; overflow: hidden; transition: opacity var(--tr);
+}
+
+.sidebar-nav { flex: 1; padding: 0 10px; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+
+#sidebarMenu .nav-link {
+  color: var(--sidebar-text);
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 10px; border-radius: var(--radius-xs);
+  transition: background var(--tr), color var(--tr);
+  position: relative; font-size: 0.835rem; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-decoration: none;
+}
+#sidebarMenu .nav-link .nav-icon {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 7px; background: transparent;
+  transition: background var(--tr), color var(--tr);
+  flex-shrink: 0; font-size: 0.9rem; color: var(--sidebar-icon);
+}
+#sidebarMenu .nav-link:hover { background: var(--sidebar-hover); color: var(--sidebar-text-bright); }
+#sidebarMenu .nav-link:hover .nav-icon { background: rgba(255,255,255,0.08); color: var(--sidebar-text-bright); }
+#sidebarMenu .nav-link.active { background: var(--sidebar-active-bg); color: var(--sidebar-active); }
+#sidebarMenu .nav-link.active .nav-icon { background: rgba(99,102,241,0.2); color: var(--sidebar-active); }
+#sidebarMenu .nav-link.active::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 18px; background: var(--sidebar-active); border-radius: 0 3px 3px 0;
+}
+
+.sidebar-submenu { list-style: none; padding: 2px 0 4px 38px; display: flex; flex-direction: column; gap: 1px; }
+.sidebar-submenu .nav-link { font-size: 0.8rem; padding: 7px 10px; color: var(--sidebar-text); opacity: 0.85; }
+.sidebar-submenu .nav-link:hover { opacity: 1; }
+.sidebar-submenu .nav-link.active { opacity: 1; }
+
+.nav-collapse-btn { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.nav-collapse-chevron { font-size: 0.65rem; color: var(--sidebar-label); transition: transform var(--tr); margin-left: auto; flex-shrink: 0; }
+.nav-collapse-chevron.open { transform: rotate(180deg); }
+
+#sidebarMenu.collapsed { width: var(--sidebar-collapsed-w); }
+#sidebarMenu.collapsed .brand-name,
+#sidebarMenu.collapsed .brand-badge,
+#sidebarMenu.collapsed .nav-link span:not(.nav-icon),
+#sidebarMenu.collapsed .nav-section-label,
+#sidebarMenu.collapsed .nav-collapse-chevron,
+#sidebarMenu.collapsed .sidebar-submenu { display: none; }
+#sidebarMenu.collapsed .nav-link { justify-content: center; padding: 9px; }
+#sidebarMenu.collapsed .nav-link .nav-icon { width: 32px; height: 32px; }
+#sidebarMenu.collapsed .nav-link::after {
+  content: attr(data-title); position: fixed;
+  left: calc(var(--sidebar-collapsed-w) + 10px);
+  background: #1e293b; color: #e2e8f0; padding: 5px 12px; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 600; opacity: 0; pointer-events: none;
+  transition: opacity var(--tr); z-index: 9999; white-space: nowrap;
+  box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.07);
+}
+#sidebarMenu.collapsed .nav-link:hover::after { opacity: 1; }
+
+.sidebar-footer { padding: 12px 10px 20px; border-top: 1px solid var(--sidebar-border); margin-top: auto; }
+.sidebar-user {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border-radius: var(--radius-xs); cursor: pointer;
+  transition: background var(--tr); overflow: hidden; white-space: nowrap;
+}
+.sidebar-user:hover { background: var(--sidebar-hover); }
+.sidebar-user .avatar-sm {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff; font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sidebar-user-info strong { font-size: 0.8rem; font-weight: 600; color: var(--sidebar-text-bright); display: block; }
+.sidebar-user-info small { font-size: 0.7rem; color: var(--sidebar-label); }
+
+@media (max-width: 991px) {
+  #sidebarMenu { left: calc(-1 * var(--sidebar-w)); }
+  #sidebarMenu.show { left: 0; }
+  #sidebarMenu.collapsed .nav-link::after { display: none; }
+}
+
+/* ═══ OVERLAY ═══ */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1040; }
+.overlay.show { display: block; }
+
+/* ═══ MAIN CONTENT ═══ */
+.main-content { margin-left: var(--sidebar-w); min-height: 100vh; transition: margin-left var(--tr-slow); display: flex; flex-direction: column; }
+#sidebarMenu.collapsed ~ .main-content { margin-left: var(--sidebar-collapsed-w); }
+@media (max-width: 991px) { .main-content { margin-left: 0; } }
+
+/* ═══ TOPBAR ═══ */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(247,248,252,0.88); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px; height: 60px;
+  display: flex; align-items: center; gap: 12px;
+  transition: background var(--tr);
+}
+body.dark-mode .topbar { background: rgba(6,11,24,0.88); border-bottom-color: var(--border); }
+
+#sidebarToggle {
+  width: 36px; height: 36px; background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-2); border-radius: var(--radius-xs);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; cursor: pointer;
+  transition: background var(--tr), border-color var(--tr), color var(--tr); flex-shrink: 0;
+}
+#sidebarToggle:hover { background: var(--surface2); color: var(--text); }
+
+.topbar-search { flex: 1; max-width: 420px; position: relative; }
+.topbar-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 0.9rem; pointer-events: none; }
+.topbar-search input {
+  width: 100%; height: 36px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-xs); padding: 0 12px 0 36px;
+  font-size: 0.82rem; color: var(--text); font-family: inherit;
+  transition: background var(--tr), border-color var(--tr), box-shadow var(--tr); outline: none;
+}
+.topbar-search input::placeholder { color: var(--text-3); }
+.topbar-search input:focus { background: var(--surface); border-color: rgba(79,70,229,0.4); box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+
+.topbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+.topbar-icon-btn {
+  width: 36px; height: 36px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-xs); font-size: 0.95rem; color: var(--text-2);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background var(--tr), border-color var(--tr), color var(--tr), transform var(--tr-spring);
+  position: relative;
+}
+.topbar-icon-btn:hover { background: var(--surface2); color: var(--text); transform: scale(1.05); }
+
+.notif-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; background: var(--red); border-radius: 50%; border: 1.5px solid var(--bg); }
+
+#darkModeToggle { overflow: hidden; }
+#darkModeToggle .icon-sun, #darkModeToggle .icon-moon { transition: transform var(--tr), opacity var(--tr); }
+body.dark-mode #darkModeToggle .icon-moon { transform: translateY(-20px); opacity: 0; position: absolute; }
+body.dark-mode #darkModeToggle .icon-sun  { transform: translateY(0); opacity: 1; }
+body:not(.dark-mode) #darkModeToggle .icon-sun  { transform: translateY(20px); opacity: 0; position: absolute; }
+body:not(.dark-mode) #darkModeToggle .icon-moon { transform: translateY(0); opacity: 1; }
+
+.user-profile {
+  display: flex; align-items: center; gap: 9px; cursor: pointer;
+  padding: 4px 10px 4px 4px; border-radius: 40px;
+  border: 1px solid var(--border); background: var(--surface);
+  transition: background var(--tr), border-color var(--tr), box-shadow var(--tr), transform var(--tr-spring);
+}
+.user-profile:hover { background: var(--surface2); box-shadow: var(--shadow); transform: translateY(-1px); }
+.user-profile .avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff; font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+}
+.user-info { display: flex; flex-direction: column; line-height: 1.25; }
+.user-info strong { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+.user-info small { font-size: 0.69rem; color: var(--text-2); }
+
+/* ═══ PAGE BODY ═══ */
+.page-body { padding: 28px 28px 40px; }
+@media (max-width: 576px) { .page-body { padding: 16px 16px 32px; } }
+
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+.page-header-left h2 { font-size: 1.45rem; font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 3px; }
+.page-header-left .breadcrumb-row { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--text-3); }
+.breadcrumb-row .dot { width: 3px; height: 3px; background: var(--text-3); border-radius: 50%; }
+.breadcrumb-row .current { color: var(--text-2); font-weight: 500; }
+
+.btn-new-sale {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #fff; border: none; border-radius: 10px; padding: 10px 20px;
+  font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  transition: transform var(--tr-spring), box-shadow var(--tr), filter var(--tr);
+  box-shadow: 0 4px 14px rgba(79,70,229,0.35);
+  text-decoration: none; font-family: inherit; letter-spacing: -0.1px;
+}
+.btn-new-sale:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79,70,229,0.45); filter: brightness(1.06); color: #fff; }
+.btn-new-sale:active { transform: translateY(0); }
+
+.section-label {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-3); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); border-radius: 1px; }
+
+/* ═══ STAT CARDS ═══ */
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: var(--radius); padding: 22px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--tr-spring), box-shadow var(--tr), background var(--tr), border-color var(--tr);
+  position: relative; overflow: hidden; cursor: default;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--card-accent, var(--accent));
+  opacity: 0; transition: opacity var(--tr);
+}
+.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.stat-card:hover::before { opacity: 1; }
+.stat-card.green  { --card-accent: var(--green); }
+.stat-card.blue   { --card-accent: var(--blue); }
+.stat-card.red    { --card-accent: var(--red); }
+.stat-card.orange { --card-accent: var(--orange); }
+.stat-card.purple { --card-accent: var(--purple); }
+
+.stat-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 8px; }
+.stat-value { font-size: 1.55rem; font-weight: 800; color: var(--text); letter-spacing: -0.6px; line-height: 1; margin-bottom: 8px; }
+.stat-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+.stat-delta.up   { background: var(--green-lt); color: var(--green); }
+.stat-delta.down { background: var(--red-lt);   color: var(--red); }
+.stat-delta.neutral { background: var(--surface2); color: var(--text-2); }
+
+.stat-icon {
+  width: 48px; height: 48px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; flex-shrink: 0; transition: transform var(--tr-spring);
+}
+.stat-card:hover .stat-icon { transform: scale(1.08) rotate(-3deg); }
+.stat-icon.green  { background: var(--green-lt);  color: var(--green);  box-shadow: 0 4px 12px var(--green-glow); }
+.stat-icon.blue   { background: var(--blue-lt);   color: var(--blue);   box-shadow: 0 4px 12px var(--blue-glow); }
+.stat-icon.red    { background: var(--red-lt);    color: var(--red);    box-shadow: 0 4px 12px var(--red-glow); }
+.stat-icon.orange { background: var(--orange-lt); color: var(--orange); box-shadow: 0 4px 12px var(--orange-glow); }
+.stat-icon.purple { background: var(--purple-lt); color: var(--purple); box-shadow: 0 4px 12px var(--purple-glow); }
+
+/* ═══ QUICK ACTIONS ═══ */
+.quick-action-card {
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: var(--radius); padding: 20px 12px 16px;
+  text-align: center; cursor: pointer; box-shadow: var(--shadow-sm);
+  transition: transform var(--tr-spring), box-shadow var(--tr), background var(--tr), border-color var(--tr);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.quick-action-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-md); }
+.quick-action-card:active { transform: translateY(-1px) scale(0.99); }
+.qa-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: transform var(--tr-spring); }
+.quick-action-card:hover .qa-icon { transform: scale(1.1) rotate(-5deg); }
+.qa-label { font-size: 0.78rem; font-weight: 700; color: var(--text); letter-spacing: -0.1px; }
+
+/* ═══ CHART CARD ═══ */
+.chart-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: background var(--tr), border-color var(--tr); }
+.chart-card-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.chart-card-header h5 { font-size: 0.95rem; font-weight: 800; color: var(--text); letter-spacing: -0.2px; }
+.chart-card-header .chart-meta { font-size: 0.75rem; color: var(--text-3); }
+.chart-filter-group { display: flex; gap: 4px; background: var(--surface2); border-radius: 8px; padding: 3px; }
+.chart-filter-btn { border: none; background: transparent; font-size: 0.73rem; font-weight: 600; color: var(--text-3); padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background var(--tr), color var(--tr); font-family: inherit; }
+.chart-filter-btn.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+.chart-filter-btn:hover:not(.active) { color: var(--text-2); }
+.chart-body { padding: 0 20px 20px; }
+#salesTrendChart { width: 100% !important; height: 280px !important; }
+
+/* ═══ LIST CARDS ═══ */
+.list-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: background var(--tr), border-color var(--tr); }
+.list-card-header { padding: 18px 22px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.list-card-header h5 { font-size: 0.88rem; font-weight: 800; color: var(--text); letter-spacing: -0.2px; }
+.list-card-header a { font-size: 0.75rem; color: var(--accent); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: color var(--tr), gap var(--tr); }
+.list-card-header a:hover { color: var(--accent-hover); gap: 7px; }
+
+.list-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 22px; border-bottom: 1px solid var(--border-soft); transition: background var(--tr); }
+.list-row:last-child { border-bottom: none; }
+.list-row:hover { background: var(--surface2); }
+.list-row-left h6 { font-size: 0.835rem; font-weight: 700; color: var(--text); margin-bottom: 2px; letter-spacing: -0.1px; }
+.list-row-left small { font-size: 0.73rem; color: var(--text-3); }
+.list-row-value { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+
+.pill { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.02em; }
+.pill-critical { background: var(--red-lt);    color: var(--red); }
+.pill-low      { background: var(--orange-lt); color: var(--orange); }
+.pill-medium   { background: var(--blue-lt);   color: var(--blue); }
+
+/* ═══ SKELETON LOADER ═══ */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px; display: inline-block;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ═══ MODAL ═══ */
+.modal-content { border: none; border-radius: 18px; box-shadow: var(--shadow-lg); background: var(--surface); color: var(--text); overflow: hidden; }
+.modal-header { border-bottom: 1px solid var(--border); padding: 18px 22px; background: var(--surface); }
+.modal-title { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.2px; }
+.modal-body { padding: 8px 14px 16px; }
+.modal-menu-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 8px;
+  border-radius: var(--radius-xs); color: var(--text); text-decoration: none;
+  font-size: 0.86rem; font-weight: 600;
+  transition: background var(--tr), color var(--tr), transform var(--tr-spring);
+}
+.modal-menu-item:hover { background: var(--surface2); color: var(--text); transform: translateX(2px); }
+.modal-menu-item .mi-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.modal-menu-item.danger { color: var(--red); }
+.modal-menu-item.danger:hover { background: var(--red-lt); color: var(--red); }
+.modal-menu-item.danger .mi-icon { background: var(--red-lt); color: var(--red); }
+.mi-icon.blue   { background: var(--blue-lt);   color: var(--blue); }
+.mi-icon.purple { background: var(--purple-lt); color: var(--purple); }
+.modal-divider { height: 1px; background: var(--border); margin: 6px 8px; }
+.modal-profile-pill { display: flex; align-items: center; gap: 12px; padding: 14px 8px 10px; }
+.modal-avatar { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+.modal-user-name { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.modal-user-role { font-size: 0.72rem; color: var(--text-3); }
+
+body.dark-mode .btn-close { filter: invert(1); }
+body.dark-mode .modal-content { background: var(--surface); }
+
+/* Error state */
+.fetch-error { font-size: 0.78rem; color: var(--red); display: flex; align-items: center; gap: 6px; padding: 8px 0; }
+
+@media (max-width: 576px) {
+  .stat-value { font-size: 1.25rem; }
+  .topbar { padding: 0 14px; }
+  .topbar-search { display: none; }
+}
+</style>
+</head>
+<body class="light-mode">
+<div class="d-flex">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav id="sidebarMenu">
+    <div class="sidebar-brand">
+      <div class="brand-logo"><i class="bi bi-grid-fill"></i></div>
+      <span class="brand-name">CodexLabs POS</span>
+      <span class="brand-badge">Pro</span>
+      <button id="collapseSidebar"><i class="bi bi-chevron-left"></i></button>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="nav-section-label">Main</div>
+    <ul class="sidebar-nav">
+      <li><a href="Dashboard.html" class="nav-link active" data-title="Dashboard"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span><span>Dashboard</span></a></li>
+      <li><a href="sale.html" class="nav-link" data-title="New Sale"><span class="nav-icon"><i class="bi bi-cart-plus"></i></span><span>New Sale</span></a></li>
+      <li><a href="product.html" class="nav-link" data-title="Products"><span class="nav-icon"><i class="bi bi-box-seam"></i></span><span>Products</span></a></li>
+    </ul>
+    <div class="nav-section-label mt-3">Reports</div>
+    <ul class="sidebar-nav">
+      <li>
+        <a class="nav-link nav-collapse-btn" data-bs-toggle="collapse" href="#reportsMenu" data-title="Reports">
+          <span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span>
+          <span>Reports</span>
+          <i class="bi bi-chevron-down nav-collapse-chevron open"></i>
+        </a>
+        <div class="collapse show" id="reportsMenu">
+          <ul class="sidebar-submenu">
+            <li><a href="report.html" class="nav-link" data-title="Sales"><span class="nav-icon"><i class="bi bi-graph-up"></i></span><span>Sales</span></a></li>
+            <li><a href="transaction_history.html" class="nav-link" data-title="Transactions"><span class="nav-icon"><i class="bi bi-receipt"></i></span><span>Transactions</span></a></li>
+            <li><a href="refund.html" class="nav-link" data-title="Refunds"><span class="nav-icon"><i class="bi bi-arrow-counterclockwise"></i></span><span>Refunds</span></a></li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+    <div class="nav-section-label mt-3">Management</div>
+    <ul class="sidebar-nav">
+      <li><a href="inventory.html" class="nav-link" data-title="Inventory"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span><span>Inventory</span></a></li>
+      <li><a href="customer.html" class="nav-link" data-title="Customers"><span class="nav-icon"><i class="bi bi-people"></i></span><span>Customers</span></a></li>
+      <li><a href="supplier.html" class="nav-link" data-title="Suppliers"><span class="nav-icon"><i class="bi bi-truck"></i></span><span>Suppliers</span></a></li>
+      <li><a href="users.html" class="nav-link" data-title="Users"><span class="nav-icon"><i class="bi bi-person-badge"></i></span><span>Users</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" data-bs-toggle="modal" data-bs-target="#userModal">
+        <div class="avatar-sm" id="sidebarAvatarInitials">--</div>
+        <div class="sidebar-user-info">
+          <strong id="sidebarUserName">Loading…</strong>
+          <small id="sidebarUserRole">—</small>
+        </div>
+        <i class="bi bi-three-dots-vertical" style="font-size:0.75rem;color:var(--sidebar-label);margin-left:auto;flex-shrink:0;"></i>
+      </div>
+    </div>
+  </nav>
+
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-icon-btn d-lg-none" id="sidebarToggle"><i class="bi bi-list"></i></button>
+      <div class="topbar-search d-none d-sm-block">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search products, customers, orders…">
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-icon-btn" id="darkModeToggle" title="Toggle theme">
+          <i class="bi bi-moon icon-moon"></i>
+          <i class="bi bi-sun icon-sun"></i>
+        </button>
+        <button class="topbar-icon-btn" title="Notifications" id="notifBtn">
+          <a href="profile.html"><i class="bi bi-bell"></i></a>
+          <span class="notif-dot" id="notifDot" style="display:none;"></span>
+        </button>
+        <div class="user-profile" data-bs-toggle="modal" data-bs-target="#userModal">
+          <div class="avatar" id="topbarAvatar">--</div>
+          <div class="user-info ms-1">
+            <strong id="topbarUserName">Loading…</strong>
+            <small id="topbarUserRole">—</small>
+          </div>
+          <i class="bi bi-chevron-down ms-2" style="font-size:0.62rem;color:var(--text-3);"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- USER MODAL -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" style="max-width:290px;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="userModalLabel">Account</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="modal-profile-pill">
+              <div class="modal-avatar" id="modalAvatarInitials">--</div>
+              <div>
+                <div class="modal-user-name" id="modalUserName">—</div>
+                <div class="modal-user-role" id="modalUserRole">—</div>
+              </div>
+            </div>
+            <div class="modal-divider"></div>
+            <a href="profile.html" class="modal-menu-item">
+              <div class="mi-icon blue"><i class="bi bi-person-circle"></i></div>
+              <span>My Profile</span>
+            </a>
+            <a href="settings.html" class="modal-menu-item">
+              <div class="mi-icon purple"><i class="bi bi-gear"></i></div>
+              <span>Settings</span>
+            </a>
+            <div class="modal-divider"></div>
+              <button type="button" class="modal-menu-item danger" id="logoutBtn">
+                  <div class="mi-icon">
+                      <i class="bi bi-box-arrow-right"></i>
+                  </div>
+                  <span>Sign Out</span>
+              </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Dashboard</h2>
+          <div class="breadcrumb-row">
+            <span>Home</span>
+            <span class="dot"></span>
+            <span class="current">Overview</span>
+          </div>
+        </div>
+        <a href="sale.html" class="btn-new-sale">
+          <i class="bi bi-cart-plus"></i> New Sale
+        </a>
+      </div>
+
+      <!-- STAT CARDS -->
+      <p class="section-label">Performance</p>
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-4">
+          <div class="stat-card green">
+            <div>
+              <div class="stat-label">Today's Sales</div>
+              <div class="stat-value" id="statTodaySales"><span class="skeleton" style="width:120px;height:28px;">&nbsp;</span></div>
+              <span class="stat-delta neutral" id="statTodayDelta">Loading…</span>
+            </div>
+            <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4">
+          <div class="stat-card blue">
+            <div>
+              <div class="stat-label">Total Revenue</div>
+              <div class="stat-value" id="statTotalRevenue"><span class="skeleton" style="width:130px;height:28px;">&nbsp;</span></div>
+              <span class="stat-delta neutral">All time</span>
+            </div>
+            <div class="stat-icon blue"><i class="bi bi-graph-up"></i></div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4">
+          <div class="stat-card red">
+            <div>
+              <div class="stat-label">Low Stock Alerts</div>
+              <div class="stat-value" id="statLowStock"><span class="skeleton" style="width:80px;height:28px;">&nbsp;</span></div>
+              <span class="stat-delta down" id="statLowStockDelta"><i class="bi bi-exclamation-circle"></i> Needs restocking</span>
+            </div>
+            <div class="stat-icon red"><i class="bi bi-exclamation-triangle"></i></div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-6">
+          <div class="stat-card orange">
+            <div>
+              <div class="stat-label">Products Sold</div>
+              <div class="stat-value" id="statProductsSold"><span class="skeleton" style="width:80px;height:28px;">&nbsp;</span></div>
+              <span class="stat-delta neutral">All time</span>
+            </div>
+            <div class="stat-icon orange"><i class="bi bi-box-seam"></i></div>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-6">
+          <div class="stat-card purple">
+            <div>
+              <div class="stat-label">Total Transactions</div>
+              <div class="stat-value" id="statTransactions"><span class="skeleton" style="width:70px;height:28px;">&nbsp;</span></div>
+              <span class="stat-delta neutral">All time</span>
+            </div>
+            <div class="stat-icon purple"><i class="bi bi-receipt"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <p class="section-label">Quick Actions</p>
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="quick-action-card" onclick="location.href='sale.html'">
+            <div class="qa-icon" style="background:var(--green-lt);color:var(--green);"><i class="bi bi-cart-plus"></i></div>
+            <div class="qa-label">New Sale</div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="quick-action-card" onclick="location.href='product.html'">
+            <div class="qa-icon" style="background:var(--orange-lt);color:var(--orange);"><i class="bi bi-box-seam"></i></div>
+            <div class="qa-label">Products</div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="quick-action-card" onclick="location.href='report.html'">
+            <div class="qa-icon" style="background:var(--blue-lt);color:var(--blue);"><i class="bi bi-bar-chart-line"></i></div>
+            <div class="qa-label">Reports</div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="quick-action-card" onclick="location.href='inventory.html'">
+            <div class="qa-icon" style="background:var(--teal-lt);color:var(--teal);"><i class="bi bi-clipboard-check"></i></div>
+            <div class="qa-label">Inventory</div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="quick-action-card" onclick="location.href='customer.html'">
+            <div class="qa-icon" style="background:var(--surface2);color:var(--text-2);"><i class="bi bi-people"></i></div>
+            <div class="qa-label">Customers</div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="quick-action-card" onclick="location.href='supplier.html'">
+            <div class="qa-icon" style="background:var(--orange-lt);color:var(--orange);"><i class="bi bi-truck"></i></div>
+            <div class="qa-label">Suppliers</div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <div class="quick-action-card" onclick="location.href='users.html'">
+            <div class="qa-icon" style="background:var(--accent-lt);color:var(--accent);"><i class="bi bi-person-badge"></i></div>
+            <div class="qa-label">Users</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <p class="section-label">Analytics</p>
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <h5 id="chartTitle">Sales Trend</h5>
+                <div class="chart-meta" id="chartMeta">KES · Loading…</div>
+              </div>
+              <div class="chart-filter-group">
+                <button class="chart-filter-btn active" data-range="daily">Today</button>
+                <button class="chart-filter-btn" data-range="weekly">Week</button>
+                <button class="chart-filter-btn" data-range="monthly">Month</button>
+              </div>
+            </div>
+            <div class="chart-body">
+              <canvas id="salesTrendChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIST SECTIONS -->
+      <p class="section-label">Inventory Insights</p>
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-xl-6">
+          <div class="list-card">
+            <div class="list-card-header">
+              <h5>Top Selling Products</h5>
+              <a href="report.html">View all <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div id="topProductsList">
+              <!-- filled by JS -->
+              <div class="list-row"><div class="list-row-left"><span class="skeleton" style="width:180px;height:14px;">&nbsp;</span></div></div>
+              <div class="list-row"><div class="list-row-left"><span class="skeleton" style="width:150px;height:14px;">&nbsp;</span></div></div>
+              <div class="list-row"><div class="list-row-left"><span class="skeleton" style="width:170px;height:14px;">&nbsp;</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-xl-6">
+          <div class="list-card">
+            <div class="list-card-header">
+              <h5>Low Stock Products</h5>
+              <a href="inventory.html">View all <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div id="lowStockList">
+              <div class="list-row"><div class="list-row-left"><span class="skeleton" style="width:180px;height:14px;">&nbsp;</span></div></div>
+              <div class="list-row"><div class="list-row-left"><span class="skeleton" style="width:150px;height:14px;">&nbsp;</span></div></div>
+              <div class="list-row"><div class="list-row-left"><span class="skeleton" style="width:170px;height:14px;">&nbsp;</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.page-body -->
+  </div><!-- /.main-content -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // ═══════════════════════════════════════════
+  //  CONFIG — update BASE_URL for production
+  // ═══════════════════════════════════════════
+  const BASE_URL = "/api";
+  
+  async function logoutUser() {
+      const token = localStorage.getItem("access_token");
+
+      try {
+          console.log("Sending logout request...");
+
+          const response = await fetch(
+              `${BASE_URL}/auth/auth/logout`,
+              {
+                  method: "POST",
+                  headers: {
+                      "Authorization": `Bearer ${token}`
+                  }
+              }
+          );
+
+          console.log("Response status:", response.status);
+
+          const data = await response.json();
+
+          console.log("Response data:", data);
+
+          if (response.ok) {
+              localStorage.removeItem("access_token");
+              localStorage.removeItem("refresh_token");
+              localStorage.removeItem("user_id");
+              localStorage.removeItem("business_id");
+              localStorage.removeItem("user_data");
+
+              alert(data.message);
+
+              window.location.href = "index.html";
+          } else {
+              alert(data.message || "Logout failed");
+          }
+
+      } catch (error) {
+          console.error("Logout Error:", error);
+          alert("Unable to connect to server");
+      }
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      console.log("LOGOUT CLICKED");
+
+      await logoutUser();
+  });
+  // ═══════════════════════════════════════════
+  //  AUTH HELPERS
+  // ═══════════════════════════════════════════
+  function getToken() {
+    return localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+  }
+
+  function authHeaders() {
+    return {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`
+    };
+  }
+
+  async function apiFetch(path) {
+    const res = await fetch(`${BASE_URL}${path}`, { headers: authHeaders() });
+    if (res.status === 401) {
+      // Token expired — redirect to login
+      window.location.href = "index.html";
+      return null;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  // ═══════════════════════════════════════════
+  //  FORMAT HELPERS
+  // ═══════════════════════════════════════════
+  function fmtCurrency(n) {
+    return "KES " + Number(n || 0).toLocaleString("en-KE", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function getInitials(name = "") {
+    return name.trim().split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2) || "??";
+  }
+
+  // ═══════════════════════════════════════════
+  //  USER PROFILE  (from JWT stored data)
+  // ═══════════════════════════════════════════
+  function loadUserProfile() {
+      const user = JSON.parse(
+          localStorage.getItem("user") ||
+          sessionStorage.getItem("user") ||
+          "{}"
+      );
+
+      const business = JSON.parse(
+          localStorage.getItem("business") ||
+          sessionStorage.getItem("business") ||
+          "{}"
+      );
+
+      const name =
+          user.fullname ||
+          user.username ||
+          user.name ||
+          "User";
+      
+      const email =BASE_URL
+          user.email ||
+          "";
+      const phone =
+          user.phone ||
+          "";
+
+
+      const role =
+          user.role ||
+          "admin";
+
+      const initials = getInitials(name);
+
+      console.log("User profile:", {
+          user,
+          business,
+          name,
+          role,
+          initials
+      });
+
+      document.getElementById("sidebarAvatarInitials").textContent = initials;
+      document.getElementById("sidebarUserName").textContent = name;
+      document.getElementById("sidebarUserRole").textContent = role;
+
+      document.getElementById("topbarAvatar").textContent = initials;
+      document.getElementById("topbarUserName").textContent = name;
+      document.getElementById("topbarUserRole").textContent = role;
+
+      document.getElementById("modalAvatarInitials").textContent = initials;
+      document.getElementById("modalUserName").textContent = name;
+      document.getElementById("modalUserRole").textContent =
+          `${role} · Active`;
+  }
+  // ═══════════════════════════════════════════
+  //  STAT CARDS  — /services/sales/overview
+  //               /services/sales/summary
+  // ═══════════════════════════════════════════
+  async function loadStatCards() {
+    try {
+      const [overview, summary] = await Promise.all([
+        apiFetch("/services/sales/overview"),
+        apiFetch("/services/sales/summary")
+      ]);
+
+      if (!overview || !summary) return;
+
+      // Today's sales
+      const today = summary.sales?.today_sales ?? 0;
+      const weekly = summary.sales?.weekly_sales ?? 0;
+      document.getElementById("statTodaySales").textContent = fmtCurrency(today);
+
+      // Today vs weekly context
+      const el = document.getElementById("statTodayDelta");
+      el.textContent = `Weekly: ${fmtCurrency(weekly)}`;
+      el.className = "stat-delta neutral";
+
+      // Total revenue
+      document.getElementById("statTotalRevenue").textContent = fmtCurrency(overview.total_sales);
+
+      // Low stock
+      const lowCount = overview.low_stock_count ?? 0;
+      document.getElementById("statLowStock").textContent = `${lowCount} Item${lowCount !== 1 ? "s" : ""}`;
+      if (lowCount > 0) document.getElementById("notifDot").style.display = "block";
+
+      // Products sold
+      document.getElementById("statProductsSold").textContent = Number(overview.total_products_sold ?? 0).toLocaleString();
+
+      // Transactions
+      document.getElementById("statTransactions").textContent = Number(overview.total_transactions ?? 0).toLocaleString();
+
+    } catch (err) {
+      console.error("Stat cards error:", err);
+      ["statTodaySales","statTotalRevenue","statLowStock","statProductsSold","statTransactions"].forEach(id => {
+        document.getElementById(id).innerHTML = `<span class="fetch-error"><i class="bi bi-wifi-off"></i> Error</span>`;
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  //  CHART  — daily / weekly / monthly trends
+  //  Endpoints:
+  //    daily   → /services/sales/daily_trends    { daily_trend:  [{hour, sales}] }
+  //    weekly  → /services/sales/weekly_trends   { weekly_trend: [{date, sales}] }
+  //    monthly → /services/sales/monthly_trends  { monthly_trend:[{date, sales}] }
+  // ═══════════════════════════════════════════
+  const ctx = document.getElementById("salesTrendChart").getContext("2d");
+
+  function makeGradient(isDark) {
+    const g = ctx.createLinearGradient(0, 0, 0, 260);
+    g.addColorStop(0, isDark ? "rgba(99,102,241,0.3)"  : "rgba(79,70,229,0.15)");
+    g.addColorStop(1, isDark ? "rgba(99,102,241,0.01)" : "rgba(79,70,229,0.01)");
+    return g;
+  }
+  const isDark = () => document.body.classList.contains("dark-mode");
+
+  let salesChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Sales KES",
+        data: [],
+        backgroundColor: makeGradient(false),
+        borderColor: "#6366f1",
+        borderWidth: 2.5,
+        pointBackgroundColor: "#fff",
+        pointBorderColor: "#6366f1",
+        pointBorderWidth: 2.5,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: "#6366f1",
+        pointHoverBorderColor: "#fff",
+        pointHoverBorderWidth: 2,
+        fill: true,
+        tension: 0.45
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: "index" },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#0f172a",
+          titleColor: "#94a3b8",
+          bodyColor: "#f1f5f9",
+          padding: 12, cornerRadius: 10,
+          borderColor: "rgba(255,255,255,0.07)", borderWidth: 1,
+          displayColors: false,
+          callbacks: {
+            title: c => c[0].label,
+            label: c => " KES " + c.parsed.y.toLocaleString()
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: "#9ca3af", font: { size: 11, family: "'Plus Jakarta Sans'" } }
+        },
+        y: {
+          grid: { color: "rgba(0,0,0,0.04)", drawBorder: false },
+          border: { display: false, dash: [4,4] },
+          ticks: {
+            color: "#9ca3af",
+            font: { size: 11, family: "'Plus Jakarta Sans'" },
+            callback: v => "KES " + (v >= 1000 ? (v/1000).toFixed(0)+"k" : v),
+            maxTicksLimit: 5
+          }
+        }
+      }
+    }
+  });
+
+  async function loadChart(range) {
+    const endpoints = {
+      daily:   "/services/sales/daily_trends",
+      weekly:  "/services/sales/weekly_trends",
+      monthly: "/services/sales/monthly_trends"
+    };
+    const titles = { daily: "Today's Sales by Hour", weekly: "Weekly Sales Trend", monthly: "Monthly Sales Trend" };
+    const metas  = { daily: "KES · Hourly", weekly: "KES · Last 7 Days", monthly: "KES · This Month" };
+
+    try {
+      const data = await apiFetch(endpoints[range]);
+      if (!data) return;
+
+      let labels = [], values = [];
+
+      if (range === "daily") {
+        const rows = data.daily_trend || [];
+        // Fill all 24 hours so gaps appear as 0
+        labels = Array.from({length: 24}, (_, i) => {
+          const h = i % 12 || 12;
+          return `${h}${i < 12 ? "am" : "pm"}`;
+        });
+        values = Array(24).fill(0);
+        rows.forEach(r => { values[r.hour] = r.sales; });
+
+      } else if (range === "weekly") {
+        const rows = data.weekly_trend || [];
+        labels = rows.map(r => {
+          const d = new Date(r.date);
+          return d.toLocaleDateString("en-KE", { weekday: "short", month: "short", day: "numeric" });
+        });
+        values = rows.map(r => r.sales);
+
+      } else {
+        const rows = data.monthly_trend || [];
+        labels = rows.map(r => {
+          const d = new Date(r.date);
+          return d.toLocaleDateString("en-KE", { month: "short", day: "numeric" });
+        });
+        values = rows.map(r => r.sales);
+      }
+
+      salesChart.data.labels = labels;
+      salesChart.data.datasets[0].data = values;
+      salesChart.data.datasets[0].backgroundColor = makeGradient(isDark());
+      salesChart.update();
+
+      document.getElementById("chartTitle").textContent = titles[range];
+      document.getElementById("chartMeta").textContent  = metas[range];
+
+    } catch (err) {
+      console.error("Chart load error:", err);
+      document.getElementById("chartMeta").innerHTML = `<span style="color:var(--red)">Failed to load chart data</span>`;
+    }
+  }
+
+  // Chart filter buttons
+  document.querySelectorAll(".chart-filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".chart-filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      loadChart(btn.dataset.range);
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  //  TOP SELLING PRODUCTS  — /services/sales/top-selling-products
+  //  { top_products: [{product, total_sold}] }
+  // ═══════════════════════════════════════════
+  async function loadTopProducts() {
+    const el = document.getElementById("topProductsList");
+    try {
+      const data = await apiFetch("/services/sales/top-selling-products");
+      if (!data) return;
+
+      const products = data.top_products || [];
+      if (products.length === 0) {
+        el.innerHTML = `<div class="list-row"><div class="list-row-left"><small style="color:var(--text-3)">No sales data yet.</small></div></div>`;
+        return;
+      }
+
+      el.innerHTML = products.map(p => `
+        <div class="list-row">
+          <div class="list-row-left">
+            <h6>${escHtml(p.product)}</h6>
+            <small>${Number(p.total_sold).toLocaleString()} units sold</small>
+          </div>
+          <div class="list-row-value">${Number(p.total_sold).toLocaleString()}</div>
+        </div>
+      `).join("");
+
+    } catch (err) {
+      console.error("Top products error:", err);
+      el.innerHTML = `<div class="list-row"><span class="fetch-error"><i class="bi bi-wifi-off"></i> Could not load products</span></div>`;
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  //  LOW STOCK PRODUCTS  — /services/sales/low_stock
+  //  { low_stock_products: [{product_id, product_name, product_quantity, product_threshold}] }
+  // ═══════════════════════════════════════════
+  async function loadLowStock() {
+    const el = document.getElementById("lowStockList");
+    try {
+      const data = await apiFetch("/services/sales/low_stock");
+      if (!data) return;
+
+      const products = data.low_stock_products || [];
+      if (products.length === 0) {
+        el.innerHTML = `<div class="list-row"><div class="list-row-left"><small style="color:var(--green)"><i class="bi bi-check-circle"></i> All products are well-stocked.</small></div></div>`;
+        return;
+      }
+
+      el.innerHTML = products.map(p => {
+        // Severity: critical if qty <= 30% of threshold, low if <= 60%, else medium
+        const ratio = p.product_threshold > 0 ? p.product_quantity / p.product_threshold : 1;
+        let pill = "";
+        if (ratio <= 0.3)      pill = `<span class="pill pill-critical">Critical</span>`;
+        else if (ratio <= 0.6) pill = `<span class="pill pill-low">Low</span>`;
+        else                   pill = `<span class="pill pill-medium">Medium</span>`;
+
+        return `
+          <div class="list-row">
+            <div class="list-row-left">
+              <h6>${escHtml(p.product_name)}</h6>
+              <small>${p.product_quantity} units · threshold ${p.product_threshold}</small>
+            </div>
+            ${pill}
+          </div>
+        `;
+      }).join("");
+
+    } catch (err) {
+      console.error("Low stock error:", err);
+      el.innerHTML = `<div class="list-row"><span class="fetch-error"><i class="bi bi-wifi-off"></i> Could not load stock data</span></div>`;
+    }
+  }
+
+  
+  // ═══════════════════════════════════════════
+  //  SIDEBAR TOGGLE (mobile)
+  // ═══════════════════════════════════════════
+  const sidebar = document.getElementById("sidebarMenu");
+  const overlay = document.getElementById("overlay");
+  document.getElementById("sidebarToggle").addEventListener("click", () => {
+    sidebar.classList.toggle("show");
+    overlay.classList.toggle("show");
+  });
+  overlay.addEventListener("click", () => {
+    sidebar.classList.remove("show");
+    overlay.classList.remove("show");
+  });
+
+  // ═══════════════════════════════════════════
+  //  COLLAPSE SIDEBAR (desktop)
+  // ═══════════════════════════════════════════
+  document.getElementById("collapseSidebar").addEventListener("click", () => {
+    sidebar.classList.toggle("collapsed");
+    const icon = document.querySelector("#collapseSidebar i");
+    icon.className = sidebar.classList.contains("collapsed") ? "bi bi-chevron-right" : "bi bi-chevron-left";
+  });
+
+  // ═══════════════════════════════════════════
+  //  DARK MODE
+  // ═══════════════════════════════════════════
+  document.getElementById("darkModeToggle").addEventListener("click", () => {
+    document.body.classList.toggle("dark-mode");
+    document.body.classList.toggle("light-mode");
+    salesChart.data.datasets[0].backgroundColor = makeGradient(isDark());
+    salesChart.options.scales.y.grid.color = isDark() ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)";
+    salesChart.update();
+    localStorage.setItem("theme", isDark() ? "dark" : "light");
+  });
+
+  // Persist theme across refreshes
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark-mode");
+    document.body.classList.remove("light-mode");
+  }
+
+  // ═══════════════════════════════════════════
+  //  SUBMENU CHEVRON ROTATION
+  // ═══════════════════════════════════════════
+  document.querySelectorAll("[data-bs-toggle='collapse']").forEach(btn => {
+    const chevron = btn.querySelector(".nav-collapse-chevron");
+    if (!chevron) return;
+    btn.addEventListener("click", () => chevron.classList.toggle("open"));
+  });
+
+  // ═══════════════════════════════════════════
+  //  SECURITY — escape HTML before rendering
+  // ═══════════════════════════════════════════
+  function escHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // ═══════════════════════════════════════════
+  //  BOOT — load everything on page load
+  // ═══════════════════════════════════════════
+  (async function init() {
+    loadUserProfile();
+
+    // All API calls in parallel where possible
+    await Promise.allSettled([
+      loadStatCards(),
+      loadTopProducts(),
+      loadLowStock(),
+      loadChart("daily")  // default chart view
+    ]);
+  })();
+</script>
+</body>
+</html>

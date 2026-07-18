@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users — POS System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F7F8FA;
+  --surface: #FFFFFF;
+  --surface-2: #F0F2F5;
+  --border: rgba(0,0,0,0.07);
+  --border-strong: rgba(0,0,0,0.12);
+  --text-1: #0F1117;
+  --text-2: #5A6173;
+  --text-3: #9AA0AE;
+  --accent: #5B5FED;
+  --accent-soft: #EEEFFE;
+  --accent-text: #3D41C8;
+  --success: #12B76A;
+  --success-soft: #ECFDF3;
+  --success-text: #027A48;
+  --danger: #F04438;
+  --danger-soft: #FEF3F2;
+  --danger-text: #B42318;
+  --warn: #F79009;
+  --warn-soft: #FFFAEB;
+  --warn-text: #B54708;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  --sidebar-w: 240px;
+  --topbar-h: 60px;
+  --font: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+body.dark {
+  --bg: #0E0F14;
+  --surface: #181922;
+  --surface-2: #1F2130;
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --text-1: #F0F2F8;
+  --text-2: #8B93A8;
+  --text-3: #4A5068;
+  --accent: #6B70F0;
+  --accent-soft: #1A1B3A;
+  --accent-text: #A5A8F8;
+  --success: #12B76A;
+  --success-soft: #052814;
+  --success-text: #3DDC84;
+  --danger: #F04438;
+  --danger-soft: #200E0D;
+  --danger-text: #F97066;
+  --warn: #F79009;
+  --warn-soft: #1F1506;
+  --warn-text: #FDB022;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-1);
+  transition: background var(--transition), color var(--transition);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  transition: width var(--transition), transform var(--transition), background var(--transition);
+  overflow: hidden;
+}
+#sidebar.mini { width: 60px; }
+
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 16px;
+  flex-shrink: 0;
+}
+.brand-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 15px;
+}
+.brand-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-1);
+  white-space: nowrap;
+  transition: opacity var(--transition);
+}
+#sidebar.mini .brand-name,
+#sidebar.mini .nav-label,
+#sidebar.mini .nav-section { opacity: 0; pointer-events: none; }
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  scrollbar-width: none;
+}
+.sidebar-nav::-webkit-scrollbar { display: none; }
+
+.nav-section {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  padding: 16px 8px 6px;
+  white-space: nowrap;
+  transition: opacity var(--transition);
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 400;
+  position: relative;
+}
+.nav-item:hover { background: var(--surface-2); color: var(--text-1); }
+.nav-item.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 500; }
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+}
+.nav-icon { font-size: 16px; flex-shrink: 0; }
+.nav-label { transition: opacity var(--transition); }
+
+.sidebar-collapse {
+  padding: 12px 10px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  color: var(--text-3);
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  font-family: var(--font);
+  font-size: 13px;
+  transition: background var(--transition), color var(--transition);
+}
+.collapse-btn:hover { background: var(--surface-2); color: var(--text-2); }
+
+/* ── TOPBAR ── */
+#topbar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-w);
+  right: 0;
+  height: var(--topbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 12px;
+  z-index: 100;
+  transition: left var(--transition), background var(--transition);
+}
+#sidebar.mini ~ #topbar { left: 60px; }
+
+.topbar-mobile-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 17px;
+}
+.topbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 320px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  height: 36px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.topbar-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,95,237,0.12); }
+.topbar-search input { border: none; background: none; outline: none; font-family: var(--font); font-size: 13.5px; color: var(--text-1); width: 100%; }
+.topbar-search input::placeholder { color: var(--text-3); }
+.topbar-search i { color: var(--text-3); font-size: 14px; flex-shrink: 0; }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 16px;
+  transition: background var(--transition), color var(--transition);
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--text-1); }
+
+.topbar-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #8B8FF8);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── ADMIN BADGE in topbar ── */
+.role-chip {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+/* ── MAIN ── */
+#main {
+  margin-left: var(--sidebar-w);
+  padding-top: var(--topbar-h);
+  transition: margin-left var(--transition);
+  min-height: 100vh;
+}
+#sidebar.mini ~ #main { margin-left: 60px; }
+.page-content { padding: 28px; }
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-title { font-size: 20px; font-weight: 600; color: var(--text-1); }
+.page-sub { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+
+/* ── STATS ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+  transition: box-shadow var(--transition);
+}
+.stat-card:hover { box-shadow: var(--shadow-md); }
+.stat-label { font-size: 12px; color: var(--text-2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-value { font-size: 26px; font-weight: 600; color: var(--text-1); margin-top: 4px; line-height: 1.2; }
+.stat-meta { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+
+/* skeleton */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+  display: inline-block;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.sk-val { height: 32px; width: 40px; margin-top: 4px; }
+
+/* ── TABLE CARD ── */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.filter-group { display: flex; gap: 8px; }
+.filter-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.filter-btn:hover { border-color: var(--border-strong); color: var(--text-1); background: var(--surface-2); }
+.filter-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-text); font-weight: 500; }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  height: 34px;
+  min-width: 220px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.search-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,95,237,0.12); }
+.search-bar input { border: none; background: none; outline: none; font-family: var(--font); font-size: 13px; color: var(--text-1); width: 100%; }
+.search-bar input::placeholder { color: var(--text-3); }
+.search-bar i { color: var(--text-3); font-size: 14px; flex-shrink: 0; }
+
+.add-btn {
+  margin-left: auto;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  flex-shrink: 0;
+}
+.add-btn:hover { background: #4749d1; box-shadow: 0 4px 12px rgba(91,95,237,0.3); transform: translateY(-1px); }
+.add-btn:active { transform: translateY(0); }
+.add-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface-2); }
+tbody td { padding: 13px 16px; font-size: 13.5px; color: var(--text-1); vertical-align: middle; }
+
+.user-cell { display: flex; align-items: center; gap: 11px; }
+.user-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+  font-size: 12.5px;
+  flex-shrink: 0;
+}
+.user-name { font-weight: 500; font-size: 13.5px; color: var(--text-1); }
+.user-email-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-admin   { background: var(--accent-soft); color: var(--accent-text); }
+.badge-cashier { background: var(--success-soft); color: var(--success-text); }
+.badge-active  { background: var(--success-soft); color: var(--success-text); }
+.badge-inactive{ background: var(--surface-2); color: var(--text-2); }
+.badge-pin     { background: var(--surface-2); color: var(--text-2); font-family: var(--mono); letter-spacing: 0.08em; }
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.badge-dot-green { background: var(--success); }
+.badge-dot-gray  { background: var(--text-3); }
+
+.action-cell { display: flex; align-items: center; gap: 4px; }
+.act-btn {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  transition: background var(--transition), color var(--transition);
+  position: relative;
+}
+.act-btn.edit-btn { color: var(--accent); }
+.act-btn.edit-btn:hover { background: var(--accent-soft); }
+.act-btn.del-btn  { color: var(--danger); }
+.act-btn.del-btn:hover  { background: var(--danger-soft); }
+.act-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+.act-btn::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-1);
+  color: var(--bg);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 50;
+}
+.act-btn:not(:disabled):hover::after { opacity: 1; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  display: none;
+}
+.empty-icon {
+  width: 56px; height: 56px;
+  background: var(--surface-2);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  color: var(--text-3);
+  margin-bottom: 16px;
+}
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text-1); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; color: var(--text-2); max-width: 280px; line-height: 1.6; }
+
+/* loading row */
+.loading-row td { text-align: center; padding: 40px; color: var(--text-3); }
+.spin {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: rotate .7s linear infinite;
+  margin: 0 auto 10px;
+}
+@keyframes rotate { to { transform: rotate(360deg); } }
+
+/* ── MOBILE CARDS ── */
+.user-cards { display: none; padding: 16px 20px; }
+.u-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.u-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.u-card-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.u-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.u-card-login { font-size: 12px; color: var(--text-3); }
+
+/* ── MODAL ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  z-index: 900;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 440px;
+  transform: translateY(16px) scale(0.97);
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  border: 1px solid var(--border);
+}
+.modal-backdrop.open .modal-box { transform: translateY(0) scale(1); }
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title-wrap { display: flex; align-items: center; gap: 10px; }
+.modal-icon {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.modal-icon.blue { background: var(--accent-soft); color: var(--accent-text); }
+.modal-icon.red  { background: var(--danger-soft); color: var(--danger-text); }
+.modal-title { font-size: 15px; font-weight: 600; color: var(--text-1); }
+
+.close-btn {
+  width: 30px; height: 30px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition), color var(--transition);
+}
+.close-btn:hover { background: var(--surface-2); color: var(--text-1); }
+
+.modal-body { padding: 20px 22px; }
+.field-group { margin-bottom: 16px; }
+.field-label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+.field-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-1);
+  font-family: var(--font);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,95,237,0.12); }
+.field-input::placeholder { color: var(--text-3); }
+.field-input:disabled { opacity: .6; cursor: not-allowed; }
+select.field-input { cursor: pointer; }
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--border);
+}
+.btn-secondary {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-secondary:hover { background: var(--surface-2); color: var(--text-1); }
+.btn-primary {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition);
+}
+.btn-primary:hover { background: #4749d1; box-shadow: 0 4px 12px rgba(91,95,237,0.3); }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+.btn-danger {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--danger);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition);
+}
+.btn-danger:hover { background: #c8281c; }
+.btn-danger:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-spin {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: rotate .6s linear infinite;
+  display: inline-block;
+}
+
+/* ── DELETE WARNING ── */
+.delete-warning {
+  background: var(--danger-soft);
+  border: 1px solid rgba(240,68,56,0.15);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--danger-text);
+  line-height: 1.6;
+}
+
+/* ── ADMIN-ONLY NOTICE ── */
+.admin-notice {
+  background: var(--warn-soft);
+  border: 1px solid rgba(247,144,9,0.2);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--warn-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+/* ── TOAST ── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+.toast {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 280px;
+  max-width: 360px;
+  animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  font-size: 13.5px;
+  color: var(--text-1);
+}
+.toast.out { animation: toastOut 0.25s ease forwards; }
+.toast-ico {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.toast-ico.success { background: var(--success-soft); color: var(--success-text); }
+.toast-ico.danger  { background: var(--danger-soft);  color: var(--danger-text); }
+.toast-ico.warn    { background: var(--warn-soft);    color: var(--warn-text); }
+.toast-text { flex: 1; line-height: 1.5; }
+.toast-close { background: none; border: none; cursor: pointer; color: var(--text-3); font-size: 14px; padding: 0; line-height: 1; }
+@keyframes toastIn  { from { opacity:0; transform: translateX(20px) scale(0.95); } to { opacity:1; transform: translateX(0) scale(1); } }
+@keyframes toastOut { from { opacity:1; } to   { opacity:0; transform: translateX(20px); } }
+
+/* ── MOBILE OVERLAY ── */
+#mobile-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 199;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+#mobile-overlay.show { opacity: 1; pointer-events: all; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 991px) {
+  #sidebar { transform: translateX(-100%); width: var(--sidebar-w) !important; }
+  #sidebar.open { transform: translateX(0); }
+  #topbar { left: 0 !important; }
+  #main   { margin-left: 0 !important; }
+  .topbar-mobile-toggle { display: flex; }
+}
+@media (max-width: 767px) {
+  .page-content { padding: 20px 16px; }
+  .table-wrap, thead { display: none; }
+  .user-cards { display: block; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .table-toolbar { padding: 12px 16px; }
+  .topbar-search { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="mobile-overlay"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-head">
+    <div class="brand-icon"><i class="bi bi-shop"></i></div>
+    <span class="brand-name">CodexLabs POS</span>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a href="Dashboard.html" class="nav-item"><i class="bi bi-speedometer2 nav-icon"></i><span class="nav-label">Dashboard</span></a>
+    <a href="sale.html"      class="nav-item"><i class="bi bi-cart-plus nav-icon"></i><span class="nav-label">New Sale</span></a>
+    <a href="product.html"   class="nav-item"><i class="bi bi-box-seam nav-icon"></i><span class="nav-label">Products</span></a>
+    <a href="inventory.html" class="nav-item"><i class="bi bi-clipboard-check nav-icon"></i><span class="nav-label">Inventory</span></a>
+
+    <div class="nav-section">Reports</div>
+    <a href="report.html"              class="nav-item"><i class="bi bi-graph-up nav-icon"></i><span class="nav-label">Sales</span></a>
+    <a href="transaction_history.html" class="nav-item"><i class="bi bi-receipt nav-icon"></i><span class="nav-label">Transactions</span></a>
+    <a href="refund.html"              class="nav-item"><i class="bi bi-arrow-counterclockwise nav-icon"></i><span class="nav-label">Refunds</span></a>
+
+    <div class="nav-section">People</div>
+    <a href="customer.html" class="nav-item"><i class="bi bi-people nav-icon"></i><span class="nav-label">Customers</span></a>
+    <a href="supplier.html" class="nav-item"><i class="bi bi-truck nav-icon"></i><span class="nav-label">Suppliers</span></a>
+    <a href="users.html"    class="nav-item active"><i class="bi bi-person-badge nav-icon"></i><span class="nav-label">Users</span></a>
+  </div>
+  <div class="sidebar-collapse">
+    <button class="collapse-btn" id="collapseBtn">
+      <i class="bi bi-layout-sidebar-reverse nav-icon"></i>
+      <span class="nav-label">Collapse</span>
+    </button>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="topbar-mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <i class="bi bi-list"></i>
+  </button>
+  <div class="topbar-search">
+    <i class="bi bi-search"></i>
+    <input type="text" placeholder="Search users…" id="topbarSearch">
+  </div>
+  <div class="topbar-right">
+    <span class="role-chip" id="roleChip" style="display:none"></span>
+    <button class="icon-btn" id="darkToggle" title="Toggle dark mode">
+      <i class="bi bi-moon" id="darkIcon"></i>
+    </button>
+    <div class="topbar-avatar" id="topbarAvatar" title="Current user">?</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main id="main">
+  <div class="page-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">User Management</div>
+        <div class="page-sub">Manage system access, roles, and permissions</div>
+      </div>
+    </div>
+
+    <!-- Admin-only notice (shown to cashiers) -->
+    <div class="admin-notice" id="adminNotice" style="display:none">
+      <i class="bi bi-shield-exclamation"></i>
+      You are viewing users in read-only mode. Only admins can add, edit, or remove users.
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value" id="statTotal"><span class="skeleton sk-val"></span></div>
+        <div class="stat-meta">System accounts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active</div>
+        <div class="stat-value" id="statActive"><span class="skeleton sk-val"></span></div>
+        <div class="stat-meta">Online recently</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Admins</div>
+        <div class="stat-value" id="statAdmins">—</div>
+        <div class="stat-meta">Full access</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cashiers</div>
+        <div class="stat-value" id="statCashiers">—</div>
+        <div class="stat-meta">Limited access</div>
+      </div>
+    </div>
+
+    <!-- Table card -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-bar">
+          <i class="bi bi-search"></i>
+          <input type="text" placeholder="Search users…" id="searchInput">
+        </div>
+        <div class="filter-group" id="filterGroup">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="admin">Admins</button>
+          <button class="filter-btn" data-filter="cashier">Cashiers</button>
+        </div>
+        <button class="add-btn" id="addUserBtn">
+          <i class="bi bi-plus"></i> Add User
+        </button>
+      </div>
+
+      <!-- Desktop table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userTbody">
+            <tr class="loading-row">
+              <td colspan="5">
+                <div class="spin"></div>
+                Loading users…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon"><i class="bi bi-people"></i></div>
+          <div class="empty-title">No users found</div>
+          <div class="empty-sub">Try adjusting your search or add a new user to get started.</div>
+        </div>
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="user-cards" id="userCards"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ADD USER MODAL -->
+<div class="modal-backdrop" id="addModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-icon blue"><i class="bi bi-person-plus"></i></div>
+        <div class="modal-title">Add New User</div>
+      </div>
+      <button class="close-btn modal-close" data-modal="addModal"><i class="bi bi-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Full Name *</label>
+        <input type="text" class="field-input" id="addName" placeholder="e.g. Jane Smith">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Username *</label>
+        <input type="text" class="field-input" id="addUsername" placeholder="jane_smith">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Email Address *</label>
+        <input type="email" class="field-input" id="addEmail" placeholder="jane@pos-shop.com">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Phone *</label>
+        <input type="text" class="field-input" id="addPhone" placeholder="+254700000000">
+      </div>
+      <div class="field-group" style="margin-bottom:0">
+        <label class="field-label">PIN *</label>
+        <input type="password" class="field-input" id="addPin" placeholder="Set a 4-digit PIN" maxlength="8">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary modal-close" data-modal="addModal">Cancel</button>
+      <button class="btn-primary" id="saveAdd"><i class="bi bi-plus"></i> Add User</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-backdrop" id="editModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-icon blue"><i class="bi bi-pencil-square"></i></div>
+        <div class="modal-title">Edit User</div>
+      </div>
+      <button class="close-btn modal-close" data-modal="editModal"><i class="bi bi-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Full Name</label>
+        <input type="text" class="field-input" id="editName" placeholder="Full Name">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Username</label>
+        <input type="text" class="field-input" id="editUsername" placeholder="Username">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Email Address</label>
+        <input type="email" class="field-input" id="editEmail" placeholder="Email">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Phone</label>
+        <input type="text" class="field-input" id="editPhone" placeholder="Phone">
+      </div>
+      <div class="field-group" style="margin-bottom:0">
+        <label class="field-label">New PIN <span style="color:var(--text-3);font-weight:400">(leave blank to keep current)</span></label>
+        <input type="password" class="field-input" id="editPin" placeholder="New PIN" maxlength="8">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary modal-close" data-modal="editModal">Cancel</button>
+      <button class="btn-primary" id="saveEdit"><i class="bi bi-check"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-icon red"><i class="bi bi-trash"></i></div>
+        <div class="modal-title">Delete User</div>
+      </div>
+      <button class="close-btn modal-close" data-modal="deleteModal"><i class="bi bi-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-warning">
+        <strong>Are you sure?</strong> This will permanently remove <strong id="deleteNameLabel">this user</strong> from the system. This action cannot be undone.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary modal-close" data-modal="deleteModal">Cancel</button>
+      <button class="btn-danger" id="confirmDelete"><i class="bi bi-trash"></i> Delete User</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+  /* ══════════════════════════════════════════════════════════════════
+    CONFIG — update to match your Flask server
+  ══════════════════════════════════════════════════════════════════ */
+  const BASE_URL = "/api/users";
+
+  /* ── AUTH ─────────────────────────────────────────────────────── */
+  function getToken()   { return localStorage.getItem('access_token') || ''; }
+  function authHeaders(){ return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }; }
+
+  function handleUnauthorized() {
+    toast('Session expired. Redirecting to login…', 'danger');
+    setTimeout(() => window.location.href = 'index.html', 1800);
+  }
+
+  /* ── HTTP HELPERS ─────────────────────────────────────────────── */
+  async function api(method, path, body) {
+    const opts = { method, headers: authHeaders() };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(`${BASE_URL}${path}`, opts);
+    if (res.status === 401) { handleUnauthorized(); return null; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  }
+
+  /* ── STATE ────────────────────────────────────────────────────── */
+  let users      = [];
+  let currentRole = 'admin';   // 'admin' | 'cashier'
+  let editingId  = null;
+  let deletingId = null;
+  let filterRole = 'all';
+  let searchQ    = '';
+
+  /* ── UTILS ────────────────────────────────────────────────────── */
+  function initials(name) {
+    return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  }
+  function avatarColor(name) {
+    const colors = [
+      ['#EEF4FF','#3538CD'], ['#ECFDF3','#027A48'],
+      ['#EEEFFE','#3D41C8'], ['#FFFAEB','#B54708'], ['#FEF3F2','#B42318']
+    ];
+    let h = 0; for(let c of name) h += c.charCodeAt(0);
+    const [bg,fg] = colors[h % colors.length];
+    return {bg,fg};
+  }
+  function roleBadge(role) {
+    if (role === 'admin')
+      return `<span class="badge badge-admin"><i class="bi bi-shield-check" style="font-size:11px"></i>Admin</span>`;
+    return `<span class="badge badge-cashier"><i class="bi bi-cash-stack" style="font-size:11px"></i>Cashier</span>`;
+  }
+  function statusBadge(s) {
+    if (s === 'active')
+      return `<span class="badge badge-active"><span class="badge-dot badge-dot-green"></span>Active</span>`;
+    return `<span class="badge badge-inactive"><span class="badge-dot badge-dot-gray"></span>Inactive</span>`;
+  }
+
+  function setLoading(btn, loading, orig) {
+    btn.disabled = loading;
+    btn.innerHTML = loading ? `<span class="btn-spin"></span> Please wait…` : orig;
+  }
+
+  /* ── TOAST ────────────────────────────────────────────────────── */
+  function toast(msg, type='success') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    const iconMap = { success:'bi-check2-circle', danger:'bi-x-circle', warn:'bi-exclamation-circle' };
+    t.innerHTML = `
+      <div class="toast-ico ${type}"><i class="bi ${iconMap[type]||iconMap.success}"></i></div>
+      <div class="toast-text">${msg}</div>
+      <button class="toast-close"><i class="bi bi-x"></i></button>`;
+    c.appendChild(t);
+    const close = () => { t.classList.add('out'); setTimeout(()=>t.remove(),300); };
+    t.querySelector('.toast-close').onclick = close;
+    setTimeout(close, 4000);
+  }
+
+  /* ── MODAL HELPERS ────────────────────────────────────────────── */
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  document.querySelectorAll('.modal-close').forEach(btn => {
+    btn.onclick = () => closeModal(btn.dataset.modal);
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(bd => {
+    bd.addEventListener('click', e => { if(e.target===bd) closeModal(bd.id); });
+  });
+
+  /* ── LOAD STATS ───────────────────────────────────────────────── */
+  async function loadStats() {
+    try {
+      const data = await api('GET', '/users_stats');
+      if (!data) return;
+      document.getElementById('statTotal').textContent  = data.total_users  ?? '—';
+      document.getElementById('statActive').textContent = data.active_users ?? '—';
+      // Derive admin/cashier counts from the loaded users list
+      updateDerivedStats();
+    } catch(err) {
+      console.error('Stats error:', err);
+      ['statTotal','statActive'].forEach(id => document.getElementById(id).textContent = '—');
+    }
+  }
+
+  function updateDerivedStats() {
+    document.getElementById('statAdmins').textContent   = users.filter(u => u.role === 'admin').length;
+    document.getElementById('statCashiers').textContent = users.filter(u => u.role === 'cashier').length;
+  }
+
+  /* ── LOAD USERS ───────────────────────────────────────────────── */
+  async function loadUsers() {
+    try {
+      const users = await api('GET', '/users');
+
+      const tbody = document.getElementById('userTbody');
+
+      tbody.innerHTML = users.map(user => `
+        <tr>
+          <td>${user.id}</td>
+          <td>${user.username}</td>
+          <td>${user.email}</td>
+          <td>${user.role}</td>
+          <td>
+            <button onclick="deleteUser(${user.id})">
+              Delete
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+    } catch(err) {
+      console.error(err);
+    }
+  }
+
+  async function loadUsersFull() {
+    try {
+      const data = await api('GET', '/users');
+      if (!data) return;
+      users = data.users || [];
+      applyFilter();
+      updateDerivedStats();
+    } catch(err) {
+      document.getElementById('userTbody').innerHTML =
+        `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:36px;">
+          Failed to load users. <a href="#" onclick="init();return false;" style="color:var(--accent)">Retry</a>
+        </td></tr>`;
+      toast('Could not load user list.', 'danger');
+    }
+  }
+
+  function showUsersUnavailable() {
+    document.getElementById('userTbody').innerHTML = `
+      <tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:40px;font-size:13px;">
+        <i class="bi bi-info-circle" style="display:block;font-size:24px;margin-bottom:8px;color:var(--accent)"></i>
+        Add a <code style="background:var(--surface-2);padding:2px 6px;border-radius:4px">GET /routes/users/users</code>
+        endpoint to your Flask blueprint to display the user list here.
+      </td></tr>`;
+  }
+
+  /* ── FILTER + RENDER ──────────────────────────────────────────── */
+  function filtered() {
+    return users.filter(u => {
+      const matchRole   = filterRole === 'all' || u.role === filterRole;
+      const q           = searchQ.toLowerCase();
+      const matchSearch = !q || `${u.full_name} ${u.email} ${u.role} ${u.username||''}`.toLowerCase().includes(q);
+      return matchRole && matchSearch;
+    });
+  }
+
+  function applyFilter() {
+    renderTable(filtered());
+  }
+
+  function renderTable(list) {
+    const tbody = document.getElementById('userTbody');
+    tbody.innerHTML = '';
+    const isAdmin = currentRole === 'admin';
+
+    if (list.length === 0) {
+      document.getElementById('emptyState').style.display = 'flex';
+      renderCards([]);
+      return;
+    }
+
+    document.getElementById('emptyState').style.display = 'none';
+
+    list.forEach(u => {
+      const {bg,fg} = avatarColor(u.full_name);
+      const isSelf  = false; // enhance: compare with current_user id if stored
+      const canEdit = isAdmin && u.role === 'cashier';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar" style="background:${bg};color:${fg}">${initials(u.full_name)}</div>
+            <div>
+              <div class="user-name">${esc(u.full_name)}</div>
+              <div class="user-email-sub">${esc(u.email||u.username||'')}</div>
+            </div>
+          </div>
+        </td>
+        <td>${roleBadge(u.role)}</td>
+        <td style="color:var(--text-2)">${esc(u.phone||'—')}</td>
+        <td>${statusBadge(u.status||'active')}</td>
+        <td>
+          <div class="action-cell">
+            <button class="act-btn edit-btn" data-id="${u.id}" data-tip="Edit" ${canEdit?'':'disabled'}>
+              <i class="bi bi-pencil-square"></i>
+            </button>
+            <button class="act-btn del-btn" data-id="${u.id}" data-tip="Delete" ${canEdit?'':'disabled'}>
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>`;
+
+      if (canEdit) {
+        tr.querySelector('.edit-btn').onclick = () => openEdit(u);
+        tr.querySelector('.del-btn').onclick  = () => openDelete(u);
+      }
+      tbody.appendChild(tr);
+    });
+
+    renderCards(list);
+  }
+
+  function renderCards(list) {
+    const wrap    = document.getElementById('userCards');
+    const isAdmin = currentRole === 'admin';
+    wrap.innerHTML = '';
+    list.forEach(u => {
+      const {bg,fg} = avatarColor(u.full_name);
+      const canEdit = isAdmin && u.role === 'cashier';
+      const d = document.createElement('div');
+      d.className = 'u-card';
+      d.innerHTML = `
+        <div class="u-card-head">
+          <div class="user-avatar" style="width:38px;height:38px;background:${bg};color:${fg};font-size:13px">${initials(u.full_name)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="user-name">${esc(u.full_name)}</div>
+            <div class="user-email-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.email||u.username||'')}</div>
+          </div>
+        </div>
+        <div class="u-card-meta">
+          ${roleBadge(u.role)}
+          ${statusBadge(u.status||'active')}
+        </div>
+        <div class="u-card-foot">
+          <span class="u-card-login"><i class="bi bi-phone" style="margin-right:5px"></i>${esc(u.phone||'—')}</span>
+          <div class="action-cell">
+            <button class="act-btn edit-btn" data-id="${u.id}" ${canEdit?'':'disabled'}><i class="bi bi-pencil-square"></i></button>
+            <button class="act-btn del-btn"  data-id="${u.id}" ${canEdit?'':'disabled'}><i class="bi bi-trash"></i></button>
+          </div>
+        </div>`;
+
+      if (canEdit) {
+        d.querySelector('.edit-btn').onclick = () => openEdit(u);
+        d.querySelector('.del-btn').onclick  = () => openDelete(u);
+      }
+      wrap.appendChild(d);
+    });
+  }
+
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str);
+    return d.innerHTML;
+  }
+
+  /* ── ADD USER ─────────────────────────────────────────────────── */
+  const saveAddBtn   = document.getElementById('saveAdd');
+  const saveAddOrig  = saveAddBtn.innerHTML;
+
+  document.getElementById('addUserBtn').onclick = () => {
+    if (currentRole !== 'admin') { toast('Only admins can add users.', 'warn'); return; }
+    ['addName','addUsername','addEmail','addPhone','addPin'].forEach(id => document.getElementById(id).value = '');
+    openModal('addModal');
+  };
+
+  saveAddBtn.onclick = async () => {
+    const full_name = document.getElementById('addName').value.trim();
+    const username  = document.getElementById('addUsername').value.trim();
+    const email     = document.getElementById('addEmail').value.trim();
+    const phone     = document.getElementById('addPhone').value.trim();
+    const pin       = document.getElementById('addPin').value.trim();
+
+    if (!full_name || !username || !email || !phone || !pin) {
+      toast('All fields are required.', 'danger'); return;
+    }
+
+    setLoading(saveAddBtn, true, saveAddOrig);
+    try {
+      await api('POST', '/add_cashier', { full_name, username, email, phone, pin });
+      toast(`${full_name} was added successfully.`, 'success');
+      closeModal('addModal');
+      await Promise.all([loadUsersFull(), loadStats()]);
+    } catch(err) {
+      toast(err.message || 'Failed to add user.', 'danger');
+    } finally {
+      setLoading(saveAddBtn, false, saveAddOrig);
+    }
+  };
+
+  /* ── EDIT USER ────────────────────────────────────────────────── */
+  const saveEditBtn  = document.getElementById('saveEdit');
+  const saveEditOrig = saveEditBtn.innerHTML;
+
+  function openEdit(u) {
+    editingId = u.id;
+    document.getElementById('editName').value     = u.full_name || '';
+    document.getElementById('editUsername').value = u.username  || '';
+    document.getElementById('editEmail').value    = u.email     || '';
+    document.getElementById('editPhone').value    = u.phone     || '';
+    document.getElementById('editPin').value      = '';
+    openModal('editModal');
+  }
+
+  saveEditBtn.onclick = async () => {
+    if (!editingId) return;
+    const full_name = document.getElementById('editName').value.trim();
+    const username  = document.getElementById('editUsername').value.trim();
+    const email     = document.getElementById('editEmail').value.trim();
+    const phone     = document.getElementById('editPhone').value.trim();
+    const pin       = document.getElementById('editPin').value.trim();
+
+    if (!full_name) { toast('Name is required.', 'danger'); return; }
+
+    const body = { full_name, username, email, phone };
+    if (pin) body.pin = pin;
+
+    setLoading(saveEditBtn, true, saveEditOrig);
+    try {
+      await api('PUT', `/edit_cashier/${editingId}`, body);
+      toast(`${full_name} updated successfully.`, 'success');
+      closeModal('editModal');
+      editingId = null;
+      await loadUsersFull();
+    } catch(err) {
+      toast(err.message || 'Failed to update user.', 'danger');
+    } finally {
+      setLoading(saveEditBtn, false, saveEditOrig);
+    }
+  };
+
+  /* ── DELETE USER ──────────────────────────────────────────────── */
+  const confirmDeleteBtn  = document.getElementById('confirmDelete');
+  const confirmDeleteOrig = confirmDeleteBtn.innerHTML;
+
+  function openDelete(u) {
+    deletingId = u.id;
+    document.getElementById('deleteNameLabel').textContent = u.full_name || 'this user';
+    openModal('deleteModal');
+  }
+
+  confirmDeleteBtn.onclick = async () => {
+    if (!deletingId) return;
+    setLoading(confirmDeleteBtn, true, confirmDeleteOrig);
+    try {
+      await api('DELETE', `/delete_cashier/${deletingId}`);
+      toast('User removed successfully.', 'danger');
+      closeModal('deleteModal');
+      deletingId = null;
+      await Promise.all([loadUsersFull(), loadStats()]);
+    } catch(err) {
+      toast(err.message || 'Failed to delete user.', 'danger');
+    } finally {
+      setLoading(confirmDeleteBtn, false, confirmDeleteOrig);
+    }
+  };
+
+  /* ── SEARCH + FILTER ──────────────────────────────────────────── */
+  function handleSearch(q) { searchQ = q; applyFilter(); }
+  document.getElementById('searchInput').addEventListener('input',  e => handleSearch(e.target.value));
+  document.getElementById('topbarSearch').addEventListener('input', e => handleSearch(e.target.value));
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterRole = btn.dataset.filter;
+      applyFilter();
+    };
+  });
+
+  /* ── DARK MODE ────────────────────────────────────────────────── */
+  document.getElementById('darkToggle').onclick = () => {
+    const dark = document.body.classList.toggle('dark');
+    document.getElementById('darkIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    localStorage.setItem('pospro-dark', dark);
+  };
+  if (localStorage.getItem('pospro-dark') === 'true') {
+    document.body.classList.add('dark');
+    document.getElementById('darkIcon').className = 'bi bi-sun';
+  }
+
+  /* ── SIDEBAR ──────────────────────────────────────────────────── */
+  const sidebar = document.getElementById('sidebar');
+  document.getElementById('collapseBtn').onclick = () => sidebar.classList.toggle('mini');
+
+  const mobileOverlay = document.getElementById('mobile-overlay');
+  document.getElementById('mobileToggle').onclick = () => {
+    sidebar.classList.toggle('open');
+    mobileOverlay.classList.toggle('show');
+  };
+  mobileOverlay.onclick = () => {
+    sidebar.classList.remove('open');
+    mobileOverlay.classList.remove('show');
+  };
+
+  /* ── READ CURRENT USER ROLE FROM TOKEN ────────────────────────── */
+  function parseJwt(token) {
+    try {
+      const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(b64));
+    } catch { return null; }
+  }
+
+  function applyRoleUI() {
+    const token   = getToken();
+    const payload = parseJwt(token);
+    currentRole = payload?.role || 'admin';
+    
+    // Topbar avatar + role chip
+    const name = payload?.full_name || payload?.sub?.full_name || 'User';
+    document.getElementById('topbarAvatar').textContent = initials(name);
+
+    const chip = document.getElementById('roleChip');
+    if (currentRole) {
+      chip.textContent = currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
+      chip.style.display = '';
+    }
+
+    // Non-admin: show notice, hide add button
+    if (currentRole !== 'admin') {
+      document.getElementById('adminNotice').style.display  = 'flex';
+      document.getElementById('addUserBtn').style.display   = 'none';
+    }
+  }
+
+  /* ── INIT ─────────────────────────────────────────────────────── */
+  async function init() {
+    applyRoleUI();
+    // Try the full list endpoint first; falls back to stats-only if absent
+    try {
+      const test = await api('GET', '/users');
+      if (test) {
+        users = test.users || [];
+        applyFilter();
+        updateDerivedStats();
+      }
+    } catch {
+      // Endpoint not yet added — show placeholder
+      loadUsers();
+    }
+    loadStats();
+  }
+  console.log(currentRole)
+  init();
+</script>
+</body>
+</html>

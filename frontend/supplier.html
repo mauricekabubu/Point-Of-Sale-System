@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suppliers — POS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary:       #6366F1;
+  --primary-light: #EEF2FF;
+  --primary-dark:  #4F46E5;
+  --bg:            #F8FAFC;
+  --surface:       #FFFFFF;
+  --surface-2:     #F1F5F9;
+  --border:        #E2E8F0;
+  --text:          #0F172A;
+  --text-2:        #64748B;
+  --text-3:        #94A3B8;
+  --success:       #10B981;
+  --success-bg:    #ECFDF5;
+  --warning:       #F59E0B;
+  --warning-bg:    #FFFBEB;
+  --danger:        #EF4444;
+  --danger-bg:     #FEF2F2;
+  --info:          #3B82F6;
+  --info-bg:       #EFF6FF;
+  --indigo-bg:     #EEF2FF;
+  --sidebar-w:     240px;
+  --sidebar-collapsed: 72px;
+  --radius-sm:     8px;
+  --radius:        12px;
+  --radius-lg:     16px;
+  --radius-xl:     20px;
+  --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow:        0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg:     0 12px 32px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  --transition:    0.2s ease;
+}
+
+.dark-mode {
+  --bg:        #0F172A;
+  --surface:   #1E293B;
+  --surface-2: #0F172A;
+  --border:    #334155;
+  --text:      #F1F5F9;
+  --text-2:    #94A3B8;
+  --text-3:    #475569;
+  --primary-light: rgba(99,102,241,0.12);
+  --success-bg: rgba(16,185,129,0.1);
+  --warning-bg: rgba(245,158,11,0.1);
+  --danger-bg:  rgba(239,68,68,0.1);
+  --info-bg:    rgba(59,130,246,0.1);
+  --indigo-bg:  rgba(99,102,241,0.12);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
+  --shadow:     0 4px 16px rgba(0,0,0,0.3);
+  --shadow-lg:  0 12px 32px rgba(0,0,0,0.4);
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background var(--transition), color var(--transition);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SIDEBAR ──────────────────────────────────────────────────────────────── */
+#sidebarMenu {
+  width: var(--sidebar-w);
+  height: 100vh;
+  position: fixed;
+  top: 0; left: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.28s cubic-bezier(0.4,0,0.2,1), left 0.28s cubic-bezier(0.4,0,0.2,1);
+  z-index: 1050;
+  scrollbar-width: none;
+}
+#sidebarMenu::-webkit-scrollbar { display: none; }
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--primary);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+}
+.logo-text {
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  transition: opacity var(--transition);
+}
+
+.sidebar-nav { padding: 12px 10px; flex: 1; }
+.sidebar-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 8px 10px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity var(--transition);
+}
+#sidebarMenu.collapsed .sidebar-section-label { opacity: 0; }
+
+.sidebar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  position: relative;
+  transition: all var(--transition);
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+.sidebar-nav .nav-link i { font-size: 17px; flex-shrink: 0; }
+.sidebar-nav .nav-link span { transition: opacity var(--transition); }
+.sidebar-nav .nav-link:hover { background: var(--surface-2); color: var(--text); }
+.sidebar-nav .nav-link.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+.sidebar-nav .nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 70%;
+  background: var(--primary);
+  border-radius: 0 4px 4px 0;
+}
+
+#sidebarMenu.collapsed { width: var(--sidebar-collapsed); }
+#sidebarMenu.collapsed .logo-text,
+#sidebarMenu.collapsed .sidebar-nav .nav-link span,
+#sidebarMenu.collapsed .sidebar-section-label { opacity: 0; pointer-events: none; }
+#sidebarMenu.collapsed .sidebar-nav .nav-link { justify-content: center; }
+
+.sidebar-controls {
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#collapseSidebar {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+#collapseSidebar:hover { background: var(--surface-2); color: var(--text); }
+
+#darkModeToggle {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  white-space: nowrap; overflow: hidden;
+}
+#darkModeToggle:hover { background: var(--surface-2); color: var(--text); }
+#sidebarMenu.collapsed #darkModeToggle span { display: none; }
+
+/* ─── MAIN CONTENT ─────────────────────────────────────────────────────────── */
+.main-content {
+  margin-left: var(--sidebar-w);
+  padding: 32px 36px;
+  transition: margin-left 0.28s cubic-bezier(0.4,0,0.2,1);
+  min-height: 100vh;
+}
+.main-content.collapsed { margin-left: var(--sidebar-collapsed); }
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; color: var(--text); }
+.page-subtitle { font-size: 13.5px; color: var(--text-2); margin-top: 2px; }
+
+/* ─── METRIC CARDS ─────────────────────────────────────────────────────────── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.metric-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: transparent; }
+.metric-card:hover::before { opacity: 1; }
+.metric-card.c-top::before    { background: linear-gradient(90deg, #6366F1, #8B5CF6); }
+.metric-card.c-new::before    { background: linear-gradient(90deg, #F59E0B, #EF4444); }
+.metric-card.c-active::before { background: linear-gradient(90deg, #10B981, #06B6D4); }
+.metric-card.c-pending::before{ background: linear-gradient(90deg, #F59E0B, #FCD34D); }
+.metric-card.c-total::before  { background: linear-gradient(90deg, #3B82F6, #6366F1); }
+
+.metric-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  margin-bottom: 14px;
+}
+.c-top    .metric-icon { background: var(--indigo-bg); color: var(--primary); }
+.c-new    .metric-icon { background: var(--warning-bg); color: var(--warning); }
+.c-active .metric-icon { background: var(--success-bg); color: var(--success); }
+.c-pending .metric-icon{ background: var(--warning-bg); color: #D97706; }
+.c-total  .metric-icon { background: var(--info-bg); color: var(--info); }
+
+.metric-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+/* ─── TOOLBAR ──────────────────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+  max-width: 400px;
+}
+.search-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  font-size: 15px;
+  pointer-events: none;
+}
+#searchInput {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px 10px 40px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+#searchInput::placeholder { color: var(--text-3); }
+#searchInput:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+
+#filterBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(99,102,241,0.2);
+  animation: fadeIn 0.18s ease;
+}
+#filterBadge.d-none { display: none !important; }
+#filterBadge .btn-close-badge {
+  background: none; border: none; padding: 0;
+  color: var(--primary); cursor: pointer; line-height: 1;
+  font-size: 13px; display: flex;
+}
+@keyframes fadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+
+/* ─── TABLE ────────────────────────────────────────────────────────────────── */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.table { margin: 0; border-collapse: collapse; }
+.table thead tr { border-bottom: 1px solid var(--border); }
+.table thead th {
+  background: var(--surface);
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 13px 20px;
+  border: none;
+  white-space: nowrap;
+}
+.table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+.table tbody tr:last-child { border-bottom: none; }
+.table tbody tr:hover { background: var(--surface-2); }
+.table tbody td {
+  padding: 14px 20px;
+  font-size: 14px;
+  border: none;
+  vertical-align: middle;
+  color: var(--text);
+}
+.table tbody td.text-muted { color: var(--text-3) !important; font-family: 'DM Mono', monospace; font-size: 12px; }
+
+.supplier-name { font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.supplier-avatar {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ─── BADGES ───────────────────────────────────────────────────────────────── */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.badge-active  { background: var(--success-bg); color: #059669; }
+.badge-pending { background: var(--warning-bg); color: #D97706; }
+.badge-new     { background: var(--info-bg);    color: #2563EB; }
+.badge-top     { background: var(--indigo-bg);  color: var(--primary); }
+.badge-inactive{ background: var(--danger-bg);  color: #DC2626; }
+
+/* ─── ACTION BUTTONS ───────────────────────────────────────────────────────── */
+.action-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 14px;
+}
+.action-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--text-3); }
+.action-btn.delete:hover { background: var(--danger-bg); color: var(--danger); border-color: #FECACA; }
+.action-btn.edit:hover   { background: var(--warning-bg); color: var(--warning); border-color: #FCD34D; }
+.action-btn.view:hover   { background: var(--primary-light); color: var(--primary); border-color: rgba(99,102,241,0.3); }
+
+/* ─── EMPTY / LOADING STATE ────────────────────────────────────────────────── */
+.empty-state { padding: 56px 24px; text-align: center; }
+.empty-state-icon {
+  width: 64px; height: 64px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  color: var(--text-3);
+  margin: 0 auto 16px;
+}
+.empty-state p { color: var(--text-2); font-size: 14px; margin-top: 6px; }
+
+.loading-row td {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-3);
+}
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── TOAST ─────────────────────────────────────────────────────────────────── */
+#toastContainer {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast-msg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.2s ease;
+  min-width: 240px;
+}
+.toast-msg.success { border-left: 3px solid var(--success); }
+.toast-msg.error   { border-left: 3px solid var(--danger); }
+.toast-msg i { font-size: 16px; }
+.toast-msg.success i { color: var(--success); }
+.toast-msg.error   i { color: var(--danger); }
+@keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+/* ─── BUTTONS ──────────────────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: all var(--transition);
+  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  text-decoration: none;
+}
+.btn-primary:hover { background: var(--primary-dark); box-shadow: 0 4px 14px rgba(99,102,241,0.4); color: #fff; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-secondary:hover { background: var(--surface-2); color: var(--text); }
+
+.btn-danger {
+  background: var(--danger);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 2px 8px rgba(239,68,68,0.25);
+}
+.btn-danger:hover { background: #DC2626; box-shadow: 0 4px 14px rgba(239,68,68,0.35); }
+.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ─── MODALS ───────────────────────────────────────────────────────────────── */
+.modal-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+.modal-header { padding: 22px 24px 16px; border-bottom: 1px solid var(--border); }
+.modal-title  { font-weight: 700; font-size: 17px; color: var(--text); }
+.modal-body   { padding: 20px 24px; }
+.modal-footer { padding: 16px 24px 20px; border-top: 1px solid var(--border); }
+
+.form-control, .form-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  height: auto;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.form-control::placeholder { color: var(--text-3); }
+.form-control:focus, .form-select:focus {
+  background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  color: var(--text);
+  outline: none;
+}
+.dark-mode .form-control,
+.dark-mode .form-select { background: #0F172A; border-color: var(--border); color: var(--text); }
+.dark-mode .form-control::placeholder { color: var(--text-3); }
+
+.form-label { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; display: block; }
+
+.delete-alert {
+  background: var(--danger-bg);
+  border: 1px solid #FECACA;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: var(--text);
+}
+.dark-mode .delete-alert { border-color: rgba(239,68,68,0.3); }
+.delete-alert i { color: var(--danger); font-size: 18px; flex-shrink: 0; }
+
+/* VIEW MODAL */
+.supplier-header-card {
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+.v-avatar-lg {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.detail-table { width: 100%; border-collapse: collapse; }
+.detail-table tr { border-bottom: 1px solid var(--border); }
+.detail-table tr:last-child { border-bottom: none; }
+.detail-table td { padding: 10px 0; font-size: 14px; vertical-align: top; }
+.detail-table td:first-child { color: var(--text-3); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; width: 90px; }
+
+.products-section { margin-top: 20px; }
+.products-section h6 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 10px; }
+#v-products { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; }
+#v-products li {
+  padding: 9px 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  color: var(--text-2);
+  display: flex; align-items: center; gap: 8px;
+}
+#v-products li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+
+/* MOBILE */
+#mobileSidebarToggle {
+  position: fixed; top: 14px; left: 14px;
+  z-index: 1100; display: none;
+  width: 38px; height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  align-items: center; justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+#overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.45);
+  z-index: 1040; backdrop-filter: blur(2px);
+}
+#overlay.show { display: block; }
+.email-link { color: var(--primary); text-decoration: none; font-size: 13.5px; transition: opacity var(--transition); }
+.email-link:hover { opacity: 0.75; }
+
+@media (max-width: 1200px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 991px) {
+  #sidebarMenu { left: -260px; width: 240px !important; }
+  #sidebarMenu.show { left: 0; }
+  .main-content { margin-left: 0 !important; padding: 20px 16px; }
+  #mobileSidebarToggle { display: flex; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 576px) {
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .page-header { flex-direction: column; }
+  .main-content { padding-top: 60px; }
+  .table thead th:nth-child(3), .table tbody td:nth-child(3) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<button id="mobileSidebarToggle"><i class="bi bi-list"></i></button>
+
+<nav id="sidebarMenu">
+  <div class="sidebar-logo">
+    <div class="logo-icon">P</div>
+    <span class="logo-text">CodexLabs POS</span>
+  </div>
+  <div class="sidebar-nav">
+    <div class="sidebar-section-label">Menu</div>
+    <ul class="nav flex-column gap-0">
+      <li><a href="Dashboard.html" class="nav-link"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+      <li><a href="sale.html"      class="nav-link"><i class="bi bi-cart-plus"></i><span>New Sale</span></a></li>
+      <li><a href="product.html"   class="nav-link"><i class="bi bi-box-seam"></i><span>Products</span></a></li>
+      <li>
+        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#reportsMenu" style="cursor:pointer">
+          <span style="display:flex;align-items:center;gap:10px"><i class="bi bi-bar-chart-line"></i><span>Reports</span></span>
+          <i class="bi bi-chevron-down" style="font-size:11px;flex-shrink:0"></i>
+        </a>
+        <div class="collapse show" id="reportsMenu">
+          <ul class="nav flex-column" style="padding-left:28px;gap:0">
+            <li><a href="report.html"              class="nav-link" style="font-size:13px;padding:7px 10px"><i class="bi bi-graph-up"></i><span>Sales</span></a></li>
+            <li><a href="transaction_history.html" class="nav-link" style="font-size:13px;padding:7px 10px"><i class="bi bi-receipt"></i><span>Transactions</span></a></li>
+            <li><a href="refund.html"              class="nav-link" style="font-size:13px;padding:7px 10px"><i class="bi bi-arrow-counterclockwise"></i><span>Refunds</span></a></li>
+          </ul>
+        </div>
+      </li>
+      <li><a href="inventory.html" class="nav-link"><i class="bi bi-clipboard-check"></i><span>Inventory</span></a></li>
+      <li><a href="customer.html"  class="nav-link"><i class="bi bi-people"></i><span>Customers</span></a></li>
+      <li><a href="supplier.html"  class="nav-link active"><i class="bi bi-truck"></i><span>Suppliers</span></a></li>
+      <li><a href="users.html"     class="nav-link"><i class="bi bi-person-badge"></i><span>Users</span></a></li>
+    </ul>
+  </div>
+  <div class="sidebar-controls">
+    <button id="darkModeToggle"><i class="bi bi-moon"></i><span>Dark Mode</span></button>
+    <button id="collapseSidebar" title="Toggle sidebar"><i class="bi bi-layout-sidebar-inset"></i></button>
+  </div>
+</nav>
+
+<div id="overlay"></div>
+
+<div class="main-content">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Suppliers</div>
+      <div class="page-subtitle">Manage your supplier network and contacts</div>
+    </div>
+    <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+      <i class="bi bi-plus-lg"></i> Add Supplier
+    </button>
+  </div>
+
+  <!-- METRIC CARDS -->
+  <div class="metrics-grid">
+    <div class="metric-card c-top" onclick="filterByStatus('top')">
+      <div class="metric-icon"><i class="bi bi-star-fill"></i></div>
+      <div class="metric-label">Top Suppliers</div>
+      <div class="metric-value" id="cnt-top">—</div>
+    </div>
+    <div class="metric-card c-new" onclick="filterByStatus('new')">
+      <div class="metric-icon"><i class="bi bi-plus-circle"></i></div>
+      <div class="metric-label">New Suppliers</div>
+      <div class="metric-value" id="cnt-new">—</div>
+    </div>
+    <div class="metric-card c-active" onclick="filterByStatus('active')">
+      <div class="metric-icon"><i class="bi bi-check-circle"></i></div>
+      <div class="metric-label">Active</div>
+      <div class="metric-value" id="cnt-active">—</div>
+    </div>
+    <div class="metric-card c-pending" onclick="filterByStatus('pending')">
+      <div class="metric-icon"><i class="bi bi-clock"></i></div>
+      <div class="metric-label">Pending</div>
+      <div class="metric-value" id="cnt-pending">—</div>
+    </div>
+    <div class="metric-card c-total" onclick="filterByStatus('')">
+      <div class="metric-icon"><i class="bi bi-people"></i></div>
+      <div class="metric-label">Total</div>
+      <div class="metric-value" id="cnt-total">—</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <i class="bi bi-search search-icon"></i>
+      <input id="searchInput" placeholder="Search by name, email, or phone…" oninput="renderTable()">
+    </div>
+    <div id="filterBadge" class="d-none">
+      Filtering: <span id="filterLabel"></span>
+      <button class="btn-close-badge" onclick="clearFilter()"><i class="bi bi-x-lg"></i></button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="supplierContainer">
+          <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading suppliers…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /main-content -->
+
+<div id="toastContainer"></div>
+
+
+<!-- ─── ADD SUPPLIER MODAL ──────────────────────────────────────────────────── -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add New Supplier</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Name <span style="color:var(--danger)">*</span></label>
+            <input id="f-name" class="form-control" placeholder="Supplier name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input id="f-email" class="form-control" placeholder="email@example.com" type="email">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone <span style="color:var(--danger)">*</span></label>
+            <input id="f-phone" class="form-control" placeholder="07XXXXXXXX">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Status</label>
+            <select id="f-status" class="form-select">
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;gap:10px">
+        <button class="btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="saveBtn" class="btn-primary" onclick="saveSupplier()">
+          <i class="bi bi-check-lg"></i> Save Supplier
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ─── EDIT SUPPLIER MODAL ─────────────────────────────────────────────────── -->
+<div class="modal fade" id="editSupplierModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Supplier</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="e-id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Name <span style="color:var(--danger)">*</span></label>
+            <input id="e-name" class="form-control" placeholder="Supplier name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input id="e-email" class="form-control" placeholder="email@example.com" type="email">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone <span style="color:var(--danger)">*</span></label>
+            <input id="e-phone" class="form-control" placeholder="07XXXXXXXX">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Status</label>
+            <select id="e-status" class="form-select">
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;gap:10px">
+        <button class="btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="updateBtn" class="btn-primary" onclick="updateSupplier()">
+          <i class="bi bi-check-lg"></i> Update Supplier
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ─── VIEW SUPPLIER MODAL ─────────────────────────────────────────────────── -->
+<div class="modal fade" id="viewSupplierModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Supplier Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="supplier-header-card">
+          <div class="v-avatar-lg" id="v-avatar"></div>
+          <div>
+            <div id="v-name" style="font-weight:700;font-size:16px;color:var(--text)"></div>
+            <div id="v-id"   style="font-size:12px;color:var(--text-3);margin-top:2px;font-family:'DM Mono',monospace"></div>
+          </div>
+        </div>
+        <table class="detail-table">
+          <tr><td>Email</td><td id="v-email"></td></tr>
+          <tr><td>Phone</td><td id="v-phone"></td></tr>
+          <tr><td>Status</td><td id="v-status"></td></tr>
+        </table>
+        <div class="products-section">
+          <h6>Recent Purchases</h6>
+          <ul id="v-products"></ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ─── DELETE SUPPLIER MODAL ───────────────────────────────────────────────── -->
+<div class="modal fade" id="deleteSupplierModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" style="color:var(--danger)"><i class="bi bi-exclamation-triangle me-2"></i>Delete Supplier</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-2);font-size:14px;margin-bottom:14px">This action cannot be undone. Are you sure?</p>
+        <div class="delete-alert">
+          <i class="bi bi-trash3"></i>
+          <span><strong id="d-name">Supplier Name</strong> will be permanently removed from your records.</span>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;gap:10px">
+        <button class="btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="deleteBtn" class="btn-danger" onclick="confirmDeleteSupplier()">
+          <i class="bi bi-trash3 me-1"></i>Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ─── CONFIG ────────────────────────────────────────────────────────────────────
+  const API_BASE = "/api/services/supplier";
+
+  // Reads JWT from localStorage — adjust the key to match how your auth stores it
+  function getToken() {
+    return localStorage.getItem('access_token') || '';
+  }
+
+  function authHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + getToken()
+    };
+  }
+
+  // ─── STATE ──────────────────────────────────────────────────────────────────────
+  let suppliers    = [];
+  let activeFilter = '';
+  let supplierToDelete = null;
+
+  // ─── SIDEBAR ───────────────────────────────────────────────────────────────────
+  const sidebar = document.getElementById('sidebarMenu');
+  const overlay = document.getElementById('overlay');
+  const mainEl  = document.querySelector('.main-content');
+
+  document.getElementById('collapseSidebar').onclick = () => {
+    sidebar.classList.toggle('collapsed');
+    mainEl.classList.toggle('collapsed');
+  };
+  document.getElementById('mobileSidebarToggle').onclick = () => {
+    sidebar.classList.add('show');
+    overlay.classList.add('show');
+  };
+  overlay.onclick = () => {
+    sidebar.classList.remove('show');
+    overlay.classList.remove('show');
+  };
+
+  // ─── DARK MODE ─────────────────────────────────────────────────────────────────
+  document.getElementById('darkModeToggle').onclick = function() {
+    document.body.classList.toggle('dark-mode');
+    const icon = this.querySelector('i');
+    icon.className = document.body.classList.contains('dark-mode') ? 'bi bi-sun' : 'bi bi-moon';
+  };
+
+  // ─── TOAST ─────────────────────────────────────────────────────────────────────
+  function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+    const el = document.createElement('div');
+    el.className = `toast-msg ${type}`;
+    el.innerHTML = `<i class="bi ${icon}"></i> ${message}`;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  // ─── HELPERS ───────────────────────────────────────────────────────────────────
+  function initials(name) {
+    return name.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+  }
+
+  function statusBadge(s) {
+    const map = { active:'active', pending:'pending', new:'new', top:'top', inactive:'inactive' };
+    const cls = map[s] || 'inactive';
+    return `<span class="badge-pill badge-${cls}">${s.charAt(0).toUpperCase() + s.slice(1)}</span>`;
+  }
+
+  // ─── API CALLS ─────────────────────────────────────────────────────────────────
+  async function fetchSuppliers() {
+    try {
+      const res = await fetch(`${API_BASE}/suppliers`, { headers: authHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      suppliers = data.suppliers || [];
+    } catch (err) {
+      console.error('Failed to load suppliers:', err);
+      showToast('Failed to load suppliers', 'error');
+      suppliers = [];
+    }
+  }
+
+  async function fetchStats() {
+    try {
+      const res = await fetch(`${API_BASE}/supplier_stats`, { headers: authHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      document.getElementById('cnt-active').textContent  = data.active_suppliers  ?? 0;
+      document.getElementById('cnt-pending').textContent = data.pending_suppliers ?? 0;
+      document.getElementById('cnt-new').textContent     = data.new_suppliers     ?? 0;
+      document.getElementById('cnt-total').textContent   = data.total_suppliers   ?? 0;
+      // "top" not in stats endpoint — derive from local list
+      document.getElementById('cnt-top').textContent     = suppliers.filter(s => s.status === 'top').length;
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+      // Fall back to counting from local data
+      updateCountsFromLocal();
+    }
+  }
+
+  function updateCountsFromLocal() {
+    document.getElementById('cnt-top').textContent     = suppliers.filter(s => s.status === 'top').length;
+    document.getElementById('cnt-new').textContent     = suppliers.filter(s => s.status === 'new').length;
+    document.getElementById('cnt-active').textContent  = suppliers.filter(s => s.status === 'active').length;
+    document.getElementById('cnt-pending').textContent = suppliers.filter(s => s.status === 'pending').length;
+    document.getElementById('cnt-total').textContent   = suppliers.length;
+  }
+
+  // ─── RENDER TABLE ──────────────────────────────────────────────────────────────
+  function renderTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = suppliers.filter(s => {
+      const matchQ = !q || (s.name + (s.email || '') + (s.phone || '') + s.id).toLowerCase().includes(q);
+      const matchS = !activeFilter || s.status === activeFilter;
+      return matchQ && matchS;
+    });
+
+    const tb = document.getElementById('supplierContainer');
+
+    if (!filtered.length) {
+      tb.innerHTML = `
+        <tr><td colspan="6">
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-truck"></i></div>
+            <strong style="color:var(--text)">No suppliers found</strong>
+            <p>Try adjusting your search or filter criteria</p>
+          </div>
+        </td></tr>`;
+      return;
+    }
+
+    tb.innerHTML = filtered.map(s => `
+      <tr>
+        <td class="text-muted">#${s.id}</td>
+        <td><div class="supplier-name">
+          <div class="supplier-avatar">${initials(s.name)}</div>${s.name}
+        </div></td>
+        <td style="color:var(--text-2);font-size:13.5px">${s.phone || '—'}</td>
+        <td>${s.email ? `<a href="mailto:${s.email}" class="email-link">${s.email}</a>` : '<span style="color:var(--text-3)">—</span>'}</td>
+        <td>${statusBadge(s.status || 'active')}</td>
+        <td style="text-align:right">
+          <div style="display:inline-flex;gap:6px">
+            <button class="action-btn view"   onclick="viewSupplier(${s.id})"   title="View"><i class="bi bi-eye"></i></button>
+            <button class="action-btn edit"   onclick="openEditModal(${s.id})"  title="Edit"><i class="bi bi-pencil"></i></button>
+            <button class="action-btn delete" onclick="openDeleteModal(${s.id})" title="Delete"><i class="bi bi-trash3"></i></button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  // ─── FILTER ────────────────────────────────────────────────────────────────────
+  function filterByStatus(status) {
+    activeFilter = (activeFilter === status) ? '' : status;
+    const badge = document.getElementById('filterBadge');
+    if (activeFilter) {
+      badge.classList.remove('d-none');
+      document.getElementById('filterLabel').textContent =
+        activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1);
+    } else {
+      badge.classList.add('d-none');
+    }
+    renderTable();
+  }
+
+  function clearFilter() {
+    activeFilter = '';
+    document.getElementById('filterBadge').classList.add('d-none');
+    renderTable();
+  }
+
+  // ─── ADD SUPPLIER ──────────────────────────────────────────────────────────────
+  async function saveSupplier() {
+    const name  = document.getElementById('f-name').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    if (!name)  { showToast('Name is required', 'error'); return; }
+    if (!phone) { showToast('Phone is required', 'error'); return; }
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> Saving…';
+
+    try {
+      const res = await fetch(`${API_BASE}/add_supplier`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          name,
+          phone,
+          email:  document.getElementById('f-email').value.trim()  || null,
+          status: document.getElementById('f-status').value
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save supplier');
+
+      showToast('Supplier added successfully');
+      bootstrap.Modal.getInstance(document.getElementById('addSupplierModal')).hide();
+
+      // Clear form
+      ['f-name','f-email','f-phone'].forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('f-status').value = 'active';
+
+      await loadAll();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Save Supplier';
+    }
+  }
+
+  // ─── EDIT SUPPLIER ─────────────────────────────────────────────────────────────
+  function openEditModal(id) {
+    const s = suppliers.find(x => x.id === id);
+    if (!s) return;
+    document.getElementById('e-id').value     = s.id;
+    document.getElementById('e-name').value   = s.name;
+    document.getElementById('e-email').value  = s.email  || '';
+    document.getElementById('e-phone').value  = s.phone  || '';
+    document.getElementById('e-status').value = s.status || 'active';
+    new bootstrap.Modal(document.getElementById('editSupplierModal')).show();
+  }
+
+  async function updateSupplier() {
+    const id    = document.getElementById('e-id').value;
+    const name  = document.getElementById('e-name').value.trim();
+    const phone = document.getElementById('e-phone').value.trim();
+    if (!name)  { showToast('Name is required', 'error'); return; }
+    if (!phone) { showToast('Phone is required', 'error'); return; }
+
+    const btn = document.getElementById('updateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> Updating…';
+
+    try {
+      const res = await fetch(`${API_BASE}/update_supplier/${id}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          name,
+          phone,
+          email:  document.getElementById('e-email').value.trim()  || null,
+          status: document.getElementById('e-status').value
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update supplier');
+
+      showToast('Supplier updated');
+      bootstrap.Modal.getInstance(document.getElementById('editSupplierModal')).hide();
+      await loadAll();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Update Supplier';
+    }
+  }
+
+  // ─── VIEW SUPPLIER ─────────────────────────────────────────────────────────────
+  async function viewSupplier(id) {
+    const s = suppliers.find(x => x.id === id);
+    if (!s) return;
+
+    document.getElementById('v-avatar').textContent = initials(s.name);
+    document.getElementById('v-name').textContent   = s.name;
+    document.getElementById('v-id').textContent     = `#${s.id}`;
+    document.getElementById('v-email').textContent  = s.email  || '—';
+    document.getElementById('v-phone').textContent  = s.phone  || '—';
+    document.getElementById('v-status').innerHTML   = statusBadge(s.status || 'active');
+
+    // Load purchase history for this supplier
+    const list = document.getElementById('v-products');
+    list.innerHTML = '<li style="color:var(--text-3)"><span class="spinner" style="width:12px;height:12px;border-width:2px"></span> Loading…</li>';
+
+    new bootstrap.Modal(document.getElementById('viewSupplierModal')).show();
+
+    try {
+      const res = await fetch(`${API_BASE}/purchase_history`, { headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const myPurchases = (data.purchases || []).filter(p => p.supplier_id === id);
+
+      list.innerHTML = '';
+      if (!myPurchases.length) {
+        list.innerHTML = '<li style="color:var(--text-3);padding:10px 12px;background:var(--surface-2);border-radius:8px;font-size:13px">No purchases recorded yet</li>';
+        return;
+      }
+      myPurchases.slice(0, 5).forEach(p => {
+        const li = document.createElement('li');
+        const date = p.date ? new Date(p.date).toLocaleDateString() : '';
+        li.innerHTML = `<span style="flex:1">Purchase #${p.purchase_id}</span>
+          <span style="color:var(--text-3);font-size:12px">${date}</span>
+          <span style="color:var(--primary);font-weight:600;font-family:'DM Mono',monospace;font-size:12px">KES ${Number(p.total).toLocaleString()}</span>`;
+        list.appendChild(li);
+      });
+    } catch {
+      list.innerHTML = '<li style="color:var(--text-3)">Could not load purchase history</li>';
+    }
+  }
+
+  // ─── DELETE SUPPLIER ───────────────────────────────────────────────────────────
+  function openDeleteModal(id) {
+    supplierToDelete = suppliers.find(s => s.id === id);
+    if (!supplierToDelete) return;
+    document.getElementById('d-name').textContent = supplierToDelete.name;
+    new bootstrap.Modal(document.getElementById('deleteSupplierModal')).show();
+  }
+
+  async function confirmDeleteSupplier() {
+    if (!supplierToDelete) return;
+
+    const btn = document.getElementById('deleteBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> Deleting…';
+
+    try {
+      const res = await fetch(`${API_BASE}/delete_supplier/${supplierToDelete.id}`, {
+        method: 'DELETE',
+        headers: authHeaders()
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete supplier');
+
+      showToast('Supplier deleted');
+      supplierToDelete = null;
+      bootstrap.Modal.getInstance(document.getElementById('deleteSupplierModal')).hide();
+      await loadAll();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-trash3 me-1"></i>Delete';
+    }
+  }
+
+  // ─── INIT ──────────────────────────────────────────────────────────────────────
+  async function loadAll() {
+    await fetchSuppliers();
+    renderTable();
+    fetchStats(); // non-blocking — falls back to local count on failure
+  }
+
+  loadAll();
+</script>
+</body>
+</html>

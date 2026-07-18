@@ -1,0 +1,221 @@
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    transition: 0.2s ease;
+}
+.row {
+    margin-bottom: 25px;
+}
+.form-control:focus {
+    box-shadow: none;
+    border-color: #0d6efd;
+}
+.container-custom {
+    max-width: 1200px;
+    margin: auto;
+}
+.product-card {
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.product-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+/* CART ITEM BOX */
+/* CART + PAYMENT LAYOUT */
+.row.justify-content-center.mt-4 > .col-lg-6 {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Make cart and payment cards same height on desktop */
+@media (min-width: 992px) {
+    .cart-payment-row {
+        display: flex;
+        gap: 20px;
+    }
+
+    .cart-payment-row .col-lg-6 {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .cart-payment-row .card {
+        flex: 1;
+    }
+}
+
+/* Payment boxes styling */
+.payment-box {
+    border: 2px solid #ced4da;
+    border-radius: 12px;
+    padding: 20px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #f8f9fa;
+    text-align: center;
+}
+
+.payment-box.selected {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.payment-box:hover {
+    border-color: #0d6efd;
+    background-color: #f1f5ff;
+}
+
+/* Cart items styling */
+#cartItems .cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background-color: #f1f3f5;
+    border: 1px solid #dee2e6;
+    transition: background 0.2s;
+}
+
+#cartItems .cart-item:hover {
+    background-color: #e9ecef;
+}
+
+.quantity-control button {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+}
+
+/* Match header height for both cards */
+.cart-payment-row .card-header {
+    font-weight: bold;
+}
+.payment-box:hover { background-color: #e2e6ea; transform: translateY(-2px); box-shadow: 0 2px 6px rgba(0,0,0,0.1);}
+.payment-box.selected { border: 2px solid #0d6efd; background-color: #d0ebff; }
+
+/* RECEIPT */
+.receipt {
+    font-family: monospace;
+    background: #fff;
+    border-radius: 10px;
+}
+
+body.dark-mode .receipt {
+    background: #2b2b2b;
+    color: #fff;
+}
+
+.receipt hr {
+    border-top: 1px dashed #aaa;
+}
+#receiptContent {
+    font-family: monospace;
+    line-height: 1.4;
+    padding: 10px;
+    background-color: #fff;
+    color: #000;
+}
+#receiptContent .receipt-header {
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+#receiptContent .store-logo {
+    display: block;
+    margin: 0 auto 5px;
+    width: 80px;
+}
+#receiptContent .receipt-meta {
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 10px;
+}
+#receiptContent .receipt-item {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #ccc;
+    padding: 4px 0;
+    font-size: 14px;
+}
+#receiptContent .receipt-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 15px;
+    margin-top: 5px;
+}
+#receiptContent .thank-you {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 14px;
+}
+/* SHARED POS BOX STYLE (cart + payment) */
+.pos-box {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+/* Make cards feel like one system */
+.pos-card {
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    box-shadow: none;
+}
+
+/* Cart items (clean like figma) */
+.cart-item {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #e5e5e5;
+}
+
+/* Summary section */
+.cart-summary {
+    border-top: 1px solid #ddd;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+/* PAYMENT ROW STYLE (same look as cart items) */
+.payment-method {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    border: 1px solid #e5e5e5;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.2s;
+}
+
+/* Hover */
+.payment-method:hover {
+    border-color: #0d6efd;
+    background: #f1f6ff;
+}
+
+/* Selected */
+.payment-method.active {
+    border: 2px solid #0d6efd;
+    background: #e7f1ff;
+}

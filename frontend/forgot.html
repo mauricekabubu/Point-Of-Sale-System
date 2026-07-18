@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forgot Password — Nexus</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #ffffff;
+      --border: #E2E8F0;
+      --border-focus: #2563EB;
+      --border-error: #EF4444;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+      --brand: #2563EB;
+      --brand-hover: #1D4ED8;
+      --brand-subtle: #EFF6FF;
+      --success: #10B981;
+      --success-bg: #F0FDF4;
+      --success-border: #A7F3D0;
+      --danger: #EF4444;
+      --shadow-lg: 0 10px 15px -3px rgba(15,23,42,0.08), 0 4px 6px -2px rgba(15,23,42,0.04);
+      --radius: 8px;
+      --radius-lg: 16px;
+      --transition: 0.15s ease;
+    }
+
+    body.dark {
+      --bg: #0A1120;
+      --card-bg: #1E293B;
+      --border: #334155;
+      --border-focus: #60A5FA;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --brand: #3B82F6;
+      --brand-hover: #60A5FA;
+      --brand-subtle: #1E3A5F;
+      --success-bg: #06503B22;
+      --success-border: #06503B33;
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.2);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .page-wrap {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin-bottom: 2rem;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      background: var(--brand);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-mark svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .logo-text {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 2.5rem 2rem;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .card-header-block {
+      margin-bottom: 1.75rem;
+    }
+
+    .card-header-block h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .card-header-block p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    /* Alert */
+    .alert-box {
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      font-size: 13.5px;
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+    }
+
+    .alert-box.visible { display: flex; }
+    .alert-box.is-danger  { background: #FEF2F2; border: 1px solid #FECACA; color: #EF4444; }
+    .alert-box.is-success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+
+    .alert-box svg { flex-shrink: 0; margin-top: 1px; }
+
+    /* Field */
+    .field { margin-bottom: 1.1rem; }
+
+    .field label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 10px 13px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+
+    .field input::placeholder { color: var(--text-muted); }
+
+    .field input:hover:not(:focus) { border-color: #CBD5E1; }
+    body.dark .field input:hover:not(:focus) { border-color: #475569; }
+
+    .field input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+
+    .field input.has-error { border-color: var(--border-error); }
+    .field input.has-error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0.12); }
+
+    .field-error {
+      display: none;
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 5px;
+    }
+
+    .field-error.visible { display: block; }
+
+    /* Button */
+    .btn-submit {
+      width: 100%;
+      padding: 11px 16px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 1.25rem;
+      transition: background var(--transition), opacity var(--transition), transform 0.1s;
+      box-shadow: 0 1px 2px rgba(37,99,235,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .btn-submit:hover:not(:disabled) { background: var(--brand-hover); }
+    .btn-submit:active:not(:disabled) { transform: scale(0.99); }
+    .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    .btn-submit svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+
+    .back-link a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .back-link a:hover { text-decoration: underline; }
+
+    /* Dark toggle */
+    .mode-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+
+    .mode-btn:hover { color: var(--text-primary); border-color: var(--brand); }
+
+    .mode-btn svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.75s linear infinite; }
+
+    @media (max-width: 480px) { .card { padding: 2rem 1.25rem; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="mode-btn" onclick="toggleDark()" aria-label="Toggle dark mode" id="modeBtn">
+    <svg id="modeIcon" viewBox="0 0 24 24">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
+
+  <div class="page-wrap">
+
+    <a href="index.html" class="logo" aria-label="Nexus home">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <span class="logo-text">CodexLabs POS</span>
+    </a>
+
+    <div class="card">
+
+      <!-- Alert banner -->
+      <div class="alert-box" id="alertBox" role="alert">
+        <svg width="15" height="15" id="alertIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+        <span id="alertText"></span>
+      </div>
+
+      <div id="formView">
+        <div class="card-header-block">
+          <h1>Forgot your password?</h1>
+          <p>Enter the email address linked to your account and we'll send you a reset link.</p>
+        </div>
+
+        <form id="forgotForm" novalidate>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              spellcheck="false"
+              onblur="validateEmail()"
+              oninput="clearEmailErr()"
+            >
+            <div class="field-error" id="emailErr">Please enter a valid email address.</div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <svg viewBox="0 0 24 24" id="submitIcon">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Send reset link
+          </button>
+        </form>
+      </div>
+
+      <!-- Success view — shown after email is sent -->
+      <div id="successView" style="display:none; text-align:center; padding: 0.5rem 0;">
+        <div style="width:52px; height:52px; border-radius:50%; background:var(--success-bg); border:1px solid var(--success-border); display:flex; align-items:center; justify-content:center; margin: 0 auto 1.25rem;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div style="font-size:19px; font-weight:600; color:var(--text-primary); letter-spacing:-0.4px; margin-bottom:8px;">Check your inbox</div>
+        <p style="font-size:14px; color:var(--text-secondary); line-height:1.65; margin-bottom:1.5rem;">
+          If <strong id="sentEmail" style="color:var(--text-primary);"></strong> is registered, you'll receive a reset link shortly. Check your spam folder if you don't see it.
+        </p>
+        <button
+          class="btn-submit"
+          style="max-width:200px; margin: 0 auto;"
+          onclick="resetForm()"
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+          </svg>
+          Try another email
+        </button>
+      </div>
+
+    </div>
+
+    <div class="back-link" id="backLink">
+      <a href="index.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;">
+          <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to sign in
+      </a>
+    </div>
+
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    /* ── Dark mode ── */
+    function toggleDark() {
+        const dark = document.body.classList.toggle('dark');
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+        updateModeIcon(dark);
+    }
+
+    function updateModeIcon(dark) {
+        document.getElementById('modeIcon').innerHTML = dark
+        ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+        : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+        updateModeIcon(true);
+    }
+
+    /* ── Validation ── */
+    function validateEmail() {
+        const val = document.getElementById('email').value.trim();
+        const ok  = val && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        if (!ok) {
+        document.getElementById('email').classList.add('has-error');
+        document.getElementById('emailErr').classList.add('visible');
+        }
+        return ok;
+    }
+
+    function clearEmailErr() {
+        document.getElementById('email').classList.remove('has-error');
+        document.getElementById('emailErr').classList.remove('visible');
+        hideAlert();
+    }
+
+    /* ── Alert helpers ── */
+    const ICON_INFO    = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+    const ICON_SUCCESS = '<polyline points="20 6 9 17 4 12"/>';
+
+    function showAlert(message, type = 'danger') {
+        const box  = document.getElementById('alertBox');
+        const text = document.getElementById('alertText');
+        const icon = document.getElementById('alertIcon');
+        box.className = `alert-box visible is-${type}`;
+        icon.innerHTML = type === 'success' ? ICON_SUCCESS : ICON_INFO;
+        text.textContent = message;
+    }
+
+    function hideAlert() {
+        document.getElementById('alertBox').className = 'alert-box';
+    }
+
+    /* ── Spinner SVG ── */
+    const spinnerSVG = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="animation:spin .75s linear infinite;flex-shrink:0"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`;
+
+    /* ── Form submit ── */
+    document.getElementById('forgotForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        hideAlert();
+
+        if (!validateEmail()) return;
+
+        const email = document.getElementById('email').value.trim();
+        const btn   = document.getElementById('submitBtn');
+        const origHTML = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = spinnerSVG + ' Sending…';
+
+        try {
+        const res = await fetch('/api/auth/auth/forgot-password', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email })
+        });
+
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+
+        if (!res.ok) {
+            showAlert(data.error || 'Something went wrong. Please try again.', 'danger');
+            btn.disabled = false;
+            btn.innerHTML = origHTML;
+            return;
+        }
+
+        /* 
+        * Backend always returns 200 regardless of whether the email exists
+        * (security best practice — don't reveal account existence).
+        * Show the success view either way.
+        */
+        document.getElementById('sentEmail').textContent = email;
+        document.getElementById('formView').style.display   = 'none';
+        document.getElementById('successView').style.display = 'block';
+        document.getElementById('backLink').style.display   = 'none';
+
+        } catch (_) {
+        showAlert('Could not reach the server. Please check your connection.', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = origHTML;
+        }
+    });
+
+    /* ── "Try another email" resets to form view ── */
+    function resetForm() {
+        document.getElementById('email').value                = '';
+        document.getElementById('formView').style.display     = 'block';
+        document.getElementById('successView').style.display  = 'none';
+        document.getElementById('backLink').style.display     = 'block';
+        hideAlert();
+        document.getElementById('email').focus();
+    }
+
+    /* ── Enter key submits ── */
+    document.getElementById('email').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('forgotForm').requestSubmit();
+    });
+</script>
+</body>
+</html>

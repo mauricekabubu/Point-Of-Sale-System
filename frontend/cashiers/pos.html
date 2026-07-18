@@ -1,0 +1,3080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodexLabs POS — Sale</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface2: #f9fafb;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --text: #111827;
+  --text2: #6b7280;
+  --text3: #9ca3af;
+  --primary: #2563eb;
+  --primary-light: #eff6ff;
+  --primary-dark: #1d4ed8;
+  --success: #16a34a;
+  --success-light: #f0fdf4;
+  --warning: #d97706;
+  --warning-light: #fffbeb;
+  --danger: #dc2626;
+  --danger-light: #fef2f2;
+  --purple: #7c3aed;
+  --purple-light: #f5f3ff;
+  --sidebar-w: 248px;
+  --sidebar-collapsed: 72px;
+  --topbar-h: 60px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.05);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06);
+  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+
+body.dark {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #131620;
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --text: #f1f5f9;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --primary-light: rgba(37,99,235,0.12);
+  --success-light: rgba(22,163,74,0.12);
+  --warning-light: rgba(217,119,6,0.12);
+  --danger-light: rgba(220,38,38,0.12);
+  --purple-light: rgba(124,58,237,0.12);
+  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+  --shadow-lg: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+html { font-size: 15px; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  transition: background var(--transition), color var(--transition);
+  min-height: 100vh;
+}
+
+.layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: 0; left: 0;
+  width: var(--sidebar-w); height: 100vh;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  z-index: 200; transition: width var(--transition), transform var(--transition);
+  overflow: hidden;
+}
+.sidebar.collapsed { width: var(--sidebar-collapsed); }
+
+.sidebar-logo {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 16px 16px; border-bottom: 1px solid var(--border);
+  min-height: 72px; overflow: hidden;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: #fff; font-size: 18px;
+}
+.logo-text {
+  font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+  letter-spacing: -0.3px; color: var(--text); white-space: nowrap;
+  opacity: 1; transition: opacity var(--transition);
+}
+.sidebar.collapsed .logo-text { opacity: 0; width: 0; }
+
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 8px; }
+.nav-section { margin-bottom: 4px; }
+.nav-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text3);
+  padding: 8px 12px 4px; white-space: nowrap; overflow: hidden;
+  transition: opacity var(--transition);
+}
+.sidebar.collapsed .nav-label { opacity: 0; }
+
+.nav-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  color: var(--text2); text-decoration: none;
+  font-size: 14px; font-weight: 500; white-space: nowrap;
+  position: relative; transition: all var(--transition); cursor: pointer;
+}
+.nav-link i { font-size: 17px; flex-shrink: 0; }
+.nav-link span { opacity: 1; transition: opacity var(--transition); overflow: hidden; }
+.sidebar.collapsed .nav-link span { opacity: 0; width: 0; }
+.nav-link:hover { background: var(--primary-light); color: var(--primary); }
+.nav-link.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.nav-link.active::before {
+  content: ''; position: absolute;
+  left: -8px; top: 6px; bottom: 6px;
+  width: 3px; background: var(--primary); border-radius: 0 3px 3px 0;
+}
+
+.sidebar-footer { padding: 12px 8px; border-top: 1px solid var(--border); }
+.collapse-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  background: none; border: none; color: var(--text2);
+  font-size: 14px; cursor: pointer; width: 100%;
+  transition: all var(--transition); white-space: nowrap; overflow: hidden;
+}
+.collapse-btn:hover { background: var(--surface2); color: var(--text); }
+.collapse-btn i { font-size: 17px; flex-shrink: 0; }
+.collapse-btn span { transition: opacity var(--transition); }
+.sidebar.collapsed .collapse-btn span { opacity: 0; width: 0; }
+
+/* ── Main ── */
+.main {
+  margin-left: var(--sidebar-w); flex: 1;
+  display: flex; flex-direction: column;
+  transition: margin-left var(--transition); min-width: 0;
+}
+.sidebar.collapsed ~ .main { margin-left: var(--sidebar-collapsed); }
+
+/* ── Topbar ── */
+.topbar {
+  position: sticky; top: 0; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 24px; z-index: 100;
+}
+.hamburger {
+  display: none; background: none; border: none;
+  color: var(--text2); font-size: 20px; cursor: pointer;
+  padding: 6px; border-radius: var(--radius-sm);
+}
+.topbar-search { flex: 1; max-width: 360px; position: relative; }
+.topbar-search i {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text3); font-size: 15px; pointer-events: none;
+}
+.topbar-search input {
+  width: 100%; height: 36px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 0 16px 0 36px; font-size: 13px; color: var(--text); outline: none;
+  transition: all var(--transition);
+}
+.topbar-search input:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.topbar-btn {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text2); font-size: 16px; cursor: pointer; transition: all var(--transition);
+}
+.topbar-btn:hover { background: var(--surface2); color: var(--text); }
+.notif-badge { position: relative; }
+.notif-badge::after {
+  content: ''; position: absolute; top: 6px; right: 6px;
+  width: 7px; height: 7px; background: var(--danger);
+  border-radius: 50%; border: 2px solid var(--surface);
+}
+.avatar-wrap { position: relative; }
+.avatar-btn {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+  border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.avatar-menu {
+  position: absolute; top: 44px; right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
+  min-width: 200px; z-index: 300; display: none; overflow: hidden;
+  animation: slideDown .18s ease;
+}
+.avatar-menu.show { display: block; }
+.avatar-menu-header { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.avatar-menu-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.avatar-menu-role { font-size: 11px; color: var(--text3); margin-top: 2px; text-transform: capitalize; }
+.avatar-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; font-size: 13px; font-weight: 500; color: var(--text2);
+  cursor: pointer; transition: all var(--transition);
+  background: none; border: none; width: 100%; text-align: left; font-family: inherit;
+}
+.avatar-menu-item:hover { background: var(--danger-light); color: var(--danger); }
+.avatar-menu-item i { font-size: 15px; }
+
+/* ── Page ── */
+.page { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.page-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.page-title h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+.page-title .subtitle { font-size: 13px; color: var(--text3); margin-top: 2px; }
+
+.badge-live {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--success-light); color: var(--success);
+  font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+}
+.badge-live::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--success); border-radius: 50%; animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.card-header h2 { font-size: 14px; font-weight: 600; }
+.card-header .header-icon {
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm); font-size: 15px; flex-shrink: 0;
+}
+.header-icon.blue   { background: var(--primary-light); color: var(--primary); }
+.header-icon.green  { background: var(--success-light); color: var(--success); }
+.header-icon.orange { background: var(--warning-light); color: var(--warning); }
+.header-icon.purple { background: var(--purple-light); color: var(--purple); }
+.header-icon.teal   { background: rgba(20,184,166,0.1); color: #0d9488; }
+.card-body { padding: 20px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
+@media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── Scan / Search ── */
+.scan-input-wrap { display: flex; gap: 8px; margin-bottom: 16px; }
+.scan-input {
+  flex: 1; height: 48px; background: var(--surface2);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 0 16px; font-size: 15px; color: var(--text); outline: none;
+  transition: all var(--transition); font-family: inherit;
+}
+.scan-input:focus { background: var(--surface); border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 48px; padding: 0 18px; border-radius: var(--radius-sm); border: none;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all var(--transition); white-space: nowrap; font-family: inherit;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+.btn-icon { width: 48px; padding: 0; flex-shrink: 0; }
+.btn-icon i { font-size: 18px; }
+.btn-outline { background: var(--surface2); border: 1px solid var(--border-strong); color: var(--text2); }
+.btn-outline:hover { background: var(--surface); border-color: var(--primary); color: var(--primary); }
+
+.product-preview-box {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-left: 3px solid var(--primary); border-radius: var(--radius-sm);
+  padding: 12px 16px; display: none; margin-top: 8px;
+  animation: slideDown 0.25s ease;
+}
+.product-preview-box.show { display: block; }
+@keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+.search-wrap { position: relative; margin-bottom: 4px; }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; pointer-events: none; }
+.search-input {
+  width: 100%; height: 46px; background: var(--surface2);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 0 50px 0 42px; font-size: 14px; color: var(--text); outline: none;
+  transition: all var(--transition); font-family: inherit;
+}
+.search-input:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.search-btn {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  background: var(--primary); color: white; border: none; border-radius: 6px;
+  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px;
+}
+.search-result-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--surface2); border: 1px solid var(--border);
+  cursor: pointer; transition: all var(--transition); margin-bottom: 6px;
+}
+.search-result-item:hover { border-color: var(--primary); background: var(--primary-light); }
+.search-result-item .item-name { font-size: 14px; font-weight: 500; }
+.search-result-item .item-price { font-size: 14px; font-weight: 600; color: var(--success); }
+
+/* ── Products Grid ── */
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 14px; }
+.product-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; cursor: pointer;
+  transition: all var(--transition); position: relative;
+}
+.product-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.product-img {
+  width: 100%; aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center; font-size: 40px;
+}
+.product-img img { width:100%; height:100%; object-fit:cover; display:block; }
+.product-info { padding: 12px; }
+.product-name { font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+.product-barcode {
+  display: inline-block; background: var(--surface2); color: var(--text3);
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+  margin-bottom: 8px; border: 1px solid var(--border);
+}
+.product-price { font-size: 14px; font-weight: 700; color: var(--success); }
+.product-add-overlay {
+  position: absolute; inset: 0; background: rgba(37,99,235,0.85);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity var(--transition); border-radius: var(--radius);
+}
+.product-card:hover .product-add-overlay { opacity: 1; }
+.product-add-overlay span { color: white; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.product-card.added { animation: cardFlash .4s ease; }
+@keyframes cardFlash { 0%{border-color:var(--border)} 50%{border-color:var(--success);background:var(--success-light)} 100%{border-color:var(--border)} }
+
+/* Skeleton */
+.skeleton { background: linear-gradient(90deg,var(--surface2) 25%,var(--bg) 50%,var(--surface2) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:var(--radius-sm); }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.skeleton-card { border-radius: var(--radius); overflow: hidden; }
+.skeleton-img { width:100%; aspect-ratio:1; }
+.skeleton-line { height: 12px; margin: 8px 12px; }
+.skeleton-line.short { width: 60%; }
+
+/* ── Cart ── */
+.cart-sticky { position: sticky; top: calc(var(--topbar-h) + 24px); }
+.cart-section { display: flex; flex-direction: column; gap: 16px; }
+.empty-cart { text-align: center; padding: 40px 20px; color: var(--text3); }
+.empty-cart i { font-size: 36px; margin-bottom: 12px; display: block; }
+.cart-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+  animation: slideDown .2s ease;
+}
+.cart-item:last-child { border-bottom: none; }
+.cart-item-info { flex: 1; min-width: 0; }
+.cart-item-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cart-item-price { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.qty-ctrl { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.qty-btn {
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: 1px solid var(--border-strong); border-radius: 6px;
+  cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text2);
+  transition: all var(--transition);
+}
+.qty-btn:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+.qty-btn.minus:hover { background: var(--danger-light); border-color: var(--danger); color: var(--danger); }
+.qty-num { font-size: 14px; font-weight: 700; min-width: 20px; text-align: center; }
+.cart-item-total { font-size: 14px; font-weight: 700; flex-shrink: 0; min-width: 70px; text-align: right; }
+.cart-totals {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 8px;
+}
+.total-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 13px; color: var(--text2); }
+.total-row.grand { font-size: 17px; font-weight: 700; color: var(--text); padding-top: 10px; margin-top: 6px; border-top: 1px solid var(--border-strong); }
+.total-row.grand span:last-child { color: var(--primary); }
+
+/* ── Payment ── */
+.payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.payment-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition);
+}
+.payment-option:hover { border-color: var(--border-strong); background: var(--surface); }
+.payment-option.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+.pay-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.pay-icon.mpesa  { background: rgba(22,163,74,0.12); color: var(--success); }
+.pay-icon.cash   { background: var(--warning-light); color: var(--warning); }
+.pay-icon.card   { background: var(--primary-light); color: var(--primary); }
+.pay-icon.airtel { background: var(--danger-light); color: var(--danger); }
+.pay-name { font-size: 13px; font-weight: 600; }
+.pay-sub  { font-size: 11px; color: var(--text3); }
+
+.checkout-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; height: 52px;
+  background: linear-gradient(135deg, var(--success) 0%, #15803d 100%);
+  color: white; border: none; border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: all var(--transition); font-family: inherit; letter-spacing: .3px;
+}
+.checkout-btn:hover { opacity:.92; transform:translateY(-1px); box-shadow:0 6px 20px rgba(22,163,74,.3); }
+.checkout-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.checkout-btn i { font-size: 18px; }
+
+/* ── Toast ── */
+.toast-container { position: fixed; top: 80px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; }
+.toast {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 16px; box-shadow: var(--shadow-lg);
+  font-size: 13px; font-weight: 500; min-width: 240px; animation: toastIn .3s ease;
+}
+.toast.success { border-left: 3px solid var(--success); }
+.toast.error   { border-left: 3px solid var(--danger); }
+.toast.success i { color: var(--success); }
+.toast.error   i { color: var(--danger); }
+@keyframes toastIn  { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+@keyframes toastOut { to{opacity:0;transform:translateX(20px)} }
+
+/* ── Receipt Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px); z-index: 500;
+  display: none; align-items: center; justify-content: center; padding: 24px;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-lg);
+  max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto;
+  animation: modalIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.92) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-header h2 { font-size: 16px; font-weight: 700; }
+.modal-close {
+  width: 32px; height: 32px; background: var(--surface2); border: none;
+  border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); font-size: 18px; transition: all var(--transition);
+}
+.modal-close:hover { background: var(--danger-light); color: var(--danger); }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap; }
+.modal-footer .btn { height: 40px; font-size: 13px; }
+
+/* ── Receipt (Premium) ── */
+.receipt { font-family: 'DM Sans', sans-serif; color: var(--text); }
+@keyframes receiptFadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.receipt-fade { animation: receiptFadeIn .4s ease; }
+
+.receipt-header { text-align:center; padding-bottom:22px; margin-bottom:20px; position:relative; }
+.receipt-header::after { content:''; position:absolute; left:0; right:0; bottom:0; height:1px; background:linear-gradient(90deg,transparent,var(--border-strong),transparent); }
+.receipt-logo { width:52px; height:52px; background:linear-gradient(135deg,var(--primary),var(--purple)); border-radius:14px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:24px; margin:0 auto 14px; box-shadow:0 8px 20px rgba(37,99,235,.25); }
+.receipt-business-name { font-family:'Syne',sans-serif; font-size:19px; font-weight:700; letter-spacing:-.3px; margin-bottom:5px; }
+.receipt-business-meta { font-size:11.5px; color:var(--text3); line-height:1.8; }
+.receipt-business-meta .dot { margin:0 6px; color:var(--border-strong); }
+
+.receipt-info-card { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:18px; display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; animation: receiptFadeIn .4s ease .05s backwards; }
+.receipt-info-item { display:flex; flex-direction:column; gap:2px; }
+.receipt-info-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--text3); }
+.receipt-info-value { font-size:13px; font-weight:600; color:var(--text); }
+.receipt-status-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; background:var(--success-light); color:var(--success); width:fit-content; }
+
+.receipt-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); margin:18px 0 10px; display:flex; align-items:center; gap:6px; }
+.receipt-section-title i { font-size:13px; color:var(--primary); }
+
+.receipt-table { width:100%; border-collapse:separate; border-spacing:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:4px; animation: receiptFadeIn .4s ease .1s backwards; }
+.receipt-table thead th { background:var(--surface2); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text3); padding:9px 10px; text-align:left; border-bottom:1px solid var(--border); }
+.receipt-table thead th.num { text-align:right; }
+.receipt-table tbody td { padding:10px; font-size:12.5px; border-bottom:1px solid var(--border); vertical-align:top; }
+.receipt-table tbody tr:last-child td { border-bottom:none; }
+.receipt-table tbody tr:nth-child(even) { background:var(--surface2); }
+.receipt-table tbody tr:hover { background:var(--primary-light); }
+.receipt-table td.num { text-align:right; font-variant-numeric:tabular-nums; }
+.receipt-table .item-name-cell { font-weight:600; }
+
+.receipt-summary-card { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px; margin:16px 0; animation: receiptFadeIn .4s ease .15s backwards; }
+.receipt-summary-row { display:flex; justify-content:space-between; font-size:13px; color:var(--text2); padding:4px 0; }
+.receipt-summary-row.grand { margin-top:8px; padding-top:12px; border-top:1px solid var(--border-strong); align-items:baseline; }
+.receipt-summary-row.grand .label { font-size:14px; font-weight:700; color:var(--text); }
+.receipt-summary-row.grand .value { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; color:var(--primary); }
+
+.receipt-payment-card { border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:16px; animation: receiptFadeIn .4s ease .2s backwards; }
+.receipt-payment-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:12.5px; }
+.receipt-payment-row:not(:last-child) { border-bottom:1px solid var(--border); }
+.receipt-payment-label { color:var(--text3); }
+.receipt-payment-value { font-weight:600; }
+.receipt-pay-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; }
+.receipt-pay-badge.paid { background:var(--success-light); color:var(--success); }
+.receipt-pay-badge.pending { background:var(--warning-light); color:var(--warning); }
+.receipt-pay-badge.failed { background:var(--danger-light); color:var(--danger); }
+.receipt-pay-badge.refunded { background:var(--purple-light); color:var(--purple); }
+
+.receipt-timeline { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; animation: receiptFadeIn .4s ease .25s backwards; }
+.receipt-timeline-item { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text2); }
+.receipt-timeline-icon { width:26px; height:26px; border-radius:50%; background:var(--success-light); color:var(--success); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+.receipt-timeline-time { margin-left:auto; font-size:11px; color:var(--text3); }
+
+.receipt-codes { display:flex; gap:16px; justify-content:center; align-items:flex-start; margin:20px 0; flex-wrap:wrap; }
+.receipt-qr-box { width:84px; height:84px; border:1.5px dashed var(--border-strong); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:24px; background:var(--surface2); }
+.receipt-qr-label { font-size:10px; color:var(--text3); text-align:center; margin-top:6px; }
+.receipt-barcode-box { width:100%; max-width:220px; height:50px; border:1.5px dashed var(--border-strong); border-radius:10px; background:repeating-linear-gradient(90deg,var(--text3) 0 2px,transparent 2px 5px); background-size:auto 55%; background-position:center; background-repeat:no-repeat; opacity:.5; margin:0 auto; }
+
+.receipt-footer-v2 { text-align:center; padding-top:18px; margin-top:6px; border-top:1px dashed var(--border-strong); }
+.receipt-footer-v2 p { font-size:11px; color:var(--text3); line-height:1.8; }
+.receipt-footer-v2 .thanks { font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; }
+.receipt-footer-v2 .brand { color:var(--primary); font-weight:600; }
+
+/* ── Receipt Sharing (premium SaaS style) ── */
+.receipt-share-section { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--border); animation: receiptFadeIn .4s ease .3s backwards; }
+.receipt-share-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); margin-bottom:12px; text-align:center; }
+.receipt-share-buttons { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.receipt-share-btn {
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  height:48px; border-radius:12px; border:1px solid var(--border);
+  background:var(--surface2); font-size:13.5px; font-weight:700; color:var(--text);
+  cursor:pointer; transition:all .2s ease; font-family:inherit;
+}
+.receipt-share-btn i { font-size:16px; }
+.receipt-share-btn:hover { transform:translateY(-1px); box-shadow:var(--shadow-lg); border-color:var(--border-strong); }
+.receipt-share-btn.whatsapp { color:#16a34a; }
+.receipt-share-btn.whatsapp:hover { background:rgba(22,163,74,.08); border-color:rgba(22,163,74,.35); }
+.receipt-share-btn.email { color:var(--primary); }
+.receipt-share-btn.email:hover { background:var(--primary-light); border-color:rgba(37,99,235,.35); }
+@media (max-width:420px) { .receipt-share-buttons { grid-template-columns: 1fr; } }
+
+@media (max-width:480px) {
+  .receipt-info-card { grid-template-columns:1fr; }
+  .receipt-table { font-size:11px; }
+  .receipt-table thead th, .receipt-table tbody td { padding:8px; }
+}
+
+@media print {
+  .modal-overlay { position:static !important; background:none !important; backdrop-filter:none !important; padding:0 !important; }
+  .modal-box { box-shadow:none !important; max-width:100% !important; max-height:none !important; border-radius:0 !important; }
+  .modal-header, .modal-footer, .modal-close { display:none !important; }
+  .modal-body { padding:0 !important; }
+  .receipt, .receipt * { color:#000 !important; background:#fff !important; box-shadow:none !important; animation:none !important; }
+  .receipt-table tbody tr:nth-child(even) { background:#f2f2f2 !important; }
+  .receipt { page-break-inside:avoid; }
+  .receipt-share-section { display:none !important; }
+}
+
+/* ── M-Pesa Modal ── */
+#mpesaModal {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    overflow-y: auto;
+    padding: 20px;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+}
+
+#mpesaModal.active { opacity: 1; pointer-events: all; }
+#mpesaModal .mpesa-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(8px); }
+.mpesa-dialog {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 460px;
+
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+
+    box-shadow: 0 24px 80px rgba(0,0,0,.25);
+    border: 1px solid var(--border);
+
+    transform: scale(.92) translateY(24px);
+    opacity: 0;
+    transition:
+        transform .4s cubic-bezier(.34,1.56,.64,1),
+        opacity .3s ease;
+
+    overscroll-behavior: contain;
+}
+.mpesa-dialog{
+    display:flex;
+    flex-direction:column;
+    max-height:calc(100vh - 40px);
+}
+
+.mpesa-top,
+.mpesa-steps{
+    flex-shrink:0;
+}
+
+.mpesa-body{
+    flex:1;
+    overflow-y:auto;
+}
+
+#mpesaModal.active .mpesa-dialog { transform: scale(1) translateY(0); opacity: 1; }
+
+.mpesa-top {
+  background: linear-gradient(135deg,#16a34a 0%,#15803d 60%,#14532d 100%);
+  padding: 24px 24px 20px; position: relative; overflow: hidden;
+}
+.mpesa-top::before { content:''; position:absolute; top:-40px; right:-40px; width:120px; height:120px; background:rgba(255,255,255,.06); border-radius:50%; }
+.mpesa-brand { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.mpesa-brand-icon { width:40px; height:40px; background:rgba(255,255,255,.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; color:white; border:1px solid rgba(255,255,255,.2); }
+.mpesa-brand-text { color:white; }
+.mpesa-brand-text .mpesa-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+.mpesa-brand-text .mpesa-subtitle { font-size:11px; opacity:.75; }
+.mpesa-amount-display { display:flex; align-items:baseline; gap:6px; }
+.mpesa-amount-label { font-size:12px; color:rgba(255,255,255,.65); font-weight:500; }
+.mpesa-amount-value { font-family:'Syne',sans-serif; font-size:28px; font-weight:700; color:white; letter-spacing:-.5px; }
+.mpesa-amount-currency { font-size:14px; color:rgba(255,255,255,.75); font-weight:600; }
+.mpesa-close-btn {
+  position:absolute; top:16px; right:16px; width:30px; height:30px;
+  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.2);
+  border-radius:8px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:white; font-size:14px;
+}
+
+.mpesa-steps { display:flex; align-items:center; padding:16px 24px; border-bottom:1px solid var(--border); background:var(--surface2); }
+.mpesa-step { display:flex; align-items:center; gap:8px; flex:1; }
+.mpesa-step-num {
+  width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; background:var(--border); color:var(--text3); transition:all .3s; flex-shrink:0;
+}
+.mpesa-step.active .mpesa-step-num { background:var(--success); color:white; box-shadow:0 0 0 4px rgba(22,163,74,.15); }
+.mpesa-step.done   .mpesa-step-num { background:var(--success); color:white; }
+.mpesa-step-label { font-size:12px; font-weight:600; color:var(--text3); transition:color .3s; }
+.mpesa-step.active .mpesa-step-label { color:var(--success); }
+.mpesa-step.done   .mpesa-step-label { color:var(--text2); }
+.mpesa-step-divider { flex:.5; height:1px; background:var(--border); margin:0 4px; }
+
+.mpesa-body { padding: 24px; }
+.mpesa-panel { display: none; }
+.mpesa-panel.visible { display: block; animation: panelIn .3s ease; }
+@keyframes panelIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:translateX(0)} }
+
+.mpesa-method-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.mpesa-method-card {
+  border:1.5px solid var(--border); border-radius:14px; padding:18px 16px;
+  cursor:pointer; transition:all .25s; background:var(--surface2); text-align:center; position:relative; overflow:hidden;
+}
+.mpesa-method-card:hover { border-color:rgba(22,163,74,.4); transform:translateY(-2px); }
+.mpesa-method-card.selected { border-color:var(--success); background:var(--success-light); box-shadow:0 0 0 3px rgba(22,163,74,.12); transform:translateY(-2px); }
+.mpesa-method-icon { width:48px; height:48px; background:rgba(22,163,74,.1); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; color:var(--success); margin:0 auto 12px; }
+.mpesa-method-card.selected .mpesa-method-icon { background:var(--success); color:white; }
+.mpesa-method-name { font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.mpesa-method-desc { font-size:11px; color:var(--text3); line-height:1.4; }
+.mpesa-method-check {
+  position:absolute; top:10px; right:10px; width:18px; height:18px;
+  background:var(--success); border-radius:50%; display:flex; align-items:center; justify-content:center;
+  opacity:0; transform:scale(.5); transition:all .3s cubic-bezier(.34,1.56,.64,1); font-size:10px; color:white;
+}
+.mpesa-method-card.selected .mpesa-method-check { opacity:1; transform:scale(1); }
+
+.mpesa-form-group { margin-bottom: 18px; }
+.mpesa-label { display:block; font-size:12px; font-weight:600; color:var(--text2); margin-bottom:7px; letter-spacing:.02em; text-transform:uppercase; }
+.mpesa-input {
+  width:100%; height:48px; background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:10px; padding:0 16px; font-size:15px; font-weight:500; color:var(--text);
+  outline:none; transition:all .2s; font-family:inherit;
+}
+.mpesa-input:focus { border-color:var(--success); background:var(--surface); box-shadow:0 0 0 4px rgba(22,163,74,.1); }
+.mpesa-input.readonly { color:var(--text2); cursor:not-allowed; font-weight:700; font-size:16px; }
+.mpesa-input.error { border-color:var(--danger); box-shadow:0 0 0 4px rgba(220,38,38,.1); }
+.mpesa-input-hint { font-size:11px; color:var(--text3); margin-top:6px; }
+.phone-flag { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:16px; pointer-events:none; }
+
+.mpesa-paybill-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+.mpesa-paybill-tile { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center; }
+.mpesa-paybill-tile .tile-label { font-size:11px; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+.mpesa-paybill-tile .tile-value { font-size:16px; font-weight:700; color:var(--text); }
+
+/* Processing */
+.mpesa-loading { text-align:center; padding:20px 0; }
+.mpesa-spinner { width:56px; height:56px; margin:0 auto 16px; position:relative; }
+.mpesa-spinner-ring {
+  position:absolute; inset:0; border-radius:50%;
+  border:3px solid transparent; border-top-color:var(--success);
+  animation:spin .9s linear infinite;
+}
+.mpesa-spinner-ring:nth-child(2) { inset:6px; border-top-color:rgba(22,163,74,.4); animation-duration:1.3s; animation-direction:reverse; }
+.mpesa-spinner-inner { position:absolute; inset:12px; background:var(--success-light); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--success); }
+@keyframes spin { to{transform:rotate(360deg)} }
+.mpesa-loading-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+.mpesa-loading-sub   { font-size:13px; color:var(--text3); margin-bottom:20px; }
+.mpesa-progress-bar  { height:4px; background:var(--border); border-radius:4px; overflow:hidden; margin:16px 0; }
+.mpesa-progress-fill { height:100%; background:linear-gradient(90deg,var(--success),#4ade80); border-radius:4px; transition:width .6s ease; width:0%; }
+.mpesa-status-dots   { display:flex; align-items:center; justify-content:center; gap:8px; flex-direction:column; }
+.mpesa-status-item   { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text3); opacity:.4; transition:all .4s; }
+.mpesa-status-item.done   { color:var(--success); opacity:1; }
+.mpesa-status-item.active { color:var(--text2); opacity:1; }
+.mpesa-status-dot { width:8px; height:8px; border-radius:50%; background:var(--border-strong); transition:all .3s; flex-shrink:0; }
+.mpesa-status-item.done   .mpesa-status-dot { background:var(--success); }
+.mpesa-status-item.active .mpesa-status-dot { background:var(--text2); animation:dotPulse 1s infinite; }
+@keyframes dotPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.7} }
+
+/* Success */
+.mpesa-success { text-align:center; padding:8px 0; }
+.mpesa-success-icon {
+  width:72px; height:72px;
+  background:linear-gradient(135deg,var(--success),#15803d);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  margin:0 auto 16px; font-size:30px; color:white;
+  box-shadow:0 8px 24px rgba(22,163,74,.35); animation:successPop .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes successPop { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+.mpesa-success-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; margin-bottom:6px; }
+.mpesa-success-sub   { font-size:13px; color:var(--text3); margin-bottom:24px; }
+.mpesa-success-details { background:var(--surface2); border-radius:12px; padding:16px; margin-bottom:16px; text-align:left; }
+.mpesa-detail-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:13px; }
+.mpesa-detail-row:not(:last-child) { border-bottom:1px solid var(--border); }
+.mpesa-detail-label { color:var(--text3); }
+.mpesa-detail-value { font-weight:600; }
+.mpesa-detail-value.success { color:var(--success); }
+
+.mpesa-cta {
+  width:100%; height:50px;
+  background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);
+  color:white; border:none; border-radius:12px;
+  font-size:15px; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:all .2s; font-family:inherit; box-shadow:0 4px 14px rgba(22,163,74,.3);
+}
+.mpesa-cta:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(22,163,74,.4); }
+.mpesa-cta:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.mpesa-back-btn {
+  background:none; border:none; color:var(--text3); font-size:13px; cursor:pointer;
+  font-family:inherit; display:flex; align-items:center; gap:5px;
+  margin-bottom:16px; transition:color .2s; padding:4px 0;
+}
+.mpesa-back-btn:hover { color:var(--text); }
+
+/* Polling banner */
+.polling-banner {
+  background: var(--warning-light); border: 1px solid var(--warning);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  font-size: 13px; color: var(--warning); font-weight: 600;
+  display: flex; align-items: center; gap: 8px; margin-top: 12px;
+}
+.polling-banner i { animation: spin 1.5s linear infinite; }
+
+/* API error */
+.api-error-box {
+  background: var(--danger-light); border: 1px solid var(--danger);
+  border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 12px;
+  font-size: 13px; color: var(--danger); display: none;
+}
+.api-error-box.show { display: block; }
+
+/* ── Manual Till verification block ── */
+.manual-verify-note {
+  background: var(--primary-light); border: 1px solid var(--primary);
+  border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px;
+  font-size: 12.5px; color: var(--primary); font-weight: 600; line-height: 1.6;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.manual-verify-note i { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+.manual-verify-checkbox {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 18px;
+  cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text2); line-height: 1.5;
+  transition: all var(--transition);
+}
+.manual-verify-checkbox:hover { border-color: var(--border-strong); }
+.manual-verify-checkbox input[type="checkbox"] {
+  width: 18px; height: 18px; margin-top: 1px; accent-color: var(--success);
+  cursor: pointer; flex-shrink: 0;
+}
+
+/* ── Receipt Sharing modals (premium SaaS style) ── */
+.share-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,.5);
+  backdrop-filter: blur(6px); z-index: 700;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.share-modal-overlay.show { display: flex; }
+.share-modal-box {
+  position: relative;
+  background: var(--surface); border-radius: 20px; width: 100%; max-width: 400px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.22); border: 1px solid var(--border);
+  padding: 26px; animation: modalIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+.share-modal-close-btn {
+  position: absolute; top: 16px; right: 16px; width: 30px; height: 30px;
+  background: var(--surface2); border: none; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); font-size: 14px; transition: all var(--transition);
+}
+.share-modal-close-btn:hover { background: var(--danger-light); color: var(--danger); }
+.share-modal-icon {
+  width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 16px;
+}
+.share-modal-icon.whatsapp { background: rgba(22,163,74,.12); color: #16a34a; }
+.share-modal-icon.email { background: var(--primary-light); color: var(--primary); }
+.share-modal-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.share-modal-sub { font-size: 12.5px; color: var(--text3); margin-bottom: 18px; line-height: 1.5; }
+.share-modal-field { margin-bottom: 18px; }
+.share-modal-label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; letter-spacing: .02em; text-transform: uppercase; }
+.share-modal-input {
+  width: 100%; height: 46px; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 0 14px; font-size: 14px; color: var(--text); outline: none;
+  transition: all .2s; font-family: inherit;
+}
+.share-modal-input:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 4px rgba(37,99,235,.1); }
+.share-modal-input.error { border-color: var(--danger); box-shadow: 0 0 0 4px rgba(220,38,38,.1); }
+.share-modal-error-text { font-size: 11.5px; color: var(--danger); margin-top: 6px; display: none; font-weight: 600; }
+.share-modal-error-text.show { display: block; }
+.share-modal-send-btn {
+  width: 100%; height: 48px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .2s; font-family: inherit; color: white;
+}
+.share-modal-send-btn.whatsapp { background: linear-gradient(135deg,#16a34a,#15803d); box-shadow: 0 4px 14px rgba(22,163,74,.3); }
+.share-modal-send-btn.email { background: linear-gradient(135deg,var(--primary),var(--primary-dark)); box-shadow: 0 4px 14px rgba(37,99,235,.3); }
+.share-modal-send-btn:hover { transform: translateY(-1px); }
+.share-modal-send-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* Mobile overlay */
+.mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:190; }
+.mobile-overlay.show { display:block; }
+
+@media (max-width:768px) {
+  .sidebar { transform:translateX(-100%); width:var(--sidebar-w) !important; }
+  .sidebar.mobile-open { transform:translateX(0); }
+  .main { margin-left:0 !important; }
+  .hamburger { display:flex; }
+  .page { padding:16px; }
+
+  /* Product grid: horizontal-scroll, 2 rows, swipeable on touch */
+  .products-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, auto);
+    grid-template-columns: none;
+    grid-auto-columns: minmax(150px, 42vw);
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scroll-padding-left: 4px;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+  }
+  .products-grid .skeleton-card,
+  .products-grid .product-card {
+    scroll-snap-align: start;
+    width: 100%;
+  }
+}
+
+.connection-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border, rgba(0,0,0,.08));
+  margin-right: 8px;
+  white-space: nowrap;
+  transition: background .2s ease, color .2s ease;
+}
+.connection-badge.online {
+  background: var(--success-light, #f0fdf4);
+  color: var(--success, #16a34a);
+}
+.connection-badge.offline {
+  background: var(--warning-light, #fffbeb);
+  color: var(--warning, #d97706);
+}
+
+.internet-disabled {
+  filter: grayscale(60%);
+  cursor: not-allowed !important;
+}
+
+.receipt-share-btn.will-queue::after {
+  content: " (queued while offline)";
+  font-size: 10px;
+  font-weight: 500;
+  opacity: .7;
+}
+
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+      <span class="logo-text">CodexLabs POS</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <a href="cashier_dash.html" class="nav-link"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+        <a href="pos.html" class="nav-link active"><i class="bi bi-cart-plus"></i><span>Sale</span></a>
+        <a href="transaction.html" class="nav-link"><i class="bi bi-receipt"></i><span>Transactions</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="collapse-btn" id="collapseBtn">
+        <i class="bi bi-layout-sidebar-inset"></i><span>Collapse</span>
+      </button>
+    </div>
+  </aside>
+  <div class="mobile-overlay" id="mobileOverlay"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="hamburger" id="hamburger"><i class="bi bi-list"></i></button>
+      <div class="topbar-search">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search products, SKUs..." id="globalSearch">
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn notif-badge" title="Notifications"><i class="bi bi-bell"></i></button>
+        <button class="topbar-btn" id="darkToggle"><i class="bi bi-moon" id="darkIcon"></i></button>
+        <span id="connectionBadge" class="connection-badge online">🟢 Online</span>
+        <div class="avatar-wrap">
+          <button class="avatar-btn" id="avatarBtn" title="Account">KE</button>
+          <div class="avatar-menu" id="avatarMenu">
+            <div class="avatar-menu-header">
+              <div class="avatar-menu-name" id="avatarMenuName">Cashier</div>
+              <div class="avatar-menu-role" id="avatarMenuRole">—</div>
+            </div>
+            <button class="avatar-menu-item" onclick="logout()">
+              <i class="bi bi-box-arrow-right"></i> Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="page-title">
+        <div>
+          <h1>New Sale</h1>
+          <div class="subtitle">Add items to cart and process payment</div>
+        </div>
+        <span class="badge-live">POS Active</span>
+      </div>
+
+      <!-- Scan + Search row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="scan-search-row">
+        <div class="card" style="border-left:5px solid var(--primary);">
+          <div class="card-header">
+            <div class="header-icon blue"><i class="bi bi-upc-scan"></i></div>
+            <h2>Scan Barcode / SKU</h2>
+          </div>
+          <div class="card-body">
+            <div class="scan-input-wrap">
+              <input type="text" id="barcodeInput" class="scan-input" placeholder="Scan or enter SKU..." autofocus>
+              <button class="btn btn-primary btn-icon" onclick="handleBarcode()" title="Add to cart"><i class="bi bi-check-lg"></i></button>
+            </div>
+            <div class="product-preview-box" id="productPreview"></div>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:5px solid var(--success);">
+          <div class="card-header">
+            <div class="header-icon blue"><i class="bi bi-search"></i></div>
+            <h2>Product Search</h2>
+          </div>
+          <div class="card-body">
+            <div class="search-wrap">
+              <i class="bi bi-search search-icon"></i>
+              <input type="text" class="search-input" id="productSearch" placeholder="Search by name or SKU...">
+              <button class="search-btn" onclick="searchProducts()"><i class="bi bi-search"></i></button>
+            </div>
+            <div id="searchResults"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products + Cart -->
+      <div class="two-col">
+        <div class="card" style="border-left:5px solid #a3e635;">
+          <div class="card-header">
+            <div class="header-icon purple"><i class="bi bi-grid-3x3-gap"></i></div>
+            <h2>Products</h2>
+            <span style="margin-left:auto;font-size:12px;color:var(--text3);" id="productCount">Loading…</span>
+          </div>
+          <div class="card-body">
+            <div class="products-grid" id="productGrid">
+              <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line" style="margin-top:10px;"></div><div class="skeleton skeleton-line short"></div></div>
+              <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line" style="margin-top:10px;"></div><div class="skeleton skeleton-line short"></div></div>
+              <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line" style="margin-top:10px;"></div><div class="skeleton skeleton-line short"></div></div>
+              <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line" style="margin-top:10px;"></div><div class="skeleton skeleton-line short"></div></div>
+              <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line" style="margin-top:10px;"></div><div class="skeleton skeleton-line short"></div></div>
+              <div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-line" style="margin-top:10px;"></div><div class="skeleton skeleton-line short"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cart-sticky cart-section">
+          <div class="card" style="border-left:5px solid var(--warning);">
+            <div class="card-header">
+              <div class="header-icon orange"><i class="bi bi-basket3"></i></div>
+              <h2>Cart <span id="cartBadge" style="font-size:12px;background:var(--primary);color:white;padding:1px 8px;border-radius:20px;margin-left:4px;">0</span></h2>
+              <button onclick="clearCart()" style="margin-left:auto;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;font-family:inherit;padding:4px 8px;border-radius:6px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text3)'"><i class="bi bi-trash"></i> Clear</button>
+            </div>
+            <div class="card-body" style="padding:16px 20px;">
+              <div id="cartItems">
+                <div class="empty-cart">
+                  <i class="bi bi-cart"></i>
+                  <p>Your cart is empty</p>
+                  <p style="font-size:12px;margin-top:4px;">Click products or scan SKUs to add items</p>
+                </div>
+              </div>
+              <div class="cart-totals" id="cartTotals" style="display:none;">
+                <div class="total-row"><span>Subtotal</span><span>KSh <span id="cartSubtotal">0</span></span></div>
+                <div class="total-row"><span id="cartTaxLabel">Tax</span><span>KSh <span id="cartTax">0</span></span></div>
+                <div class="total-row grand"><span>Total</span><span>KSh <span id="cartTotal">0</span></span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="border-left:5px solid gold;">
+            <div class="card-header">
+              <div class="header-icon teal"><i class="bi bi-credit-card-2-front"></i></div>
+              <h2>Payment Method</h2>
+            </div>
+            <div class="card-body">
+              <div class="payment-grid">
+                <div class="payment-option" data-method="M-Pesa" onclick="selectPayment(this)">
+                  <div class="pay-icon mpesa"><i class="bi bi-phone-fill"></i></div>
+                  <div><div class="pay-name">M-Pesa</div><div class="pay-sub">Mobile money</div></div>
+                </div>
+                <div class="payment-option" data-method="Cash" onclick="selectPayment(this)">
+                  <div class="pay-icon cash"><i class="bi bi-cash-stack"></i></div>
+                  <div><div class="pay-name">Cash</div><div class="pay-sub">Physical cash</div></div>
+                </div>
+                <div class="payment-option" data-method="Other Payment" onclick="selectPayment(this)">
+                  <div class="pay-icon card"><i class="bi bi-three-dots"></i></div>
+                  <div><div class="pay-name">Other Payment</div><div class="pay-sub">Manual / offline</div></div>
+                </div>
+              </div>
+              <button class="checkout-btn" id="checkoutBtn" onclick="checkout()">
+                <i class="bi bi-check-circle-fill"></i> Complete Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- RECEIPT MODAL -->
+<div class="modal-overlay" id="checkoutModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2><i class="bi bi-receipt" style="color:var(--primary);margin-right:8px;"></i>Transaction Receipt</h2>
+      <button class="modal-close" onclick="closeReceiptModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body"><div id="receiptContent"></div></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="printReceipt()"><i class="bi bi-printer"></i> Print</button>
+      <button class="btn btn-outline" onclick="closeReceiptModal()" style="margin-left:auto;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE VIA WHATSAPP MODAL -->
+<div class="share-modal-overlay" id="shareWhatsappModal">
+  <div class="share-modal-box">
+    <button class="share-modal-close-btn" onclick="closeShareModal('shareWhatsappModal')"><i class="bi bi-x-lg"></i></button>
+    <div class="share-modal-icon whatsapp"><i class="bi bi-whatsapp"></i></div>
+    <div class="share-modal-title">Send Receipt via WhatsApp</div>
+    <div class="share-modal-sub">We'll open WhatsApp with this receipt pre-filled for the customer.</div>
+    <div class="share-modal-field">
+      <label class="share-modal-label">Customer phone number</label>
+      <input type="tel" class="share-modal-input" id="shareWhatsappPhone" placeholder="e.g. 0712345678">
+      <div class="share-modal-error-text" id="shareWhatsappError">Please enter a valid phone number.</div>
+    </div>
+    <button class="share-modal-send-btn whatsapp" id="shareWhatsappBtn" onclick="sendWhatsappReceipt()">
+      <i class="bi bi-whatsapp"></i> Send via WhatsApp
+    </button>
+  </div>
+</div>
+
+<!-- SHARE VIA EMAIL MODAL -->
+<div class="share-modal-overlay" id="shareEmailModal">
+  <div class="share-modal-box">
+    <button class="share-modal-close-btn" onclick="closeShareModal('shareEmailModal')"><i class="bi bi-x-lg"></i></button>
+    <div class="share-modal-icon email"><i class="bi bi-envelope-fill"></i></div>
+    <div class="share-modal-title">Send Receipt via Email</div>
+    <div class="share-modal-sub">We'll email a copy of this receipt to the customer.</div>
+    <div class="share-modal-field">
+      <label class="share-modal-label">Customer email address</label>
+      <input type="email" class="share-modal-input" id="shareEmailAddress" placeholder="customer@email.com">
+      <div class="share-modal-error-text" id="shareEmailError">Please enter a valid email address.</div>
+    </div>
+    <button class="share-modal-send-btn email" id="shareEmailBtn" onclick="sendEmailReceipt()">
+      <i class="bi bi-send-fill"></i> Send via Email
+    </button>
+  </div>
+</div>
+
+<!-- M-PESA MODAL -->
+<div id="mpesaModal">
+  <div class="mpesa-backdrop" onclick="closeMpesaModal()"></div>
+  <div class="mpesa-dialog">
+    <div class="mpesa-top">
+      <button class="mpesa-close-btn" onclick="closeMpesaModal()"><i class="bi bi-x"></i></button>
+      <div class="mpesa-brand">
+        <div class="mpesa-brand-icon"><i class="bi bi-phone-fill"></i></div>
+        <div class="mpesa-brand-text">
+          <div class="mpesa-title">M-Pesa Payment</div>
+          <div class="mpesa-subtitle">Secure mobile money checkout</div>
+        </div>
+      </div>
+      <div class="mpesa-amount-display">
+        <span class="mpesa-amount-label">Amount due</span>
+        <span class="mpesa-amount-currency">KSh</span>
+        <span class="mpesa-amount-value" id="mpesaAmountDisplay">0</span>
+      </div>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="mpesa-steps">
+      <div class="mpesa-step active" id="step-indicator-1">
+        <div class="mpesa-step-num" id="step-num-1">1</div>
+        <div class="mpesa-step-label">Method</div>
+      </div>
+      <div class="mpesa-step-divider"></div>
+      <div class="mpesa-step" id="step-indicator-2">
+        <div class="mpesa-step-num" id="step-num-2">2</div>
+        <div class="mpesa-step-label">Details</div>
+      </div>
+      <div class="mpesa-step-divider"></div>
+      <div class="mpesa-step" id="step-indicator-3">
+        <div class="mpesa-step-num" id="step-num-3">3</div>
+        <div class="mpesa-step-label">Confirm</div>
+      </div>
+    </div>
+
+    <div class="mpesa-body">
+
+      <!-- Step 1: Choose method -->
+      <div class="mpesa-panel visible" id="mpesa-step-1">
+        <div style="margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Select payment type</div>
+          <div style="font-size:13px;color:var(--text3);">How would you like to pay with M-Pesa?</div>
+        </div>
+        <div class="mpesa-method-grid">
+          <div class="mpesa-method-card" id="stk-card" onclick="selectMpesaMethod('stk')">
+            <div class="mpesa-method-check"><i class="bi bi-check"></i></div>
+            <div class="mpesa-method-icon"><i class="bi bi-phone-vibrate-fill"></i></div>
+            <div class="mpesa-method-name">STK Push</div>
+            <div class="mpesa-method-desc">Send PIN prompt directly to phone</div>
+          </div>
+          <div class="mpesa-method-card" id="lipa-card" onclick="selectMpesaMethod('lipa')">
+            <div class="mpesa-method-check"><i class="bi bi-check"></i></div>
+            <div class="mpesa-method-icon"><i class="bi bi-qr-code"></i></div>
+            <div class="mpesa-method-name">Lipa na M-Pesa</div>
+            <div class="mpesa-method-desc">Customer pays via Till / Paybill</div>
+          </div>
+          <div class="mpesa-method-card" id="manual-card" onclick="selectMpesaMethod('manual')" style="grid-column: 1 / -1;">
+            <div class="mpesa-method-check"><i class="bi bi-check"></i></div>
+            <div class="mpesa-method-icon"><i class="bi bi-shop"></i></div>
+            <div class="mpesa-method-name">Manual Till (Buy Goods)</div>
+            <div class="mpesa-method-desc">Customer pays Buy Goods Till manually, cashier confirms</div>
+          </div>
+        </div>
+        <button class="mpesa-cta" id="step1Cta" style="margin-top:24px;" onclick="goToStep2()" disabled>
+          Continue <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Step 2a: STK Push -->
+      <div class="mpesa-panel" id="mpesa-step-2-stk">
+        <button class="mpesa-back-btn" onclick="goToStep1()"><i class="bi bi-arrow-left"></i> Back</button>
+        <div style="margin-bottom:18px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">STK Push — Send to phone</div>
+          <div style="font-size:13px;color:var(--text3);">Customer will receive a PIN prompt on their phone</div>
+        </div>
+        <div class="api-error-box" id="stkError"></div>
+        <div class="mpesa-form-group">
+          <label class="mpesa-label">Customer phone number</label>
+          <div style="position:relative;">
+            <span class="phone-flag">🇰🇪</span>
+            <input type="tel" class="mpesa-input" id="stkPhone" placeholder="07XX XXX XXX" style="padding-left:40px;" maxlength="12">
+          </div>
+          <div class="mpesa-input-hint">M-Pesa registered number (sent as 2547XXXXXXXX)</div>
+        </div>
+        <div class="mpesa-form-group">
+          <label class="mpesa-label">Amount to charge</label>
+          <input type="text" class="mpesa-input readonly" id="stkAmount" readonly>
+        </div>
+        <button class="mpesa-cta" id="stkSendBtn" onclick="sendStkPush()">
+          <i class="bi bi-send-fill"></i> Send Payment Request
+        </button>
+      </div>
+
+      <!-- Step 2b: Lipa na M-Pesa (C2B) -->
+      <div class="mpesa-panel" id="mpesa-step-2-lipa">
+        <button class="mpesa-back-btn" onclick="goToStep1()"><i class="bi bi-arrow-left"></i> Back</button>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Lipa na M-Pesa</div>
+          <div style="font-size:13px;color:var(--text3);">Generate a reference, then ask the customer to pay on their phone</div>
+        </div>
+        <div class="api-error-box" id="lipaError"></div>
+
+        <!-- C2B URL registration status -->
+        <div class="polling-banner" id="lipaRegisterBanner" style="display:none;background:var(--primary-light);border-color:var(--primary);color:var(--primary);">
+          <i class="bi bi-arrow-repeat"></i>
+          <span>Registering payment callback URLs with Safaricom…</span>
+        </div>
+
+        <!-- Before sale is created -->
+        <div id="lipa-before">
+          <div class="mpesa-paybill-tiles">
+            <div class="mpesa-paybill-tile">
+              <div class="tile-label">Till / Paybill</div>
+              <div class="tile-value">123456</div>
+            </div>
+            <div class="mpesa-paybill-tile">
+              <div class="tile-label">Amount</div>
+              <div class="tile-value" id="lipaAmountTile">KSh 0</div>
+            </div>
+          </div>
+          <button class="mpesa-cta" id="lipaConfirmBtn" onclick="confirmLipaPay()">
+            <i class="bi bi-hash"></i> Generate Payment Reference
+          </button>
+        </div>
+
+        <!-- After sale is created — show account number instructions -->
+        <div id="lipa-after" style="display:none;">
+          <div style="background:var(--warning-light);border:1px solid var(--warning);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--warning);font-weight:600;">
+            <i class="bi bi-info-circle" style="margin-right:6px;"></i>
+            Please ask the customer to complete payment using the details below
+          </div>
+          <div class="mpesa-paybill-tiles" style="grid-template-columns:1fr 1fr 1fr;">
+            <div class="mpesa-paybill-tile">
+              <div class="tile-label">Till / Paybill</div>
+              <div class="tile-value">123456</div>
+            </div>
+            <div class="mpesa-paybill-tile" style="border:1.5px solid var(--primary);">
+              <div class="tile-label" style="color:var(--primary);">Account No.</div>
+              <div class="tile-value" id="lipaAccountNumber" style="color:var(--primary);">—</div>
+            </div>
+            <div class="mpesa-paybill-tile">
+              <div class="tile-label">Amount</div>
+              <div class="tile-value" id="lipaAmountTileB">KSh 0</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text3);line-height:1.8;margin:18px 0;">
+            <strong style="color:var(--text2);display:block;margin-bottom:6px;">Customer steps on phone:</strong>
+            M-Pesa → Lipa na M-Pesa → Buy Goods / Pay Bill<br>
+            Enter Till/Paybill → Enter <strong style="color:var(--primary);">Account No. above</strong> → Enter amount → PIN
+          </div>
+
+          <!-- Action buttons shown BEFORE polling starts — cashier waits for the
+               customer to actually go through the payment steps above before
+               committing to poll the backend. -->
+          <div id="lipa-action-buttons" style="display:flex;gap:10px;">
+            <button class="btn btn-outline" style="flex:1;height:48px;" onclick="cancelLipaPayment()">
+              Cancel
+            </button>
+            <button class="mpesa-cta" style="flex:2;" onclick="startLipaWaiting()">
+              <i class="bi bi-hourglass-split"></i> I'm Waiting for Payment
+            </button>
+          </div>
+
+          <!-- Only shown once the cashier clicks "I'm Waiting for Payment" -->
+          <div class="polling-banner" id="lipaPollingBanner" style="display:none;">
+            <i class="bi bi-arrow-repeat"></i>
+            <span id="lipaPollingText">Waiting for customer payment…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2c: Manual Till (Buy Goods) -->
+      <div class="mpesa-panel" id="mpesa-step-2-manual">
+        <button class="mpesa-back-btn" onclick="goToStep1()"><i class="bi bi-arrow-left"></i> Back</button>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Manual Till (Buy Goods)</div>
+          <div style="font-size:13px;color:var(--text3);">Generate a payment reference, then ask the customer to pay via Buy Goods on their phone</div>
+        </div>
+        <div class="api-error-box" id="manualError"></div>
+
+        <!-- Before sale is created -->
+        <div id="manual-before">
+          <div class="mpesa-paybill-tiles">
+            <div class="mpesa-paybill-tile">
+              <div class="tile-label">Till Number</div>
+              <div class="tile-value">123456</div>
+            </div>
+            <div class="mpesa-paybill-tile">
+              <div class="tile-label">Amount</div>
+              <div class="tile-value" id="manualAmountTile">KSh 0</div>
+            </div>
+          </div>
+          <button class="mpesa-cta" id="manualConfirmBtn" onclick="confirmManualTill()">
+            <i class="bi bi-hash"></i> Generate Payment Reference
+          </button>
+        </div>
+
+        <!-- Reference generated locally — the sale itself is only created
+             when the cashier clicks "Complete Sale" below. -->
+        <div id="manual-after" style="display:none;">
+          <div style="background:var(--warning-light);border:1px solid var(--warning);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--warning);font-weight:600;">
+            <i class="bi bi-info-circle" style="margin-right:6px;"></i>
+            Please ask the customer to complete payment using the details below
+          </div>
+          <div class="mpesa-paybill-tiles" style="grid-template-columns:1fr 1fr 1fr;">
+            <div class="mpesa-paybill-tile">
+              <div class="tile-label">Till Number</div>
+              <div class="tile-value">123456</div>
+            </div>
+            <div class="mpesa-paybill-tile" style="border:1.5px solid var(--primary);">
+              <div class="tile-label" style="color:var(--primary);">Payment Ref.</div>
+              <div class="tile-value" id="manualAccountNumber" style="color:var(--primary);">—</div>
+            </div>
+            <div class="mpesa-paybill-tile">
+              <div class="tile-label">Amount</div>
+              <div class="tile-value" id="manualAmountTileB">KSh 0</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text3);line-height:1.8;margin:18px 0;">
+            <strong style="color:var(--text2);display:block;margin-bottom:6px;">Customer steps on phone:</strong>
+            1. Open M-Pesa<br>
+            2. Select Lipa na M-Pesa<br>
+            3. Choose Buy Goods<br>
+            4. Enter the Till Number above<br>
+            5. Enter the Amount above<br>
+            6. Enter the <strong style="color:var(--primary);">Payment Reference</strong> above if required<br>
+            7. Complete payment using the M-Pesa PIN
+          </div>
+
+          <!-- Manual verification: instruction + required checkbox + optional txn code -->
+          <div class="manual-verify-note">
+            <i class="bi bi-shield-check"></i>
+            <span>Before completing this sale, confirm that the customer has received a successful M-Pesa confirmation SMS and verify the payment details.</span>
+          </div>
+
+          <div class="mpesa-form-group">
+            <label class="mpesa-label">M-Pesa Transaction Code <span style="text-transform:none;font-weight:500;color:var(--text3);">(Optional)</span></label>
+            <input type="text" class="mpesa-input" id="manualTxnCode" placeholder="e.g. QGH7XXXXXX" style="text-transform:uppercase;">
+            <div class="mpesa-input-hint">If the customer shared the M-Pesa code from their SMS, enter it here for your records.</div>
+          </div>
+
+          <label class="manual-verify-checkbox">
+            <input type="checkbox" id="manualSmsVerified" onchange="onManualSmsVerifiedChange()">
+            <span>I have verified the customer's M-Pesa confirmation SMS.</span>
+          </label>
+
+          <!-- Clicking "Complete Sale" creates the sale in the backend right
+               here and immediately treats it as paid — there is no waiting
+               / polling step for this payment method. -->
+          <div id="manual-action-buttons" style="display:flex;gap:10px;">
+            <button class="btn btn-outline" style="flex:1;height:48px;" onclick="cancelManualPayment()">
+              Cancel
+            </button>
+            <button class="mpesa-cta" id="manualCompleteBtn" style="flex:2;" onclick="startManualWaiting()" disabled>
+              <i class="bi bi-check-circle"></i> Complete Sale
+            </button>
+          </div>
+
+          <!-- Retained in the markup for layout parity with the Lipa panel,
+               but Manual Till never shows a "waiting for payment" state —
+               see startManualWaiting() in the script below. -->
+          <div class="polling-banner" id="manualPollingBanner" style="display:none;">
+            <i class="bi bi-arrow-repeat"></i>
+            <span id="manualPollingText">Waiting for customer payment…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Processing / Polling -->
+      <div class="mpesa-panel" id="mpesa-step-3-processing">
+        <div class="mpesa-loading">
+          <div class="mpesa-spinner">
+            <div class="mpesa-spinner-ring"></div>
+            <div class="mpesa-spinner-ring"></div>
+            <div class="mpesa-spinner-inner"><i class="bi bi-phone-fill"></i></div>
+          </div>
+          <div class="mpesa-loading-title" id="processingTitle">Sending STK Push…</div>
+          <div class="mpesa-loading-sub"   id="processingSubtitle">Waiting for customer to enter PIN</div>
+          <div class="mpesa-progress-bar">
+            <div class="mpesa-progress-fill" id="processingBar"></div>
+          </div>
+          <div class="mpesa-status-dots" id="statusSteps">
+            <div class="mpesa-status-item active" id="status-1"><div class="mpesa-status-dot"></div><span>STK push sent to phone…</span></div>
+            <div class="mpesa-status-item"        id="status-2"><div class="mpesa-status-dot"></div><span>Waiting for PIN confirmation…</span></div>
+            <div class="mpesa-status-item"        id="status-3"><div class="mpesa-status-dot"></div><span>Verifying with M-Pesa servers…</span></div>
+          </div>
+          <div class="polling-banner" id="pollingBanner" style="display:none;">
+            <i class="bi bi-arrow-repeat"></i>
+            <span id="pollingText">Checking payment status…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step: Success -->
+      <div class="mpesa-panel" id="mpesa-step-success">
+        <div class="mpesa-success">
+          <div class="mpesa-success-icon"><i class="bi bi-check-lg"></i></div>
+          <div class="mpesa-success-title">Payment Confirmed!</div>
+          <div class="mpesa-success-sub" id="successSubText">M-Pesa payment processed successfully</div>
+          <div class="mpesa-success-details">
+            <div class="mpesa-detail-row">
+              <span class="mpesa-detail-label">Amount</span>
+              <span class="mpesa-detail-value success" id="successAmount">KSh 0</span>
+            </div>
+            <div class="mpesa-detail-row">
+              <span class="mpesa-detail-label">Method</span>
+              <span class="mpesa-detail-value" id="successMethod">M-Pesa STK</span>
+            </div>
+            <div class="mpesa-detail-row">
+              <span class="mpesa-detail-label">Transaction ID</span>
+              <span class="mpesa-detail-value" id="successTxId" style="font-family:monospace;font-size:12px;">—</span>
+            </div>
+            <div class="mpesa-detail-row">
+              <span class="mpesa-detail-label">Status</span>
+              <span class="mpesa-detail-value success"><i class="bi bi-shield-check"></i> Verified</span>
+            </div>
+          </div>
+          <button class="mpesa-cta" onclick="completeMpesaSale()">
+            <i class="bi bi-receipt"></i> View Receipt
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /mpesa-body -->
+  </div>
+</div>
+
+<script>
+  // ================================================================
+  //  CONFIG
+  // ================================================================
+  const BASE_URL = "/api";
+
+  // ================================================================
+  //  AUTH
+  // ================================================================
+  function getToken() {
+    return localStorage.getItem('nexapos_access_token') || '';
+  }
+
+  function getCashier() {
+    try { return JSON.parse(localStorage.getItem('nexapos_cashier') || 'null'); }
+    catch (_) { return null; }
+  }
+
+  function requireAuth() {
+    if (!getToken()) { window.location.href = '../index.html'; return false; }
+    return true;
+  }
+
+  function logout() {
+    localStorage.removeItem('nexapos_access_token');
+    localStorage.removeItem('nexapos_refresh_token');
+    localStorage.removeItem('nexapos_cashier');
+    window.location.href = '../index.html';
+  }
+
+  function renderCashierBadge() {
+    const cashier = getCashier();
+    if (!cashier) return;
+    const initials = (cashier.full_name || cashier.username || '?')
+      .split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    document.getElementById('avatarBtn').textContent     = initials || 'U';
+    document.getElementById('avatarMenuName').textContent = cashier.full_name || cashier.username || 'Cashier';
+    document.getElementById('avatarMenuRole').textContent = cashier.role || '—';
+  }
+
+  // Avatar dropdown toggle
+  document.getElementById('avatarBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('avatarMenu').classList.toggle('show');
+  });
+  document.addEventListener('click', () => document.getElementById('avatarMenu').classList.remove('show'));
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
+  }
+
+  // ================================================================
+  //  API HELPER
+  // ================================================================
+  async function apiFetch(path, options = {}) {
+    const res = await fetch(`${BASE_URL}${path}`, { headers: authHeaders(), ...options });
+
+    if (res.status === 401) {
+      showToast('Session expired — please log in again', 'error');
+      localStorage.removeItem('nexapos_access_token');
+      localStorage.removeItem('nexapos_refresh_token');
+      localStorage.removeItem('nexapos_cashier');
+      setTimeout(() => window.location.href = '../index.html', 1500);
+      throw new Error('Unauthorized');
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  }
+
+  // ================================================================
+  //  BUSINESS TAX RATE
+  // ================================================================
+  // Replaces the old hardcoded 16% VAT. The rate is configured per-business
+  // (Business.tax in the backend) and fetched once at startup so the cart
+  // can show a live estimate before checkout. The rate actually CHARGED and
+  // SAVED with each sale comes back from the /sale (and /single_sale) API
+  // response as tax_rate/tax_amount — that saved snapshot, not this live
+  // value, is what receipts must display, so historical receipts stay
+  // correct even if the business owner changes their rate later.
+  let businessTaxRate = 0; // percentage, e.g. 16, 0, 5 — loaded from backend
+
+  async function loadBusinessTaxRate() {
+    try {
+      const data = await apiFetch('/services/sales/tax_rate');
+      businessTaxRate = Number(data.tax_rate) || 0;
+    } catch (err) {
+      console.warn('Could not load business tax rate, defaulting to 0:', err.message);
+      businessTaxRate = 0;
+    }
+  }
+
+  //OFFLINE POS script.js
+  (function () {
+    const BASE_URL = "/api";
+    const STATUS_ENDPOINT = `${BASE_URL}/services/sync/status`;
+    const POLL_INTERVAL_MS = 8000;
+    const QUEUE_KEY = 'pos_offline_queue_v1';
+  
+    let isOnline = navigator.onLine; // optimistic first guess, corrected on first poll
+    let pollTimer = null;
+  
+    // ---------- Badge ----------
+    function renderBadge() {
+      const el = document.getElementById('connectionBadge');
+      if (!el) return;
+      if (isOnline) {
+        el.textContent = '🟢 Online';
+        el.className = 'connection-badge online';
+      } else {
+        el.textContent = '🟠 Offline Mode';
+        el.className = 'connection-badge offline';
+      }
+    }
+  
+    // ---------- Poll the LOCAL backend for cloud-reachability status ----------
+    // We never ask the browser to reach an external URL directly (CORS, and
+    // it wouldn't tell us whether the *server* can reach Daraja/WhatsApp/
+    // Email/cloud sync anyway). We ask our own Flask backend instead, which
+    // is always reachable on localhost.
+    async function pollStatus() {
+      try {
+        const res = await fetch(STATUS_ENDPOINT, { cache: 'no-store' });
+        if (!res.ok) throw new Error('bad status');
+        const data = await res.json();
+        setOnline(!!data.internet);
+      } catch (err) {
+        // Backend itself unreachable (or offline) — treat as offline for
+        // internet-dependent features. Local features still work because
+        // they never went through this check.
+        setOnline(false);
+      }
+    }
+  
+    function setOnline(nextState) {
+      const changed = nextState !== isOnline;
+      isOnline = nextState;
+      renderBadge();
+      toggleInternetOnlyControls();
+      if (changed && isOnline) {
+        flushQueue();
+      }
+    }
+  
+    // ---------- Disable / enable internet-only controls ----------
+    function toggleInternetOnlyControls() {
+      const stkCard  = document.getElementById('stk-card');
+      const lipaCard = document.getElementById('lipa-card');
+      const waBtn    = document.querySelector('.receipt-share-btn.whatsapp');
+      const emailBtn = document.querySelector('.receipt-share-btn.email');
+  
+      [stkCard, lipaCard].forEach(el => {
+        if (!el) return;
+        el.classList.toggle('internet-disabled', !isOnline);
+        el.style.pointerEvents = isOnline ? '' : 'none';
+        el.style.opacity = isOnline ? '' : '0.45';
+      });
+  
+      // WhatsApp/Email share buttons stay clickable so the cashier isn't
+      // confused by a dead button — sending is intercepted and queued
+      // instead (see wrapped functions below). Just add a visual hint.
+      [waBtn, emailBtn].forEach(el => {
+        if (!el) return;
+        el.classList.toggle('will-queue', !isOnline);
+      });
+    }
+  
+    function friendlyOfflineMessage(targetErrorBoxId) {
+      const msg = 'Internet unavailable. This feature requires an internet connection.';
+      if (targetErrorBoxId && typeof window.showApiError === 'function') {
+        window.showApiError(targetErrorBoxId, msg);
+        return;
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(msg, 'error');
+      } else {
+        alert(msg);
+      }
+    }
+  
+    // ---------- Offline queue (email / whatsapp receipts) ----------
+    function loadQueue() {
+      try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); }
+      catch (_) { return []; }
+    }
+    function saveQueue(q) {
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+    }
+    function queueItem(item) {
+      const q = loadQueue();
+      q.push({ ...item, queued_at: Date.now(), retry_count: 0 });
+      saveQueue(q);
+      if (typeof window.showToast === 'function') {
+        window.showToast('No internet — receipt queued, will send automatically when back online', 'success');
+      }
+    }
+    function getStoredToken() {
+      return localStorage.getItem('nexapos_access_token') ||
+            localStorage.getItem('access_token') || '';
+    }
+    async function flushQueue() {
+      let q = loadQueue();
+      if (!q.length) return;
+      const remaining = [];
+      for (const item of q) {
+        try {
+          if (item.type === 'email') {
+            const res = await fetch(`${BASE_URL}/services/receipts/sendemail_receipt`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getStoredToken()}`
+              },
+              body: JSON.stringify(item.payload)
+            });
+            if (!res.ok) throw new Error('email send failed');
+          } else if (item.type === 'whatsapp') {
+            const text = encodeURIComponent(item.payload.text);
+            window.open(`https://wa.me/${item.payload.phone}?text=${text}`, '_blank');
+          }
+        } catch (err) {
+          item.retry_count = (item.retry_count || 0) + 1;
+          if (item.retry_count < 5) remaining.push(item); // drop after 5 failed attempts
+        }
+      }
+      saveQueue(remaining);
+      if (typeof window.showToast === 'function' && remaining.length < q.length) {
+        window.showToast('Queued receipts sent', 'success');
+      }
+    }
+  
+    // ---------- Wrap existing global functions (non-invasive) ----------
+    function wrapFunction(name, wrapper) {
+      const original = window[name];
+      if (typeof original !== 'function') return; // page doesn't define it — skip safely
+      window[name] = function (...args) {
+        return wrapper(original, ...args);
+      };
+    }
+  
+    // STK Push — never attempt when offline; never a false success.
+    wrapFunction('sendStkPush', function (original, ...args) {
+      if (!isOnline) { friendlyOfflineMessage('stkError'); return; }
+      return original(...args);
+    });
+  
+    // C2B / Lipa na M-Pesa registration + sale creation — same treatment.
+    wrapFunction('registerC2BUrls', function (original, ...args) {
+      if (!isOnline) return Promise.resolve();
+      return original(...args);
+    });
+    wrapFunction('confirmLipaPay', function (original, ...args) {
+      if (!isOnline) { friendlyOfflineMessage('lipaError'); return; }
+      return original(...args);
+    });
+  
+    // WhatsApp receipt — queue instead of send when offline.
+    wrapFunction('sendWhatsappReceipt', function (original, ...args) {
+      if (!isOnline) {
+        const input = document.getElementById('shareWhatsappPhone');
+        const phone = input ? input.value.trim() : '';
+        if (!phone) { friendlyOfflineMessage(); return; }
+        const data = window.currentReceiptData;
+        queueItem({
+          type: 'whatsapp',
+          payload: {
+            phone: phone.replace(/[^\d]/g, ''),
+            text: data ? buildQueuedReceiptText(data) : 'Receipt'
+          }
+        });
+        if (typeof window.closeShareModal === 'function') window.closeShareModal('shareWhatsappModal');
+        return;
+      }
+      return original(...args);
+    });
+  
+    // Email receipt — queue instead of send when offline.
+    wrapFunction('sendEmailReceipt', function (original, ...args) {
+      if (!isOnline) {
+        const input = document.getElementById('shareEmailAddress');
+        const email = input ? input.value.trim() : '';
+        if (!email) { friendlyOfflineMessage(); return; }
+        const data = window.currentReceiptData;
+        const contentEl = document.getElementById('receiptContent');
+        queueItem({
+          type: 'email',
+          payload: {
+            sale_id: data ? data.saleId : null,
+            email,
+            receipt_html: contentEl ? contentEl.innerHTML : ''
+          }
+        });
+        if (typeof window.closeShareModal === 'function') window.closeShareModal('shareEmailModal');
+        return;
+      }
+      return original(...args);
+    });
+  
+    function buildQueuedReceiptText(data) {
+      const lines = [
+        `Receipt ${data.receiptNo}`,
+        `Sale #${data.saleId}`,
+        ...data.items.map(i => `${i.name} x${i.qty} — KSh ${(i.price * i.qty).toLocaleString()}`),
+        `Total: KSh ${data.total.toLocaleString()}`,
+        `Payment: ${data.method}`
+      ];
+      return lines.join('\n');
+    }
+  
+    // ---------- Init ----------
+    window.addEventListener('online',  pollStatus);
+    window.addEventListener('offline', () => setOnline(false));
+  
+    function start() {
+      renderBadge();
+      pollStatus();
+      pollTimer = setInterval(pollStatus, POLL_INTERVAL_MS);
+    }
+  
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else {
+      start();
+    }
+  })();
+ 
+
+  // ================================================================
+  //  PRODUCTS
+  // ================================================================
+  let PRODUCT_DATA = [];
+  let allProducts  = [];
+
+  async function loadProducts() {
+    try {
+      const data = await apiFetch('/services/product/products');
+      PRODUCT_DATA = data.products || [];
+      allProducts  = PRODUCT_DATA;
+      renderProducts(PRODUCT_DATA);
+      document.getElementById('productCount').textContent =
+        `${PRODUCT_DATA.length} product${PRODUCT_DATA.length !== 1 ? 's' : ''}`;
+    } catch (err) {
+      document.getElementById('productGrid').innerHTML = `
+        <div style="padding:32px;text-align:center;color:var(--danger);font-size:14px;grid-column:1/-1;">
+          <i class="bi bi-exclamation-triangle" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+          Failed to load products: ${err.message}
+          <br><button onclick="loadProducts()" style="margin-top:12px;background:var(--primary);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:inherit;font-size:13px;">Retry</button>
+        </div>`;
+      document.getElementById('productCount').textContent = 'Error';
+    }
+  }
+
+  function getProductIcon(category) {
+    const map = {
+      'electronics':'bi-laptop','phones':'bi-phone','accessories':'bi-headphones',
+      'computers':'bi-pc-display','storage':'bi-device-hdd','audio':'bi-speaker',
+      'networking':'bi-wifi','default':'bi-box-seam'
+    };
+    return map[(category || '').toLowerCase()] || map['default'];
+  }
+
+  function getProductColor(idx) {
+    return ['#2563eb','#16a34a','#7c3aed','#0891b2','#d97706','#dc2626','#0d9488'][idx % 7];
+  }
+
+  function renderProducts(list) {
+    const grid = document.getElementById('productGrid');
+    if (!list.length) {
+      grid.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text3);font-size:14px;grid-column:1/-1;"><i class="bi bi-inbox" style="font-size:32px;display:block;margin-bottom:10px;"></i>No products found</div>';
+      return;
+    }
+    grid.innerHTML = list.map((p, i) => {
+      const icon  = getProductIcon(p.category);
+      const color = getProductColor(i);
+      const imgHtml = p.image_url
+        ? `<img src="${p.image_url}" alt="${p.name}" onerror="this.parentElement.innerHTML='<i class=\\'bi ${icon}\\' style=\\'font-size:44px;\\'></i>'">`
+        : `<i class="bi ${icon}" style="font-size:44px;"></i>`;
+      const lowStock = p.quantity <= (p.low_stock_threshold || 5) && p.quantity > 0
+        ? `<span style="font-size:10px;color:var(--warning);font-weight:600;"><i class="bi bi-exclamation-triangle"></i> Low stock</span>` : '';
+      const outStock = p.quantity === 0
+        ? `<span style="font-size:10px;color:var(--danger);font-weight:600;">Out of stock</span>` : '';
+      return `
+        <div class="product-card"
+            data-id="${p.id}" data-sku="${p.sku}"
+            onclick="${p.quantity > 0 ? `addToCartById(${p.id}, this)` : `showToast('${p.name} is out of stock','error')`}"
+            style="${p.quantity === 0 ? 'opacity:.55;cursor:not-allowed;' : ''}">
+          <div class="product-img" style="background:${color}18;color:${color};">${imgHtml}</div>
+          <div class="product-info">
+            <div class="product-name">${p.name}</div>
+            <div class="product-barcode">${p.sku}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+              <div class="product-price">KSh ${Number(p.price).toLocaleString()}</div>
+              ${lowStock}${outStock}
+            </div>
+          </div>
+          ${p.quantity > 0 ? `<div class="product-add-overlay"><span><i class="bi bi-plus-circle-fill"></i> Add to Cart</span></div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // ================================================================
+  //  CART
+  // ================================================================
+  let cart = {};
+
+  function addToCartById(productId, cardEl) {
+    const p = PRODUCT_DATA.find(x => x.id === productId);
+    if (!p) return;
+    const inCartQty = cart[productId]?.qty || 0;
+    if (inCartQty >= p.quantity) { showToast(`Only ${p.quantity} in stock`, 'error'); return; }
+    if (cart[productId]) { cart[productId].qty++; }
+    else { cart[productId] = { ...p, qty: 1 }; }
+    if (cardEl) { cardEl.classList.remove('added'); void cardEl.offsetWidth; cardEl.classList.add('added'); }
+    updateCartUI();
+    showToast(`${p.name} added`, 'success');
+  }
+
+  function addToCartBySku(sku) {
+    const p = PRODUCT_DATA.find(x => x.sku === sku);
+    if (!p) { showToast(`No product with SKU: ${sku}`, 'error'); return null; }
+    if (p.quantity === 0) { showToast(`${p.name} is out of stock`, 'error'); return null; }
+    addToCartById(p.id, document.querySelector(`[data-sku="${sku}"]`));
+    return p;
+  }
+
+  function updateCartUI() {
+    const container = document.getElementById('cartItems');
+    const totals    = document.getElementById('cartTotals');
+    const badge     = document.getElementById('cartBadge');
+    const items     = Object.values(cart);
+
+    if (!items.length) {
+      container.innerHTML = `<div class="empty-cart"><i class="bi bi-cart"></i><p>Your cart is empty</p><p style="font-size:12px;margin-top:4px;">Click products or scan SKUs to add items</p></div>`;
+      totals.style.display = 'none';
+      badge.textContent = '0';
+      return;
+    }
+
+    let subtotal = 0, count = 0, html = '';
+    items.forEach(item => {
+      subtotal += item.price * item.qty;
+      count    += item.qty;
+      html += `
+        <div class="cart-item">
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-price">KSh ${Number(item.price).toLocaleString()} × ${item.qty}</div>
+          </div>
+          <div class="qty-ctrl">
+            <button class="qty-btn minus" onclick="changeQty(${item.id},-1)">−</button>
+            <span class="qty-num">${item.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
+          </div>
+          <div class="cart-item-total">KSh ${(item.price * item.qty).toLocaleString()}</div>
+        </div>`;
+    });
+
+    // Live estimate only — the amount actually saved/charged is computed
+    // and returned by the backend at sale-creation time (see checkout()).
+    const tax   = Math.round(subtotal * (businessTaxRate / 100));
+    const total = subtotal + tax;
+    container.innerHTML = html;
+    totals.style.display = 'block';
+    badge.textContent = count;
+    document.getElementById('cartSubtotal').textContent = subtotal.toLocaleString();
+    document.getElementById('cartTax').textContent      = tax.toLocaleString();
+    document.getElementById('cartTaxLabel').textContent = businessTaxRate ? `Tax (${businessTaxRate}%)` : 'Tax';
+    document.getElementById('cartTotal').textContent    = total.toLocaleString();
+  }
+
+  function changeQty(productId, delta) {
+    if (!cart[productId]) return;
+    const p = PRODUCT_DATA.find(x => x.id === productId);
+    if (delta > 0 && cart[productId].qty >= p.quantity) { showToast(`Only ${p.quantity} in stock`, 'error'); return; }
+    cart[productId].qty += delta;
+    if (cart[productId].qty <= 0) delete cart[productId];
+    updateCartUI();
+  }
+
+  function clearCart() {
+    if (!Object.keys(cart).length) return;
+    cart = {};
+    updateCartUI();
+    showToast('Cart cleared', 'error');
+  }
+
+  function getCartTotal() {
+    // Live estimate for display purposes (e.g. M-Pesa amount tiles before
+    // the sale is created). The authoritative total is whatever the
+    // backend returns/saves with the sale.
+    const sub = Object.values(cart).reduce((s, i) => s + i.price * i.qty, 0);
+    return sub + Math.round(sub * (businessTaxRate / 100));
+  }
+
+  function cartToApiItems() {
+    return Object.values(cart).map(i => ({ product_id: i.id, quantity: i.qty }));
+  }
+
+  // ================================================================
+  //  BARCODE / SKU INPUT
+  // ================================================================
+  function handleBarcode() {
+    const input   = document.getElementById('barcodeInput');
+    const preview = document.getElementById('productPreview');
+    const sku     = input.value.trim();
+    if (!sku) return;
+
+    const p = addToCartBySku(sku);
+    if (p) {
+      const color = getProductColor(PRODUCT_DATA.indexOf(p));
+      const icon  = getProductIcon(p.category);
+      preview.className = 'product-preview-box show';
+      preview.style.borderLeftColor = 'var(--primary)';
+      preview.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;background:${color}18;color:${color};border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;"><i class="bi ${icon}"></i></div>
+          <div><div style="font-size:14px;font-weight:700;">${p.name}</div><div style="font-size:12px;color:var(--text3);">KSh ${Number(p.price).toLocaleString()} · SKU: ${p.sku}</div></div>
+          <div style="margin-left:auto;font-size:12px;font-weight:700;color:var(--success);background:var(--success-light);padding:4px 10px;border-radius:20px;">Added ✓</div>
+        </div>`;
+    } else {
+      preview.className = 'product-preview-box show';
+      preview.style.borderLeftColor = 'var(--danger)';
+      preview.innerHTML = `<div style="color:var(--danger);font-size:14px;font-weight:600;"><i class="bi bi-exclamation-circle" style="margin-right:8px;"></i>Not found: ${sku}</div>`;
+    }
+    input.value = '';
+    input.focus();
+  }
+
+  document.getElementById('barcodeInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') handleBarcode();
+  });
+
+  // ================================================================
+  //  SEARCH
+  // ================================================================
+  function searchProducts() {
+    const q       = document.getElementById('productSearch').value.trim().toLowerCase();
+    const results = document.getElementById('searchResults');
+    if (!q) { results.innerHTML = ''; return; }
+    const found = PRODUCT_DATA.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+    if (!found.length) { results.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:12px 0;">No results found</div>'; return; }
+    results.innerHTML = found.slice(0, 8).map((p, i) => {
+      const color = getProductColor(i);
+      const icon  = getProductIcon(p.category);
+      return `
+        <div class="search-result-item" onclick="addToCartById(${p.id}, null)">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:${color}18;color:${color};border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;"><i class="bi ${icon}"></i></div>
+            <div>
+              <div class="item-name">${p.name}</div>
+              <div style="font-size:11px;color:var(--text3);">SKU: ${p.sku} · Stock: ${p.quantity}</div>
+            </div>
+          </div>
+          <div class="item-price">KSh ${Number(p.price).toLocaleString()}</div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('productSearch').addEventListener('input', searchProducts);
+  document.getElementById('globalSearch').addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    renderProducts(q ? PRODUCT_DATA.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)) : PRODUCT_DATA);
+  });
+
+  // ================================================================
+  //  PAYMENT SELECTION
+  // ================================================================
+  let selectedPayment = null;
+
+  function selectPayment(el) {
+    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPayment = el.getAttribute('data-method');
+  }
+
+  // ================================================================
+  //  CHECKOUT
+  // ================================================================
+  let activeSaleId = null;
+  // The customer-facing Paybill "Account Number" — the sale's random
+  // payment_reference (e.g. "HS-7KQ2PX9M"), NOT the numeric sale_id.
+  // Populated once a sale is created for M-Pesa (Lipa na M-Pesa) payments,
+  // or, for Manual Till, generated locally as soon as a reference is shown.
+  let activePaymentReference = null;
+  // Cashier-entered M-Pesa transaction code for the Manual Till flow only.
+  // Optional — stays empty string if the cashier leaves the field blank.
+  let manualTxnCode = '';
+  // The tax rate/amount actually SAVED with the current sale, as returned
+  // by the backend at creation time. Receipts must use these — never a
+  // live recompute — so old receipts remain correct even after the
+  // business owner changes their tax rate.
+  let activeSaleTaxRate = null;
+  let activeSaleTaxAmount = null;
+  let activeSaleSubtotal = null;
+  let activeSaleTotal = null;
+
+  function captureSaleTaxFields(saleData) {
+    activeSaleTaxRate    = (saleData && saleData.tax_rate !== undefined) ? saleData.tax_rate : null;
+    activeSaleTaxAmount  = (saleData && saleData.tax_amount !== undefined) ? saleData.tax_amount : null;
+    activeSaleSubtotal   = (saleData && saleData.subtotal !== undefined) ? saleData.subtotal : null;
+    activeSaleTotal      = (saleData && saleData.total !== undefined) ? saleData.total : null;
+  }
+
+  async function checkout() {
+    if (!selectedPayment) { showToast('Please select a payment method', 'error'); return; }
+    if (!Object.keys(cart).length) { showToast('Cart is empty', 'error'); return; }
+
+    if (selectedPayment === 'M-Pesa') {
+      openMpesaModal();
+      return;
+    }
+
+    const btn = document.getElementById('checkoutBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Processing…';
+
+    try {
+      const saleData = await apiFetch('/services/sales/sale', {
+        method: 'POST',
+        body: JSON.stringify({ items: cartToApiItems(), payment_method: selectedPayment })
+      });
+      activeSaleId = saleData.sale_id;
+      activePaymentReference = saleData.payment_reference || null;
+      captureSaleTaxFields(saleData);
+      showReceiptForSale(activeSaleId, selectedPayment);
+    } catch (err) {
+      showToast(`Sale failed: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Complete Payment';
+    }
+  }
+
+  // ================================================================
+  //  RECEIPT
+  // ================================================================
+  function buildReceiptHTML(saleId, method, items, subtotal, tax, total, taxRate) {
+    const cashier = getCashier();
+    const username = cashier?.username || cashier?.full_name || "Cashier";
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-KE',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const timeStr = now.toLocaleTimeString();
+    const receiptNo = 'RCT-' + String(saleId).padStart(6,'0');
+    const taxLabel = (taxRate !== undefined && taxRate !== null) ? `Tax (${taxRate}%)` : 'Tax';
+
+    const itemRows = items.map(i => `
+      <tr>
+        <td class="item-name-cell">${i.name}</td>
+        <td class="num">${i.qty}</td>
+        <td class="num">KSh ${Number(i.price).toLocaleString()}</td>
+        <td class="num">—</td>
+        <td class="num" style="font-weight:700;">KSh ${(i.price * i.qty).toLocaleString()}</td>
+      </tr>`).join('');
+
+    return `
+      <div class="receipt receipt-fade">
+        <div class="receipt-header">
+          <div class="receipt-logo"><i class="bi bi-lightning-charge-fill"></i></div>
+          <div class="receipt-business-name">CodexLabs POS</div>
+          <div class="receipt-business-meta">
+            Nairobi, Kenya<span class="dot">•</span>+254 700 000 000<br>
+            info@codexlabspos.com<span class="dot">•</span>www.codexlabspos.com<br>
+            PIN: P0XXXXXXXXK
+          </div>
+        </div>
+
+        <div class="receipt-info-card">
+          <div class="receipt-info-item"><span class="receipt-info-label">Receipt No.</span><span class="receipt-info-value">${receiptNo}</span></div>
+          <div class="receipt-info-item"><span class="receipt-info-label">Sale ID</span><span class="receipt-info-value">#${saleId}</span></div>
+          <div class="receipt-info-item"><span class="receipt-info-label">Username</span><span class="receipt-info-value">: ${username}</span></div>
+          <div class="receipt-info-item"><span class="receipt-info-label">Date</span><span class="receipt-info-value">${dateStr}</span></div>
+          <div class="receipt-info-item"><span class="receipt-info-label">Time</span><span class="receipt-info-value">${timeStr}</span></div>
+          <div class="receipt-info-item" style="grid-column:1/-1;"><span class="receipt-info-label">Order Status</span><span class="receipt-status-badge"><i class="bi bi-check-circle-fill"></i> Completed</span></div>
+        </div>
+
+        <div class="receipt-section-title"><i class="bi bi-bag-check"></i> Purchased Items</div>
+        <table class="receipt-table">
+          <thead><tr><th>Product</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Discount</th><th class="num">Total</th></tr></thead>
+          <tbody>${itemRows}</tbody>
+        </table>
+
+        <div class="receipt-summary-card">
+          <div class="receipt-summary-row"><span>Subtotal</span><span>KSh ${subtotal.toLocaleString()}</span></div>
+          <div class="receipt-summary-row"><span>Discount</span><span>KSh 0</span></div>
+          <div class="receipt-summary-row"><span>${taxLabel}</span><span>KSh ${tax.toLocaleString()}</span></div>
+          <div class="receipt-summary-row grand"><span class="label">Grand Total</span><span class="value">KSh ${total.toLocaleString()}</span></div>
+        </div>
+
+        <div class="receipt-section-title"><i class="bi bi-credit-card"></i> Payment Information</div>
+        <div class="receipt-payment-card">
+          <div class="receipt-payment-row"><span class="receipt-payment-label">Payment Method</span><span class="receipt-payment-value">${method}</span></div>
+          <div class="receipt-payment-row"><span class="receipt-payment-label">Payment Status</span><span class="receipt-pay-badge paid"><i class="bi bi-check-circle-fill"></i> Paid</span></div>
+          <div class="receipt-payment-row"><span class="receipt-payment-label">Reference No.</span><span class="receipt-payment-value">${receiptNo}</span></div>
+          <div class="receipt-payment-row"><span class="receipt-payment-label">Amount Paid</span><span class="receipt-payment-value">KSh ${total.toLocaleString()}</span></div>
+          <div class="receipt-payment-row"><span class="receipt-payment-label">Change</span><span class="receipt-payment-value">KSh 0</span></div>
+        </div>
+
+        <div class="receipt-timeline">
+          <div class="receipt-timeline-item"><div class="receipt-timeline-icon"><i class="bi bi-cart-check"></i></div>Sale Created<span class="receipt-timeline-time">${timeStr}</span></div>
+          <div class="receipt-timeline-item"><div class="receipt-timeline-icon"><i class="bi bi-check2-circle"></i></div>Payment Completed<span class="receipt-timeline-time">${timeStr}</span></div>
+          <div class="receipt-timeline-item"><div class="receipt-timeline-icon"><i class="bi bi-receipt"></i></div>Receipt Generated<span class="receipt-timeline-time">${timeStr}</span></div>
+        </div>
+
+        <div class="receipt-codes">
+          <div><div class="receipt-qr-box"><i class="bi bi-qr-code"></i></div><div class="receipt-qr-label">Verify Receipt</div></div>
+          <div><div class="receipt-qr-box"><i class="bi bi-phone"></i></div><div class="receipt-qr-label">Digital Receipt</div></div>
+        </div>
+        <div class="receipt-barcode-box"></div>
+
+        <div class="receipt-footer-v2">
+          <p class="receipt-footer-title">CodexLabs POS</p>
+          <p class="Cashier">You were served by ${username}</p>
+          <p class="thanks">Thank you for shopping with us!</p>
+          <p>7-day return &amp; exchange policy applies with original receipt.</p>
+          <p style="margin-top:8px;">Powered by <span class="brand">CodexLabs POS</span> · www.codexlabspos.com</p>
+          <p>Support: support@codexlabspos.com · +254 700 000 000</p>
+        </div>
+
+        <div class="receipt-share-section">
+          <div class="receipt-share-title">Share this receipt</div>
+          <div class="receipt-share-buttons">
+            <button class="receipt-share-btn whatsapp" onclick="openShareModal('shareWhatsappModal')">
+              <i class="bi bi-whatsapp"></i> Send via WhatsApp
+            </button>
+            <button class="receipt-share-btn email" onclick="openShareModal('shareEmailModal')">
+              <i class="bi bi-envelope-fill"></i> Send via Email
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function showReceiptForSale(saleId, method) {
+    const cartItems = Object.values(cart);
+
+    const subtotal = (activeSaleSubtotal !== null)
+      ? activeSaleSubtotal
+      : cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+
+    // Use the tax rate/amount actually SAVED with this sale (returned by
+    // the backend at creation time) — never recomputed with today's
+    // business rate — so this receipt stays accurate even if the owner
+    // changes their tax rate later. Fall back to a live estimate only if
+    // the backend response didn't include it (e.g. older backend).
+    const taxRate = (activeSaleTaxRate !== null) ? activeSaleTaxRate : businessTaxRate;
+    const tax     = (activeSaleTaxAmount !== null)
+      ? activeSaleTaxAmount
+      : Math.round(subtotal * (taxRate / 100));
+    const total   = (activeSaleTotal !== null) ? activeSaleTotal : (subtotal + tax);
+
+    // Stash the receipt data so the Share (WhatsApp/Email) modals can use it
+    // without touching any of the existing calculation/print logic.
+    currentReceiptData = {
+      saleId, method, items: cartItems, subtotal, tax, taxRate, total,
+      receiptNo: 'RCT-' + String(saleId).padStart(6, '0')
+    };
+
+    document.getElementById('receiptContent').innerHTML = buildReceiptHTML(saleId, method, cartItems, subtotal, tax, total, taxRate);
+    document.getElementById('checkoutModal').classList.add('show');
+  }
+
+  function closeReceiptModal() {
+    document.getElementById('checkoutModal').classList.remove('show');
+    cart = {};
+    activeSaleId = null;
+    activePaymentReference = null;
+    manualTxnCode = '';
+    activeSaleTaxRate = null;
+    activeSaleTaxAmount = null;
+    activeSaleSubtotal = null;
+    activeSaleTotal = null;
+    currentReceiptData = null;
+    updateCartUI();
+    selectedPayment = null;
+    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+    loadProducts();
+    showToast('Sale completed!', 'success');
+  }
+
+  // ================================================================
+  //  RECEIPT PRINTING — safe popup-window implementation
+  //  (built entirely via DOM APIs — no document.write() with raw HTML
+  //  strings, no inline <script> injection into the popup — so this
+  //  can never prematurely terminate this file's own <script> tag)
+  // ================================================================
+  function printReceipt() {
+    const receiptEl = document.querySelector('#receiptContent .receipt');
+    if (!receiptEl) {
+      showToast('No receipt available to print', 'error');
+      return;
+    }
+
+    const printWindow = window.open('', 'PRINT_RECEIPT', 'width=420,height=720');
+    if (!printWindow) {
+      showToast('Please allow pop-ups to print the receipt', 'error');
+      return;
+    }
+
+    const printDoc = printWindow.document;
+    printDoc.title = 'Receipt';
+
+    const meta = printDoc.createElement('meta');
+    meta.setAttribute('charset', 'UTF-8');
+    printDoc.head.appendChild(meta);
+
+    // Copy every <link rel="stylesheet"> and <style> from the parent
+    // document so the receipt keeps its fonts / colors / layout.
+    const styleNodes = document.querySelectorAll('link[rel="stylesheet"], style');
+    const clonedLinkNodes = [];
+    styleNodes.forEach(node => {
+      const clone = node.cloneNode(true);
+      printDoc.head.appendChild(clone);
+      if (clone.tagName === 'LINK') clonedLinkNodes.push(clone);
+    });
+
+    // Print-only overrides, added as a real stylesheet node (never as a
+    // concatenated HTML string).
+    const printStyle = printDoc.createElement('style');
+    printStyle.textContent = [
+      '* { box-sizing: border-box; }',
+      'body { margin: 0; padding: 24px; background: #fff; }',
+      '.receipt { max-width: 420px; margin: 0 auto; }',
+      '.receipt-share-section { display: none !important; }'
+    ].join('\n');
+    printDoc.head.appendChild(printStyle);
+
+    // Clone only the receipt element — nothing else from the page.
+    const receiptClone = receiptEl.cloneNode(true);
+    printDoc.body.appendChild(receiptClone);
+
+    printDoc.close();
+
+    // Wait for any linked stylesheets (Bootstrap Icons, Google Fonts) to
+    // finish loading before triggering print, so the receipt isn't printed
+    // unstyled.
+    const pendingLoads = clonedLinkNodes.map(link => new Promise(resolve => {
+      let settled = false;
+      const done = () => { if (!settled) { settled = true; resolve(); } };
+      link.addEventListener('load', done, { once: true });
+      link.addEventListener('error', done, { once: true });
+      setTimeout(done, 800); // safety net in case load/error never fires
+    }));
+
+    Promise.all(pendingLoads).then(() => {
+      printWindow.focus();
+      printWindow.print();
+      setTimeout(() => printWindow.close(), 500);
+    });
+  }
+
+  // ================================================================
+  //  RECEIPT SHARING (WhatsApp / Email) — premium SaaS-style modals
+  // ================================================================
+  let currentReceiptData = null; // { saleId, method, items, subtotal, tax, taxRate, total, receiptNo }
+
+  function buildReceiptShareText(data) {
+    const taxLabel = (data.taxRate !== undefined && data.taxRate !== null) ? `Tax (${data.taxRate}%)` : 'Tax';
+    const lines = [
+      `CodexLabs POS — Receipt ${data.receiptNo}`,
+      `Sale #${data.saleId}`,
+      '',
+      ...data.items.map(i => `${i.name} x${i.qty} — KSh ${(i.price * i.qty).toLocaleString()}`),
+      '',
+      `Subtotal: KSh ${data.subtotal.toLocaleString()}`,
+      `${taxLabel}: KSh ${data.tax.toLocaleString()}`,
+      `Total: KSh ${data.total.toLocaleString()}`,
+      `Payment: ${data.method}`,
+      '',
+      'Thank you for shopping with us!'
+    ];
+    return lines.join('\n');
+  }
+
+  function openShareModal(id) {
+    if (!currentReceiptData) { showToast('No receipt available to share', 'error'); return; }
+    document.getElementById(id).classList.add('show');
+  }
+
+  function closeShareModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  function isValidEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  }
+
+  function isValidPhoneForWhatsapp(v) {
+    const digits = v.replace(/[^\d]/g, '');
+    return digits.length >= 9 && digits.length <= 13;
+  }
+
+  function normalizeToWhatsappPhone(v) {
+    let p = v.replace(/[^\d+]/g, '').replace(/\s+/g, '');
+    if (p.startsWith('+')) p = p.slice(1);
+    if (p.startsWith('0')) p = '254' + p.slice(1);
+    return p;
+  }
+
+  function sendWhatsappReceipt() {
+    const input = document.getElementById('shareWhatsappPhone');
+    const errEl = document.getElementById('shareWhatsappError');
+    const phone = input.value.trim();
+
+    if (!isValidPhoneForWhatsapp(phone)) {
+      input.classList.add('error');
+      errEl.classList.add('show');
+      return;
+    }
+    input.classList.remove('error');
+    errEl.classList.remove('show');
+
+    if (!currentReceiptData) { showToast('No receipt data available', 'error'); return; }
+
+    const btn = document.getElementById('shareWhatsappBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Opening WhatsApp…';
+
+    try {
+      const waPhone = normalizeToWhatsappPhone(phone);
+      const text = encodeURIComponent(buildReceiptShareText(currentReceiptData));
+      window.open(`https://wa.me/${waPhone}?text=${text}`, '_blank');
+      showToast('WhatsApp opened with receipt', 'success');
+      closeShareModal('shareWhatsappModal');
+      input.value = '';
+    } catch (err) {
+      showToast('Could not open WhatsApp', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-whatsapp"></i> Send via WhatsApp';
+    }
+  }
+
+  async function sendEmailReceipt() {
+    const input = document.getElementById('shareEmailAddress');
+    const errEl = document.getElementById('shareEmailError');
+    const email = input.value.trim();
+
+    if (!isValidEmail(email)) {
+      input.classList.add('error');
+      errEl.classList.add('show');
+      return;
+    }
+    input.classList.remove('error');
+    errEl.classList.remove('show');
+
+    if (!currentReceiptData) { showToast('No receipt data available', 'error'); return; }
+
+    const btn = document.getElementById('shareEmailBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Sending…';
+
+    try {
+      // Backend email endpoint: POST /services/receipts/sendemail_receipt
+      // Expects { sale_id, email, receipt_html }. The backend re-validates
+      // the sale belongs to this business (via JWT) before emailing, but
+      // still wants the rendered receipt markup to send as the email body.
+      const receiptHtml = document.getElementById('receiptContent').innerHTML;
+      await apiFetch('/services/receipts/sendemail_receipt', {
+        method: 'POST',
+        body: JSON.stringify({
+          sale_id: currentReceiptData.saleId,
+          email,
+          receipt_html: receiptHtml
+        })
+      });
+      showToast('Receipt emailed to customer', 'success');
+      closeShareModal('shareEmailModal');
+      input.value = '';
+    } catch (err) {
+      showToast(`Failed to send email: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-send-fill"></i> Send via Email';
+    }
+  }
+
+  // ================================================================
+  //  M-PESA MODAL STATE MACHINE
+  // ================================================================
+  let mpesaMethod        = null;
+  let pollInterval       = null;
+  let pollCount          = 0;
+
+  // STK Push polling — UNCHANGED (do not touch this timing; it is the
+  // existing, already-working STK flow).
+  const POLL_INTERVAL_MS = 3000;
+  const POLL_MAX         = 30; // ~90 seconds, matches previous behaviour exactly
+
+  // Lipa na M-Pesa (C2B) polling — the customer needs real time to pull out
+  // their phone, navigate to Paybill, and enter everything manually, so this
+  // window is intentionally much longer than the STK timeout. Configurable
+  // via LIPA_POLL_TIMEOUT_MINUTES; polling interval itself is unchanged.
+  const LIPA_POLL_TIMEOUT_MINUTES = 10;
+  const LIPA_POLL_MAX = Math.ceil((LIPA_POLL_TIMEOUT_MINUTES * 60 * 1000) / POLL_INTERVAL_MS);
+
+  function openMpesaModal() {
+    const total = getCartTotal();
+    document.getElementById('mpesaAmountDisplay').textContent = total.toLocaleString();
+    document.getElementById('stkAmount').value  = 'KSh ' + total.toLocaleString();
+    document.getElementById('lipaAmountTile').textContent = 'KSh ' + total.toLocaleString();
+    document.getElementById('manualAmountTile').textContent = 'KSh ' + total.toLocaleString();
+    resetMpesaModal();
+    document.getElementById('mpesaModal').classList.add('active');
+  }
+
+  function closeMpesaModal() {
+    stopPolling();
+    document.getElementById('mpesaModal').classList.remove('active');
+  }
+
+  function resetMpesaModal() {
+    stopPolling();
+    mpesaMethod = null;
+    document.getElementById('stk-card').classList.remove('selected');
+    document.getElementById('lipa-card').classList.remove('selected');
+    document.getElementById('manual-card').classList.remove('selected');
+    document.getElementById('step1Cta').disabled = true;
+    document.getElementById('stkPhone').value = '';
+    hideApiError('stkError');
+    hideApiError('lipaError');
+
+    // Lipa fields — reset both sub-panels
+    document.getElementById('lipa-before').style.display = 'block';
+    document.getElementById('lipa-after').style.display  = 'none';
+    document.getElementById('lipaAccountNumber').textContent = '—';
+    activePaymentReference = null;
+    activeSaleTaxRate = null;
+    activeSaleTaxAmount = null;
+    activeSaleSubtotal = null;
+    activeSaleTotal = null;
+    const lipaBtn = document.getElementById('lipaConfirmBtn');
+    lipaBtn.disabled = false;
+    lipaBtn.innerHTML = '<i class="bi bi-hash"></i> Generate Payment Reference';
+
+    // Reset the "I'm Waiting for Payment" / "Cancel" action buttons so they
+    // are visible again the next time a Lipa reference is generated, and
+    // make sure any leftover waiting banner from a previous attempt is hidden.
+    document.getElementById('lipa-action-buttons').style.display = 'flex';
+    document.getElementById('lipaPollingBanner').style.display   = 'none';
+
+    // Manual Till fields — reset both sub-panels (no backend call happens
+    // here; this only clears the local UI state).
+    hideApiError('manualError');
+    document.getElementById('manual-before').style.display = 'block';
+    document.getElementById('manual-after').style.display  = 'none';
+    document.getElementById('manualAccountNumber').textContent = '—';
+
+    const manualBtn = document.getElementById('manualConfirmBtn');
+    manualBtn.disabled = false;
+    manualBtn.innerHTML = '<i class="bi bi-hash"></i> Generate Payment Reference';
+
+    document.getElementById('manual-action-buttons').style.display = 'flex';
+    document.getElementById('manualPollingBanner').style.display   = 'none';
+
+    // Manual verification checkbox + optional transaction code — reset so
+    // the cashier must re-verify for every new sale.
+    document.getElementById('manualSmsVerified').checked = false;
+    document.getElementById('manualTxnCode').value = '';
+    document.getElementById('manualCompleteBtn').disabled = true;
+    manualTxnCode = '';
+
+    showMpesaPanel('mpesa-step-1');
+    setStepIndicator(1);
+  }
+
+  function showMpesaPanel(id) {
+    document.querySelectorAll('.mpesa-panel').forEach(p => p.classList.remove('visible'));
+    document.getElementById(id).classList.add('visible');
+  }
+
+  function setStepIndicator(active) {
+    for (let i = 1; i <= 3; i++) {
+      const stepEl = document.getElementById('step-indicator-' + i);
+      const numEl  = document.getElementById('step-num-' + i);
+      stepEl.classList.remove('active', 'done');
+      if (i < active) {
+        stepEl.classList.add('done');
+        numEl.innerHTML = '<i class="bi bi-check" style="font-size:11px;"></i>';
+      } else if (i === active) {
+        stepEl.classList.add('active');
+        numEl.textContent = i;
+      } else {
+        numEl.textContent = i;
+      }
+    }
+  }
+
+  function showApiError(elId, msg) {
+    const el = document.getElementById(elId);
+    el.textContent = msg; el.classList.add('show');
+  }
+  function hideApiError(elId) {
+    document.getElementById(elId).classList.remove('show');
+  }
+
+  function selectMpesaMethod(method) {
+    mpesaMethod = method;
+    document.getElementById('stk-card').classList.toggle('selected', method === 'stk');
+    document.getElementById('lipa-card').classList.toggle('selected', method === 'lipa');
+    document.getElementById('manual-card').classList.toggle('selected', method === 'manual');
+    document.getElementById('step1Cta').disabled = false;
+
+    // Kick off C2B URL registration as soon as the cashier picks Lipa na M-Pesa,
+    // so the Validation/Confirmation URLs are already registered with Safaricom
+    // by the time confirmLipaPay() creates the sale.
+    if (method === 'lipa') {
+      registerC2BUrls();
+    }
+  }
+
+  function goToStep1() { stopPolling(); showMpesaPanel('mpesa-step-1'); setStepIndicator(1); }
+
+  function goToStep2() {
+    if (!mpesaMethod) return;
+    setStepIndicator(2);
+    if (mpesaMethod === 'stk') {
+      showMpesaPanel('mpesa-step-2-stk');
+      setTimeout(() => document.getElementById('stkPhone').focus(), 100);
+    } else if (mpesaMethod === 'lipa') {
+      showMpesaPanel('mpesa-step-2-lipa');
+    } else {
+      showMpesaPanel('mpesa-step-2-manual');
+    }
+  }
+
+  // ── Manual Till verification gate ──────────────────────────────────────
+  // The "Complete Sale" button in the Manual Till panel stays disabled
+  // until the cashier explicitly confirms they've seen the customer's
+  // M-Pesa confirmation SMS. Manual Till has no webhook/polling backing it
+  // at all — this checkbox is the only confirmation mechanism, so it must
+  // be checked before the sale can be completed.
+  function onManualSmsVerifiedChange() {
+    const checked = document.getElementById('manualSmsVerified').checked;
+    document.getElementById('manualCompleteBtn').disabled = !checked;
+  }
+
+  // ── STK Push: Step 1 — create sale, Step 2 — fire STK ── (UNCHANGED)
+  // The backend now uses sale.payment_reference as the AccountReference sent
+  // to Safaricom, so we keep activePaymentReference in sync here too, even
+  // though this UI doesn't display it for the STK flow.
+  async function sendStkPush() {
+    const rawPhone = document.getElementById('stkPhone').value.trim().replace(/\s+/g, '');
+    if (!rawPhone || rawPhone.length < 9) {
+      document.getElementById('stkPhone').classList.add('error');
+      showApiError('stkError', 'Please enter a valid phone number');
+      return;
+    }
+    document.getElementById('stkPhone').classList.remove('error');
+    hideApiError('stkError');
+
+    // Normalise to 2547XXXXXXXX
+    let phone = rawPhone;
+    if (phone.startsWith('07') || phone.startsWith('01')) phone = '254' + phone.slice(1);
+    if (phone.startsWith('+')) phone = phone.slice(1);
+
+    const btn = document.getElementById('stkSendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Sending…';
+
+    try {
+      // Step 1: Create the pending sale
+      const saleData = await apiFetch('/services/sales/sale', {
+        method: 'POST',
+        body: JSON.stringify({ items: cartToApiItems(), payment_method: 'M-Pesa', phone })
+      });
+      activeSaleId = saleData.sale_id;
+      activePaymentReference = saleData.payment_reference || null;
+      captureSaleTaxFields(saleData);
+
+      // Step 2: Fire the STK push to the customer's phone
+      await apiFetch('/services/payments/api/mpesa/stkpush', {
+        method: 'POST',
+        body: JSON.stringify({ sale_id: activeSaleId, phone, amount: (activeSaleTotal !== null ? activeSaleTotal : getCartTotal()) })
+      });
+
+      // Move to processing screen
+      setStepIndicator(3);
+      showMpesaPanel('mpesa-step-3-processing');
+      resetStatusDots();
+      animateProgressBar();
+      startPolling('stk', phone); // uses default POLL_MAX — unchanged (~90s)
+
+    } catch (err) {
+      showApiError('stkError', `Payment failed: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-send-fill"></i> Send Payment Request';
+    }
+  }
+
+  // ── C2B URL Registration (Lipa na M-Pesa) ───────────────────────────────
+  // Tells Safaricom which Validation and Confirmation URLs to hit for C2B
+  // (Buy Goods / Pay Bill) payments on this shortcode. This must succeed at
+  // least once before Safaricom will call our /c2b/validate and /c2b/confirm
+  // endpoints — without it, customer-initiated Lipa na M-Pesa payments will
+  // never reach our backend and the sale will just sit "pending" forever.
+  // Safe to call more than once: Safaricom simply re-registers the URLs, and
+  // the sandbox commonly returns a harmless "already registered" style error
+  // on repeat calls, which we treat as non-fatal here.
+  let c2bRegistered = false;
+
+  async function registerC2BUrls() {
+    if (c2bRegistered || sessionStorage.getItem('c2b_urls_registered') === '1') {
+      c2bRegistered = true;
+      return;
+    }
+
+    const banner = document.getElementById('lipaRegisterBanner');
+    if (banner) banner.style.display = 'flex';
+
+    try {
+      const res = await apiFetch('/services/payments/api/pay/c2b/register', {
+        method: 'POST'
+      });
+      console.log('C2B | validation/confirmation URLs registered:', res);
+      c2bRegistered = true;
+      sessionStorage.setItem('c2b_urls_registered', '1');
+    } catch (err) {
+      // Non-fatal — Safaricom sandbox often errors on re-registration of an
+      // already-registered shortcode. We still let the cashier proceed;
+      // confirmLipaPay() will surface a real error later if the sale itself
+      // can't be created.
+      console.warn('C2B | URL registration failed (may already be registered):', err.message);
+    } finally {
+      if (banner) banner.style.display = 'none';
+    }
+  }
+
+  // ── Lipa na M-Pesa (C2B) ──────────────────────────────────────────────────
+  // Creates the sale first to get a sale_id AND its random payment_reference
+  // (e.g. "HS-7KQ2PX9M"), then displays the payment_reference — NOT the raw
+  // sale_id — as the Account Number the customer must enter on their phone.
+  // The payment_reference is what Safaricom sends back to us as
+  // BillRefNumber on both /c2b/validate (before the customer's PIN is
+  // accepted) and /c2b/confirm (after payment settles) — our backend uses
+  // it to look up this exact Sales row.
+  //
+  // IMPORTANT: polling does NOT start here anymore. The customer still needs
+  // to pull out their phone, navigate to Paybill, and enter everything
+  // manually — that can take several minutes. Instead we show the payment
+  // instructions plus "I'm Waiting for Payment" / "Cancel" buttons, and only
+  // call startPolling() once the cashier confirms the customer is paying.
+  async function confirmLipaPay() {
+    hideApiError('lipaError');
+
+    // Make sure Safaricom knows where to send validate/confirm callbacks
+    // before we hand the cashier an account number to give the customer.
+    await registerC2BUrls();
+
+    const btn = document.getElementById('lipaConfirmBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Creating sale…';
+
+    try {
+      const saleData = await apiFetch('/services/sales/sale', {
+        method: 'POST',
+        body: JSON.stringify({
+          items: cartToApiItems(),
+          payment_method: 'M-Pesa'
+          // no phone — C2B; customer pays manually on their own phone
+        })
+      });
+
+      activeSaleId = saleData.sale_id;
+      activePaymentReference = saleData.payment_reference;
+      captureSaleTaxFields(saleData);
+
+      // Show the payment_reference the customer must enter when paying.
+      // This is the same value the /c2b/validate and /c2b/confirm routes
+      // read back as BillRefNumber to resolve this sale — NOT the numeric
+      // sale_id.
+      const total = (activeSaleTotal !== null) ? activeSaleTotal : getCartTotal();
+      document.getElementById('lipaAccountNumber').textContent = activePaymentReference || activeSaleId;
+      document.getElementById('lipaAmountTileB').textContent   = 'KSh ' + Number(total).toLocaleString();
+
+      // Flip sub-panels: hide generate button, show instructions + waiting
+      // actions. Polling is intentionally NOT started here — see
+      // startLipaWaiting().
+      document.getElementById('lipa-before').style.display = 'none';
+      document.getElementById('lipa-after').style.display  = 'block';
+      document.getElementById('lipa-action-buttons').style.display = 'flex';
+      document.getElementById('lipaPollingBanner').style.display   = 'none';
+
+      setStepIndicator(3);
+
+    } catch (err) {
+      showApiError('lipaError', `Failed to create sale: ${err.message}`);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-hash"></i> Generate Payment Reference';
+    }
+  }
+
+  // Cashier clicks "I'm Waiting for Payment" — only now does polling begin.
+  // Reuses the existing startPolling() implementation untouched, just with
+  // the longer, configurable C2B timeout (LIPA_POLL_MAX). Polling itself
+  // still checks the sale by activeSaleId (the sales-status endpoint is
+  // unchanged); only the customer-facing Account Number uses
+  // payment_reference.
+  function startLipaWaiting() {
+    document.getElementById('lipa-action-buttons').style.display = 'none';
+    startPolling('lipa', activePaymentReference || activeSaleId, LIPA_POLL_MAX);
+  }
+
+  // Cashier clicks "Cancel" — stop polling (if any), close the M-Pesa modal,
+  // and simply exit the payment flow. The pending sale is intentionally left
+  // untouched in the backend (no cancellation/deletion call is made).
+  function cancelLipaPayment() {
+    closeMpesaModal();
+  }
+
+  // ── Manual Till (Buy Goods) ───────────────────────────────────────────────
+  // Manual Till behaves like a cashier-confirmed manual payment (the same
+  // way Cash/Other Payment do), NOT like an asynchronous M-Pesa payment.
+  // No sale is created and no backend call is made here — this only
+  // generates a local, cashier-facing payment reference for the customer to
+  // quote when paying via Buy Goods. The actual sale is created later, in
+  // startManualWaiting(), once the cashier has confirmed the payment and
+  // clicks "Complete Sale".
+  function confirmManualTill() {
+    hideApiError('manualError');
+
+    // Generate a local payment reference only — no backend call, no sale.
+    activePaymentReference =
+        'HS-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    const total = getCartTotal();
+    document.getElementById('manualAccountNumber').textContent = activePaymentReference;
+    document.getElementById('manualAmountTileB').textContent   = 'KSh ' + Number(total).toLocaleString();
+
+    document.getElementById('manual-before').style.display = 'none';
+    document.getElementById('manual-after').style.display  = 'block';
+    document.getElementById('manual-action-buttons').style.display = 'flex';
+    document.getElementById('manualPollingBanner').style.display   = 'none';
+
+    // Reset the verification gate for this fresh reference
+    document.getElementById('manualSmsVerified').checked = false;
+    document.getElementById('manualTxnCode').value = '';
+    document.getElementById('manualCompleteBtn').disabled = true;
+
+    setStepIndicator(3);
+  }
+
+  // Cashier clicks "Complete Sale" for Manual Till. At this point the
+  // cashier has already ticked the SMS-verification checkbox, so we treat
+  // the payment as confirmed right now: the sale is created in the backend
+  // for the first time here (not earlier), the optional transaction code is
+  // saved, and the success screen is shown immediately. There is no
+  // polling and no "waiting for customer payment" step for this method —
+  // that behaviour is exclusive to Lipa na M-Pesa / STK, which involve an
+  // asynchronous Safaricom callback.
+  async function startManualWaiting() {
+      const btn = document.getElementById('manualCompleteBtn');
+      if (btn.disabled) return;
+
+      manualTxnCode = document.getElementById('manualTxnCode').value.trim();
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Completing sale…';
+
+      try {
+        // Create the sale now — the cashier has confirmed the customer
+        // already paid via Buy Goods, so there is nothing left to wait for.
+        const saleData = await apiFetch('/services/sales/sale', {
+          method: 'POST',
+          body: JSON.stringify({
+            items: cartToApiItems(),
+            payment_method: 'M-Pesa',
+            payment_type: 'manual',
+            payment_reference: activePaymentReference
+          })
+        });
+
+        activeSaleId = saleData.sale_id;
+        // Keep the reference the cashier already shared with the customer;
+        // fall back to whatever the backend generated only if we somehow
+        // don't have one.
+        activePaymentReference = activePaymentReference || saleData.payment_reference;
+        captureSaleTaxFields(saleData);
+
+        if (manualTxnCode) {
+          await saveManualTxnCode(activeSaleId, manualTxnCode);
+        }
+
+        showMpesaSuccess(
+            'manual',
+            manualTxnCode || activePaymentReference,
+            (activeSaleTotal !== null) ? activeSaleTotal : getCartTotal()
+        );
+
+      } catch (err) {
+        showApiError('manualError', `Failed to complete sale: ${err.message}`);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Complete Sale';
+      }
+  }
+
+  // Cashier clicks "Cancel" — no sale exists yet for Manual Till at this
+  // point (it is only created in startManualWaiting()), so there is nothing
+  // to clean up server-side; just close the modal.
+  function cancelManualPayment() {
+    closeMpesaModal();
+  }
+
+  // Best-effort save of the cashier-entered M-Pesa transaction code against
+  // the sale, for future reference/reporting/search. Entirely optional and
+  // non-blocking: if the code was left blank, or if the backend call fails
+  // for any reason, the sale still completes normally.
+  async function saveManualTxnCode(saleId, code) {
+    if (!code) return;
+    try {
+      await apiFetch(`/services/sales/single_sale/${saleId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ mpesa_transaction_code: code })
+      });
+    } catch (err) {
+      console.warn('Could not save M-Pesa transaction code (non-fatal):', err.message);
+    }
+  }
+
+  // ── Polling ───────────────────────────────────────────────────────────────
+  // Handles STK (pollingBanner in the processing panel) and C2B / Lipa
+  // (lipaPollingBanner in the lipa panel) only. Manual Till never calls
+  // this function — see startManualWaiting() above, which completes the
+  // sale synchronously instead. For Lipa, the row we are polling only
+  // flips to "completed" once Safaricom's /c2b/confirm webhook has fired on
+  // the backend for this sale's BillRefNumber (payment_reference).
+  // `maxPolls` defaults to POLL_MAX so the STK call site (unchanged) keeps
+  // its original ~90 second timeout; the Lipa call site passes
+  // LIPA_POLL_MAX.
+  function startPolling(method, ref, maxPolls = POLL_MAX) {
+    pollCount = 0;
+
+    // Show the correct banner for the active method
+    const bannerId = method === 'lipa' ? 'lipaPollingBanner' : 'pollingBanner';
+    const textId   = method === 'lipa' ? 'lipaPollingText'   : 'pollingText';
+    document.getElementById(bannerId).style.display = 'flex';
+    document.getElementById(textId).textContent =
+      method === 'lipa'
+        ? 'Waiting for customer payment…'
+        : `Checking payment status… (0/${maxPolls})`;
+
+    pollInterval = setInterval(async () => {
+      pollCount++;
+      document.getElementById(textId).textContent =
+        method === 'lipa'
+          ? 'Waiting for customer payment…'
+          : `Checking payment status… (${pollCount}/${maxPolls})`;
+
+      try {
+        const data   = await apiFetch(`/services/sales/single_sale/${activeSaleId}`);
+        // Support both field names the API might return
+        const status = (data.payment_status || data.status || '').toLowerCase();
+
+        if (status === 'paid' || status === 'completed') {
+          stopPolling();
+          // Sync the saved tax snapshot from the confirmed sale record —
+          // it does not change on confirmation, but this keeps the
+          // receipt reading from a single source of truth.
+          captureSaleTaxFields(data);
+          showMpesaSuccess(method, data.mpesa_receipt || ref, (activeSaleTotal !== null) ? activeSaleTotal : getCartTotal());
+          return;
+        }
+
+        if (status === 'failed') {
+          stopPolling();
+          const errorId = method === 'lipa' ? 'lipaError' : 'stkError';
+          showApiError(errorId, 'Payment was declined by M-Pesa. Please try again.');
+          if (method === 'lipa') {
+            // Reset lipa panel so cashier can try again
+            document.getElementById('lipa-before').style.display = 'block';
+            document.getElementById('lipa-after').style.display  = 'none';
+            const lipaBtn = document.getElementById('lipaConfirmBtn');
+            lipaBtn.disabled = false;
+            lipaBtn.innerHTML = '<i class="bi bi-hash"></i> Generate Payment Reference';
+            setStepIndicator(2);
+          } else {
+            goToStep2();
+          }
+          return;
+        }
+
+      } catch (_) { /* network blip — keep polling */ }
+
+      // Animate status dots for STK only (they live in the processing panel)
+      if (method === 'stk') {
+        if (pollCount === 3) activateStatusDot(2);
+        if (pollCount === 8) activateStatusDot(3);
+      }
+
+      if (pollCount >= maxPolls) {
+        stopPolling();
+        const errorId = method === 'lipa' ? 'lipaError' : 'stkError';
+        showApiError(errorId, 'Payment timed out. Ask customer to check M-Pesa and try again.');
+        if (method === 'lipa') {
+          document.getElementById('lipa-before').style.display = 'block';
+          document.getElementById('lipa-after').style.display  = 'none';
+          const lipaBtn = document.getElementById('lipaConfirmBtn');
+          lipaBtn.disabled = false;
+          lipaBtn.innerHTML = '<i class="bi bi-hash"></i> Generate Payment Reference';
+          setStepIndicator(2);
+        } else {
+          showMpesaPanel('mpesa-step-2-stk');
+          setStepIndicator(2);
+        }
+      }
+    }, POLL_INTERVAL_MS);
+  }
+
+  function stopPolling() {
+    if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+    // Hide all banners regardless of which was shown
+    document.getElementById('pollingBanner').style.display     = 'none';
+    document.getElementById('lipaPollingBanner').style.display = 'none';
+    document.getElementById('manualPollingBanner').style.display = 'none';
+  }
+
+  function resetStatusDots() {
+    ['status-1','status-2','status-3'].forEach(id => {
+      document.getElementById(id).classList.remove('done','active');
+    });
+    document.getElementById('status-1').classList.add('active');
+    document.getElementById('processingBar').style.width = '5%';
+  }
+
+  function activateStatusDot(n) {
+    document.getElementById(`status-${n-1}`).classList.remove('active');
+    document.getElementById(`status-${n-1}`).classList.add('done');
+    document.getElementById(`status-${n}`).classList.add('active');
+  }
+
+  function animateProgressBar() {
+    let w = 5;
+    const t = setInterval(() => {
+      if (!pollInterval && w < 90) { clearInterval(t); return; }
+      w = Math.min(w + 0.5, 88);
+      document.getElementById('processingBar').style.width = w + '%';
+      if (w >= 88) clearInterval(t);
+    }, 200);
+  }
+
+  // ── Success ──────────────────────────────────────────────────────
+  function showMpesaSuccess(method, ref, total) {
+    document.getElementById('processingBar').style.width = '100%';
+    document.getElementById('successAmount').textContent = 'KSh ' + Number(total).toLocaleString();
+    document.getElementById('successMethod').textContent =
+      method === 'stk' ? 'M-Pesa STK Push' : (method === 'manual' ? 'Manual Till (Buy Goods)' : 'Lipa na M-Pesa');
+
+    // For Manual Till, prefer the cashier-entered transaction code (if any)
+    // over the backend reference when displaying the confirmation.
+    document.getElementById('successTxId').textContent =
+      (method === 'manual' && manualTxnCode) ? manualTxnCode : (ref || '—');
+
+    document.getElementById('successSubText').textContent =
+      method === 'stk' ? 'STK Push payment confirmed' : (method === 'manual' ? 'Manual Till payment confirmed' : 'Lipa na M-Pesa payment confirmed');
+
+    ['status-1','status-2','status-3'].forEach(id => {
+      document.getElementById(id).classList.remove('active');
+      document.getElementById(id).classList.add('done');
+    });
+
+    showMpesaPanel('mpesa-step-success');
+  }
+
+  function completeMpesaSale() {
+    closeMpesaModal();
+    showReceiptForSale(activeSaleId, 'M-Pesa');
+  }
+
+  // ================================================================
+  //  SIDEBAR + DARK MODE
+  // ================================================================
+  document.getElementById('collapseBtn').addEventListener('click', () =>
+    document.getElementById('sidebar').classList.toggle('collapsed'));
+
+  document.getElementById('hamburger').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.add('mobile-open');
+    document.getElementById('mobileOverlay').classList.add('show');
+  });
+  document.getElementById('mobileOverlay').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('mobileOverlay').classList.remove('show');
+  });
+
+  document.getElementById('darkToggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    document.getElementById('darkIcon').className =
+      document.body.classList.contains('dark') ? 'bi bi-sun' : 'bi bi-moon';
+  });
+
+  // ================================================================
+  //  TOAST
+  // ================================================================
+  function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="bi ${type==='success'?'bi-check-circle-fill':'bi-exclamation-circle-fill'}"></i>${msg}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'toastOut .3s ease forwards';
+      setTimeout(() => toast.remove(), 300);
+    }, 2800);
+  }
+
+  // ================================================================
+  //  RESPONSIVE
+  // ================================================================
+  function handleResize() {
+    document.querySelector('.scan-search-row').style.gridTemplateColumns =
+      window.innerWidth < 700 ? '1fr' : '1fr 1fr';
+  }
+  window.addEventListener('resize', handleResize);
+  handleResize();
+
+  // ================================================================
+  //  INIT
+  // ================================================================
+  if (requireAuth()) {
+    renderCashierBadge();
+    loadBusinessTaxRate();
+    loadProducts();
+  }
+</script>
+</body>
+</html>

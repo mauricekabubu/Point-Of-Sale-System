@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transactions —CodexLabs POS</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6366F1;
+  --primary-soft: rgba(99,102,241,0.1);
+  --primary-hover: #4F46E5;
+
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-2: #F1F5F9;
+  --border: #E2E8F0;
+  --border-light: #F1F5F9;
+
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+
+  --sidebar-bg: #FAFAFA;
+  --sidebar-width: 240px;
+
+  --green-bg: #DCFCE7; --green-text: #16A34A;
+  --red-bg: #FEE2E2;   --red-text:  #DC2626;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.14);
+
+  --transition: 0.2s ease;
+  --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+body.dark-mode {
+  --bg: #0F172A;
+  --surface: #1E293B;
+  --surface-2: #162032;
+  --border: #2D3E55;
+  --border-light: #1E293B;
+
+  --text-primary: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  --sidebar-bg: #172033;
+
+  --green-bg: rgba(22,163,74,0.15); --green-text: #4ADE80;
+  --red-bg: rgba(220,38,38,0.15);   --red-text: #F87171;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-primary);
+  transition: background var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── LAYOUT ───────────────────────────────────────────── */
+.wrapper { display: flex; min-height: 100vh; }
+
+/* ─── SIDEBAR ──────────────────────────────────────────── */
+#sidebarMenu {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  transition: width var(--transition), left var(--transition), background var(--transition), border-color var(--transition);
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+}
+
+#sidebarMenu.collapsed { width: 72px; }
+#sidebarMenu.collapsed .sidebar-label,
+#sidebarMenu.collapsed .sidebar-brand-text,
+#sidebarMenu.collapsed .chevron { display: none; }
+#sidebarMenu.collapsed .nav-link { justify-content: center; }
+#sidebarMenu.collapsed .sidebar-section-title { display: none; }
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo {
+  width: 36px; height: 36px;
+  background: var(--primary);
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+  flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-brand-text {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.sidebar-nav { padding: 12px 10px; flex: 1; }
+
+.sidebar-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 8px 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition);
+  position: relative;
+  margin-bottom: 2px;
+}
+
+.nav-link i { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+
+.nav-link:hover { background: var(--primary-soft); color: var(--primary); }
+
+.nav-link.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: -10px; top: 4px; bottom: 4px;
+  width: 3px;
+  background: var(--primary);
+  border-radius: 0 3px 3px 0;
+}
+
+.sub-nav { padding-left: 4px; }
+.sub-nav .nav-link { font-size: 13px; padding: 7px 10px; }
+.sub-nav .nav-link i { font-size: 14px; }
+
+.chevron { margin-left: auto; transition: transform var(--transition); font-size: 12px; }
+.nav-link[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+.sidebar-collapse-btn {
+  margin: 0 10px 16px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  font-size: 16px;
+}
+
+.sidebar-collapse-btn:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
+
+/* ─── MAIN CONTENT ─────────────────────────────────────── */
+.main-content {
+  margin-left: var(--sidebar-width);
+  padding: 0;
+  width: calc(100% - var(--sidebar-width));
+  transition: margin-left var(--transition), width var(--transition);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#sidebarMenu.collapsed ~ .main-content {
+  margin-left: 72px;
+  width: calc(100% - 72px);
+}
+
+/* ─── TOP BAR ──────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.page-title { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+
+.breadcrumb-trail { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+.topbar-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font);
+  transition: all var(--transition);
+  min-height: 36px;
+}
+
+.topbar-btn:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
+
+.menu-btn {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 18px;
+  min-height: 36px;
+  transition: all var(--transition);
+}
+
+.menu-btn:hover { background: var(--surface-2); }
+
+/* ─── PAGE BODY ────────────────────────────────────────── */
+.page-body { padding: 24px 28px; flex: 1; }
+
+.page-header { margin-bottom: 20px; }
+
+.page-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.page-header p { font-size: 13.5px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ─── CARD ─────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+/* ─── FILTERS ──────────────────────────────────────────── */
+.filters-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+.form-control, .form-select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 13.5px;
+  padding: 9px 12px;
+  width: 100%;
+  transition: all var(--transition);
+  min-height: 40px;
+}
+
+.form-control:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  background: var(--surface);
+}
+
+.form-control::placeholder { color: var(--text-muted); font-size: 13px; }
+
+body.dark-mode .form-control,
+body.dark-mode .form-select { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+
+body.dark-mode .form-select option { background: #1E293B; }
+
+/* ─── SUMMARY BAR ──────────────────────────────────────── */
+.summary-bar {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-stat { display: flex; align-items: center; gap: 6px; }
+.summary-label { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; }
+.summary-value { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+
+/* ─── TABLE ────────────────────────────────────────────── */
+.table-wrapper { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+  transition: background var(--transition);
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr { cursor: pointer; transition: background var(--transition); }
+tbody tr:hover td { background: var(--primary-soft); }
+
+.tx-id { font-weight: 700; font-size: 13px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.tx-date { color: var(--text-secondary); font-size: 13px; }
+.tx-cashier { font-weight: 500; }
+.tx-items { color: var(--text-secondary); font-size: 13px; }
+.tx-total { font-weight: 700; font-size: 14px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.tx-payment { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; }
+
+/* Status badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.badge-completed { background: var(--green-bg); color: var(--green-text); }
+.badge-refunded  { background: var(--red-bg);   color: var(--red-text); }
+.badge-completed::before { content: '●'; font-size: 8px; }
+.badge-refunded::before  { content: '●'; font-size: 8px; }
+
+/* View button */
+.btn-view {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-view:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* ─── LOADING & ERROR ──────────────────────────────────── */
+.state-row td {
+  text-align: center;
+  padding: 56px 24px;
+}
+
+.spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.error-icon {
+  width: 48px; height: 48px;
+  background: var(--red-bg);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  color: var(--red-text);
+}
+
+.error-wrap strong { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+
+.btn-retry {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background var(--transition);
+}
+
+.btn-retry:hover { background: var(--primary-hover); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 56px 24px; }
+
+.empty-state-icon {
+  width: 56px; height: 56px;
+  background: var(--surface-2);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+  font-size: 24px;
+  color: var(--text-muted);
+}
+
+.empty-state h4 { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+.empty-state p  { font-size: 13.5px; color: var(--text-secondary); }
+
+/* ─── MODAL ────────────────────────────────────────────── */
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  animation: fadeIn 0.2s ease forwards;
+}
+
+@keyframes fadeIn { to { opacity: 1; } }
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.96) translateY(8px);
+  animation: modalIn 0.22s ease forwards;
+  overflow: hidden;
+}
+
+@keyframes modalIn { to { transform: scale(1) translateY(0); } }
+
+.modal-header-custom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title-custom { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+
+.modal-close {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 32px; height: 32px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  transition: all var(--transition);
+}
+
+.modal-close:hover { background: var(--red-bg); color: var(--red-text); border-color: transparent; }
+
+.modal-body-custom { padding: 20px 24px; }
+
+.modal-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-meta-item { background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px 12px; }
+
+.modal-meta-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.modal-meta-value { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+.modal-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.receipt-items { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+
+.receipt-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+}
+
+.receipt-item-name { color: var(--text-primary); font-weight: 500; }
+.receipt-item-price { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.modal-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--primary-soft);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(99,102,241,0.2);
+}
+
+.modal-total-label { font-size: 14px; font-weight: 600; color: var(--primary); }
+.modal-total-value { font-size: 18px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+
+/* Modal loading spinner */
+.modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 24px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+/* ─── OVERLAY ──────────────────────────────────────────── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1040;
+  backdrop-filter: blur(2px);
+}
+
+.overlay.show { display: block; }
+
+/* ─── MOBILE CARDS ─────────────────────────────────────── */
+.mobile-cards { display: none; }
+
+.tx-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.tx-card:hover { box-shadow: var(--shadow-md); border-color: var(--primary); }
+
+.tx-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.tx-card-id  { font-weight: 700; font-size: 14px; color: var(--text-primary); }
+.tx-card-date { font-size: 12px; color: var(--text-secondary); }
+
+.tx-card-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
+
+.tx-card-meta { display: flex; gap: 12px; align-items: center; color: var(--text-secondary); }
+.tx-card-meta span { display: flex; align-items: center; gap: 4px; font-size: 12.5px; }
+
+.tx-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+}
+
+.tx-card-total { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+
+.btn-view-sm {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  min-height: 34px;
+  transition: all var(--transition);
+}
+
+.btn-view-sm:hover { background: var(--primary-hover); }
+
+/* ─── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width: 991px) {
+  #sidebarMenu { left: -240px; width: 220px; }
+  #sidebarMenu.show { left: 0; }
+
+  .main-content { margin-left: 0; width: 100%; }
+  #sidebarMenu.collapsed ~ .main-content { margin-left: 0; width: 100%; }
+
+  .menu-btn { display: flex; }
+  .page-body { padding: 16px; }
+  .filters-grid { grid-template-columns: 1fr 1fr; }
+  .filters-grid > *:first-child { grid-column: 1 / -1; }
+  .desktop-table { display: none; }
+  .mobile-cards { display: block; padding: 16px; }
+  .summary-bar { padding: 10px 16px; }
+  .topbar { padding: 12px 16px; }
+}
+
+@media (max-width: 480px) {
+  .filters-grid { grid-template-columns: 1fr; }
+  .filters-grid > *:first-child { grid-column: auto; }
+  .modal-meta { grid-template-columns: 1fr; }
+  .topbar-right .topbar-btn span { display: none; }
+}
+</style>
+</head>
+<body class="light-mode">
+
+<div class="wrapper">
+
+  <!-- ─── SIDEBAR ─────────────────────────────────────── -->
+  <nav id="sidebarMenu">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">P</div>
+      <span class="sidebar-brand-text">CodexLabs POS</span>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-section-title">Main</div>
+
+      <ul class="nav flex-column" style="list-style:none; padding:0;">
+        <li><a href="cashier_dash.html" class="nav-link"><i class="bi bi-speedometer2"></i><span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="pos.html"      class="nav-link"><i class="bi bi-cart-plus"></i><span class="sidebar-label">New Sale</span></a></li>
+        <li><a href="transaction.html"   class="nav-link active"><i class="bi bi-box-seam"></i><span class="sidebar-label">Transactions</span></a></li>
+        <li>
+          <a href="#" class="nav-link" id="logoutNav">
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="sidebar-label">Logout</span>
+          </a>
+        </li>
+      </ul>
+
+    <button class="sidebar-collapse-btn" id="collapseSidebar" title="Collapse sidebar">
+      <i class="bi bi-layout-sidebar-inset"></i>
+    </button>
+  </nav>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ─── MAIN CONTENT ─────────────────────────────────── -->
+  <div class="main-content">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" id="sidebarToggle">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <div class="page-title">Transaction History</div>
+          <div class="breadcrumb-trail">
+            <span>Reports</span>
+            <i class="bi bi-chevron-right" style="font-size:10px;"></i>
+            <span>Transactions</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button id="darkModeToggle" class="topbar-btn">
+          <i class="bi bi-moon" id="modeIcon"></i>
+          <span>Dark mode</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+      <div class="page-header">
+        <h2>Transactions</h2>
+        <p>View and manage all point-of-sale transactions</p>
+      </div>
+
+      <!-- MAIN CARD -->
+      <div class="card" style="border-left: 4px solid var(--primary);">
+
+        <!-- FILTERS -->
+        <div class="filters-section">
+          <div class="filters-grid">
+            <div>
+              <input type="text" id="searchInput" class="form-control" placeholder="Search by transaction ID or cashier…">
+            </div>
+            <div>
+              <input type="date" id="startDate" class="form-control">
+            </div>
+            <div>
+              <input type="date" id="endDate" class="form-control">
+            </div>
+            <div>
+              <select id="paymentFilter" class="form-select">
+                <option value="">All Payments</option>
+                <option>Cash</option>
+                <option>M-Pesa</option>
+                <option>Card</option>
+                <option>Airtel Money</option>
+              </select>
+            </div>
+            <div>
+              <select id="statusFilter" class="form-select">
+                <option value="">All Status</option>
+                <option>completed</option>
+                <option>pending</option>
+                <option>failed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUMMARY BAR -->
+        <div class="summary-bar">
+          <div class="summary-stat">
+            <span class="summary-label">Total Transactions</span>
+            <span class="summary-value" id="totalCount">—</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-label">Total Amount</span>
+            <span class="summary-value" id="totalAmount">—</span>
+          </div>
+        </div>
+
+        <!-- DESKTOP TABLE -->
+        <div class="table-wrapper desktop-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Cashier</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="transactionTable">
+              <tr class="state-row">
+                <td colspan="8">
+                  <div class="spinner-wrap">
+                    <div class="spinner"></div>
+                    Loading transactions…
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- MOBILE CARDS -->
+        <div class="mobile-cards" id="mobileCards">
+          <div class="spinner-wrap" style="padding: 32px 0;">
+            <div class="spinner"></div>
+            Loading transactions…
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL CONTAINER ─────────────────────────────────── -->
+<div id="txModal" style="display:none; position:fixed; inset:0; z-index:2000;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // ─── CONFIG ──────────────────────────────────────────────
+  // Base URL of your Flask backend. Change if hosted elsewhere.
+  // NOTE: no trailing slash here — every call below adds its own leading "/"
+  const API_BASE = "/api";   // e.g. "http://localhost:5000" or "" for same-origin
+
+  // Where to send the user if their session is invalid/expired.
+  // This file lives in the "cashiers/" folder (same as the login page's
+  // post-login redirect target "cashiers/cashier_dash.html"), so login.html
+  // is one level up.
+  const LOGIN_PAGE = "../index.html";
+
+  // JWT token keys — MUST match exactly what the cashier login page stores
+  // in localStorage after a successful POST to /auth/auth/cashier/login:
+  //   localStorage.setItem('nexapos_access_token',  data.access_token);
+  //   localStorage.setItem('nexapos_refresh_token', data.refresh_token);
+  //   localStorage.setItem('nexapos_cashier',       JSON.stringify(data.cashier));
+  const TOKEN_KEY         = "nexapos_access_token";
+  const REFRESH_TOKEN_KEY = "nexapos_refresh_token";
+  const CASHIER_KEY       = "nexapos_cashier";
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY) || "";
+  }
+
+  function getCashier() {
+    try {
+      return JSON.parse(localStorage.getItem(CASHIER_KEY) || "null");
+    } catch {
+      return null;
+    }
+  }
+
+  function authHeaders() {
+    return {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`
+    };
+  }
+
+  // If there's no token at all, don't even try the request — bounce straight
+  // to login (covers the case where someone opens this page directly).
+  function requireAuthOrRedirect() {
+    if (!getToken()) {
+      window.location.href = LOGIN_PAGE;
+      return false;
+    }
+    return true;
+  }
+
+  // Clears stale session data and sends the cashier back to the login page.
+  function forceLogout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(CASHIER_KEY);
+    window.location.href = LOGIN_PAGE;
+  }
+
+  const LOGOUT_ENDPOINT = `${API_BASE}/auth/auth/logout`;
+
+  document.getElementById("logoutNav").addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      try {
+          const response = await fetch(LOGOUT_ENDPOINT, {
+              method: "POST",
+              headers: authHeaders()
+          });
+
+          console.log("Logout:", response.status);
+
+      } catch (err) {
+          console.error(err);
+      }
+
+      forceLogout();
+  });
+
+  // ─── STATE ───────────────────────────────────────────────
+  let allTransactions = [];   // raw data from /services/sales/history
+
+  // ─── HELPERS ─────────────────────────────────────────────
+  function fmt(amount) {
+    return `KES ${Number(amount).toLocaleString("en-KE", { minimumFractionDigits: 0 })}`;
+  }
+
+  function fmtDate(isoString) {
+    if (!isoString) return "—";
+    const d = new Date(isoString);
+    return d.toLocaleDateString("en-KE", { day: "2-digit", month: "short", year: "numeric" });
+  }
+
+  function fmtDateOnly(isoString) {
+    // Returns YYYY-MM-DD for date-input comparison
+    if (!isoString) return "";
+    return isoString.slice(0, 10);
+  }
+
+  function badgeHTML(status) {
+    const s = (status || "").toLowerCase();
+    const cls = s === "completed" ? "badge-completed" : "badge-refunded";
+    const label = s.charAt(0).toUpperCase() + s.slice(1);
+    return `<span class="badge ${cls}">${label}</span>`;
+  }
+
+  // OFFLINE-FIRST — REPORTS / TRANSACTIONS MODULE (informational only)
+  (function () {
+    const BASE_URL = (typeof window.API_BASE !== 'undefined')
+      ? window.API_BASE.replace(/\/$/, '')
+      : 'http://localhost:5000';
+    const STATUS_ENDPOINT = `${BASE_URL}/services/sync/status`;
+    const POLL_INTERVAL_MS = 15000; // reports don't need tight polling
+  
+    function renderBadge(isOnline) {
+      const el = document.getElementById('connectionBadge');
+      if (!el) return;
+      if (isOnline) {
+        el.textContent = '🟢 Online';
+        el.title = '';
+        el.className = 'connection-badge online';
+      } else {
+        el.textContent = '🟠 Offline Mode';
+        el.title = 'Reports are generated from your local database.';
+        el.className = 'connection-badge offline';
+      }
+    }
+  
+    async function pollStatus() {
+      try {
+        const res = await fetch(STATUS_ENDPOINT, { cache: 'no-store' });
+        if (!res.ok) throw new Error('bad status');
+        const data = await res.json();
+        renderBadge(!!data.internet);
+      } catch (err) {
+        // Even if the status endpoint itself can't be reached, this is
+        // informational only — reports keep loading normally regardless.
+        renderBadge(false);
+      }
+    }
+  
+    function start() {
+      pollStatus();
+      setInterval(pollStatus, POLL_INTERVAL_MS);
+    }
+  
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else {
+      start();
+    }
+  })();  
+
+  // ─── FETCH SALE HISTORY ───────────────────────────────────
+  // GET /services/sales/history  →  { sales: [...] }
+  // Each sale: { sale_id, total_amount, payment_method, seller: {id,name,username}, date }
+  // All filtering (search, payment, status, date range) and pagination is
+  // handled entirely by the backend — the frontend just forwards the current
+  // filter values as query params and renders whatever the backend returns.
+  async function loadTransactions(page = 1) {
+        setTableLoading();
+
+        const params = new URLSearchParams({
+            page,
+            per_page: 20,
+            search: document.getElementById("searchInput").value.trim(),
+            payment: document.getElementById("paymentFilter").value,
+            status: document.getElementById("statusFilter").value,
+            start_date: document.getElementById("startDate").value,
+            end_date: document.getElementById("endDate").value
+        });
+
+        try {
+            const res = await fetch(
+                `${API_BASE}/services/sales/history?${params}`,
+                {
+                    headers: authHeaders()
+                }
+            );
+
+            const data = await res.json();
+
+            allTransactions = (data.sales || []).map(s => ({
+                id: s.sale_id,
+                date: s.date,
+                cashier: s.seller?.name || s.seller?.username || "—",
+                total: s.total_amount,
+                payment: s.payment_method,
+                status: s.status
+            }));
+
+            renderTable(allTransactions);
+
+            // Save pagination info if needed
+            window.pagination = data.pagination;
+
+        } catch (err) {
+            setTableError(err.message);
+        }
+    }
+
+  // ─── FETCH SINGLE SALE DETAIL ────────────────────────────
+  // GET /services/sales/single_sale/<id>
+  // Returns: { sale_id, total, payment_method, seller, items: [{product_name, quantity, price, subtotal}], date }
+  async function loadSaleDetail(saleId) {
+    try {
+      const res = await fetch(`${API_BASE}/services/sales/single_sale/${saleId}`, {
+        headers: authHeaders()
+      });
+
+      if (res.status === 401) {
+        forceLogout();
+        return { error: "Session expired." };
+      }
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Server error ${res.status}`);
+      }
+
+      return await res.json();
+
+    } catch (err) {
+      return { error: err.message };
+    }
+  }
+
+  // ─── TABLE STATES ─────────────────────────────────────────
+  function setTableLoading() {
+    document.getElementById("transactionTable").innerHTML = `
+      <tr class="state-row">
+        <td colspan="8">
+          <div class="spinner-wrap"><div class="spinner"></div>Loading transactions…</div>
+        </td>
+      </tr>`;
+    document.getElementById("mobileCards").innerHTML = `
+      <div class="spinner-wrap" style="padding:32px 0;">
+        <div class="spinner"></div>Loading transactions…
+      </div>`;
+    document.getElementById("totalCount").textContent  = "—";
+    document.getElementById("totalAmount").textContent = "—";
+  }
+
+  function setTableError(message, showRetry = true) {
+    const retryBtn = showRetry
+      ? `<button class="btn-retry" onclick="loadTransactions()"><i class="bi bi-arrow-clockwise"></i> Retry</button>`
+      : `<a href="${LOGIN_PAGE}" class="btn-retry">Go to Login</a>`;
+
+    document.getElementById("transactionTable").innerHTML = `
+      <tr class="state-row">
+        <td colspan="8">
+          <div class="error-wrap">
+            <div class="error-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <strong>Failed to load transactions</strong>
+            <span>${message}</span>
+            ${retryBtn}
+          </div>
+        </td>
+      </tr>`;
+
+    document.getElementById("mobileCards").innerHTML = `
+      <div class="error-wrap" style="padding:32px 16px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;">
+        <div class="error-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <strong style="font-size:14px;">Failed to load</strong>
+        <span style="font-size:13px; color:var(--text-secondary);">${message}</span>
+        ${retryBtn}
+      </div>`;
+  }
+
+  // ─── RENDER TABLE ─────────────────────────────────────────
+  function renderTable(data) {
+    const tableBody  = document.getElementById("transactionTable");
+    const mobileDiv  = document.getElementById("mobileCards");
+
+    let totalAmt = 0;
+
+    // ── Desktop ─────────────────────
+    tableBody.innerHTML = "";
+    if (data.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <div class="empty-state-icon"><i class="bi bi-receipt"></i></div>
+              <h4>No transactions found</h4>
+              <p>Try adjusting your filters or search query</p>
+            </div>
+          </td>
+        </tr>`;
+    } else {
+      data.forEach(tx => {
+        totalAmt += Number(tx.total);
+        tableBody.innerHTML += `
+          <tr onclick="viewTransaction(${tx.id})">
+            <td><span class="tx-id">#${tx.id}</span></td>
+            <td><span class="tx-date">${fmtDate(tx.date)}</span></td>
+            <td><span class="tx-cashier">${escHtml(tx.cashier)}</span></td>
+            <td><span class="tx-items">—</span></td>
+            <td><span class="tx-total">${fmt(tx.total)}</span></td>
+            <td><span class="tx-payment">${escHtml(tx.payment)}</span></td>
+            <td>${badgeHTML(tx.status)}</td>
+            <td>
+              <button class="btn-view" onclick="event.stopPropagation(); viewTransaction(${tx.id})">
+                <i class="bi bi-eye" style="font-size:12px;"></i> View
+              </button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    // ── Mobile ──────────────────────
+    mobileDiv.innerHTML = "";
+    if (data.length === 0) {
+      mobileDiv.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="bi bi-receipt"></i></div>
+          <h4>No transactions found</h4>
+          <p>Try adjusting your filters</p>
+        </div>`;
+    } else {
+      data.forEach(tx => {
+        mobileDiv.innerHTML += `
+          <div class="tx-card" onclick="viewTransaction(${tx.id})">
+            <div class="tx-card-top">
+              <span class="tx-card-id">#${tx.id}</span>
+              <span class="tx-card-date">${fmtDate(tx.date)}</span>
+            </div>
+            <div class="tx-card-row">
+              <div class="tx-card-meta">
+                <span><i class="bi bi-person"></i> ${escHtml(tx.cashier)}</span>
+                <span><i class="bi bi-credit-card"></i> ${escHtml(tx.payment)}</span>
+              </div>
+            </div>
+            <div class="tx-card-bottom">
+              <div>
+                <div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Total</div>
+                <div class="tx-card-total">${fmt(tx.total)}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                ${badgeHTML(tx.status)}
+                <button class="btn-view-sm" onclick="event.stopPropagation(); viewTransaction(${tx.id})">View</button>
+              </div>
+            </div>
+          </div>`;
+      });
+    }
+
+    document.getElementById("totalCount").textContent  = data.length;
+    document.getElementById("totalAmount").textContent = fmt(totalAmt);
+  }
+
+  function debounce(fn, delay) {
+    let timer;
+
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  // ─── FILTER CONTROLS ───────────────────────────────────────
+  // Every filter change now sends a fresh request to the backend (which does
+  // all the filtering and pagination) instead of re-filtering the already
+  // fetched page in JS, and resets to page 1. Search stays debounced so we
+  // don't hammer the API on every keystroke; the dropdowns/date pickers fire
+  // immediately on change.
+  const debouncedSearch = debounce(() => loadTransactions(1), 400);
+
+  document.getElementById("searchInput").addEventListener("input", debouncedSearch);
+  document.getElementById("paymentFilter").addEventListener("change", () => loadTransactions(1));
+  document.getElementById("statusFilter").addEventListener("change", () => loadTransactions(1));
+  document.getElementById("startDate").addEventListener("change", () => loadTransactions(1));
+  document.getElementById("endDate").addEventListener("change", () => loadTransactions(1));
+
+  // ─── MODAL — VIEW TRANSACTION ────────────────────────────
+  async function viewTransaction(saleId) {
+    const modal = document.getElementById("txModal");
+    modal.style.display = "block";
+
+    // Show loading state while we fetch detail
+    modal.innerHTML = `
+      <div class="modal-backdrop-custom" id="modalBackdrop">
+        <div class="modal-box">
+          <div class="modal-header-custom">
+            <span class="modal-title-custom">Transaction #${saleId}</span>
+            <button class="modal-close" onclick="closeModal()"><i class="bi bi-x"></i></button>
+          </div>
+          <div class="modal-loading">
+            <div class="spinner"></div>
+            Loading details…
+          </div>
+        </div>
+      </div>`;
+
+    // Close on backdrop click
+    document.getElementById("modalBackdrop").addEventListener("click", e => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+
+    const detail = await loadSaleDetail(saleId);
+
+    if (detail.error) {
+      modal.innerHTML = `
+        <div class="modal-backdrop-custom" id="modalBackdrop">
+          <div class="modal-box">
+            <div class="modal-header-custom">
+              <span class="modal-title-custom">Transaction #${saleId}</span>
+              <button class="modal-close" onclick="closeModal()"><i class="bi bi-x"></i></button>
+            </div>
+            <div class="modal-body-custom">
+              <div class="error-wrap" style="padding:16px 0;">
+                <div class="error-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                <strong>Could not load details</strong>
+                <span>${escHtml(detail.error)}</span>
+                <button class="btn-retry" onclick="closeModal(); viewTransaction(${saleId})">
+                  <i class="bi bi-arrow-clockwise"></i> Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById("modalBackdrop").addEventListener("click", e => {
+        if (e.target === e.currentTarget) closeModal();
+      });
+      return;
+    }
+
+    // Find status from our local data (single_sale endpoint doesn't return status)
+    const local  = allTransactions.find(t => t.id === saleId) || {};
+    const status = local.status || "completed";
+
+    const items = detail.items || [];
+    const itemsHTML = items.length
+      ? items.map(i => `
+          <div class="receipt-item">
+            <span class="receipt-item-name">
+              ${escHtml(i.product_name)}
+              <span style="color:var(--text-muted); font-size:12px;">×${i.quantity}</span>
+            </span>
+            <span class="receipt-item-price">${fmt(i.subtotal)}</span>
+          </div>`).join("")
+      : `<div style="color:var(--text-muted); font-size:13px; padding:8px 0;">No items found.</div>`;
+
+    modal.innerHTML = `
+      <div class="modal-backdrop-custom" id="modalBackdrop">
+        <div class="modal-box">
+          <div class="modal-header-custom">
+            <span class="modal-title-custom">Transaction #${saleId}</span>
+            <button class="modal-close" onclick="closeModal()"><i class="bi bi-x"></i></button>
+          </div>
+          <div class="modal-body-custom">
+            <div class="modal-meta">
+              <div class="modal-meta-item">
+                <div class="modal-meta-label">Date</div>
+                <div class="modal-meta-value">${fmtDate(detail.date)}</div>
+              </div>
+              <div class="modal-meta-item">
+                <div class="modal-meta-label">Cashier</div>
+                <div class="modal-meta-value">${escHtml(detail.seller?.username || "—")}</div>
+              </div>
+              <div class="modal-meta-item">
+                <div class="modal-meta-label">Payment</div>
+                <div class="modal-meta-value">${escHtml(detail.payment_method || "—")}</div>
+              </div>
+              <div class="modal-meta-item">
+                <div class="modal-meta-label">Status</div>
+                <div class="modal-meta-value">${badgeHTML(status)}</div>
+              </div>
+            </div>
+
+            <div class="modal-section-title">Items</div>
+            <div class="receipt-items">${itemsHTML}</div>
+
+            <div class="modal-total-row">
+              <span class="modal-total-label">Total Amount</span>
+              <span class="modal-total-value">${fmt(detail.total)}</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById("modalBackdrop").addEventListener("click", e => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.addEventListener("keydown", handleEsc);
+  }
+
+  function closeModal() {
+    const modal = document.getElementById("txModal");
+    modal.style.display = "none";
+    modal.innerHTML = "";
+    document.removeEventListener("keydown", handleEsc);
+  }
+
+  function handleEsc(e) {
+    if (e.key === "Escape") closeModal();
+  }
+
+  // ─── XSS GUARD ───────────────────────────────────────────
+  function escHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  // ─── SIDEBAR ─────────────────────────────────────────────
+  const sidebar = document.getElementById("sidebarMenu");
+  const overlay = document.getElementById("overlay");
+
+  document.getElementById("collapseSidebar").onclick = () => sidebar.classList.toggle("collapsed");
+
+  document.getElementById("sidebarToggle").onclick = () => {
+    sidebar.classList.toggle("show");
+    overlay.classList.toggle("show");
+  };
+
+  overlay.onclick = () => {
+    sidebar.classList.remove("show");
+    overlay.classList.remove("show");
+  };
+
+  // ─── DARK MODE ────────────────────────────────────────────
+  const darkToggle = document.getElementById("darkModeToggle");
+  const modeIcon   = document.getElementById("modeIcon");
+
+  darkToggle.onclick = () => {
+    document.body.classList.toggle("dark-mode");
+    document.body.classList.toggle("light-mode");
+    const isDark = document.body.classList.contains("dark-mode");
+    modeIcon.className = isDark ? "bi bi-sun" : "bi bi-moon";
+    darkToggle.querySelector("span").textContent = isDark ? "Light mode" : "Dark mode";
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  };
+
+  // Restore saved theme
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark-mode");
+    document.body.classList.remove("light-mode");
+    modeIcon.className = "bi bi-sun";
+    darkToggle.querySelector("span").textContent = "Light mode";
+  }
+
+  // ─── INIT ────────────────────────────────────────────────
+  loadTransactions();
+</script>
+</body>
+</html>
