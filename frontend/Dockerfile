@@ -1,11 +1,12 @@
 FROM nginx:1.27-alpine
-
+ 
+# Remove default config, use our own
 RUN rm -f /etc/nginx/conf.d/default.conf
-
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
-
-COPY . /usr/share/nginx/html
-
+ 
+# Copy static site files (html, css, js)
+COPY frontend/ /usr/share/nginx/html
+ 
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
