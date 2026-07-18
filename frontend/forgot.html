@@ -448,7 +448,7 @@
         btn.innerHTML = spinnerSVG + ' Sending…';
 
         try {
-        const res = await fetch('/api/auth/auth/forgot-password', {
+        const res = await fetch('https://pos-backend-system.up.railway.app/auth/auth/forgot-password', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ email })

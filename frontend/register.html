@@ -875,7 +875,7 @@
         let registrationSuccessful = false;
 
         try {
-            const response = await fetch("/api/auth/auth/register", {
+            const response = await fetch("https://pos-backend-system.up.railway.app/auth/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

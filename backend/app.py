@@ -23,7 +23,18 @@ load_dotenv()
 app = Flask(__name__)
 
 #Cross Origin Resource Sharing
-CORS(app,resources={r"/*": {"origins": "*"}},supports_credentials=True,
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": [
+                "https://codexlabspos.netlify.app",
+                "http://localhost:5500",
+                "http://127.0.0.1:5500"
+            ]
+        }
+    },
+    supports_credentials=True,
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
