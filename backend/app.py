@@ -89,6 +89,12 @@ db.init_app(app)
 jwt.init_app(app)
 mail.init_app(app)
 migrate.init_app(app, db)
+
+with app.app_context():    
+    print(">>> Creating tables...")
+    db.create_all()
+    print(">>> Tables created.")
+
 start_network_monitor()
 start_sync_service(app)
 
@@ -161,9 +167,5 @@ def revoked_token_callback(jwt_header, jwt_data):
     return jsonify({"message": "Token has been revoked"}), 401
 
 
-if __name__ == "__main__":
-    with app.app_context():
-        print(">>> Creating tables...")
-        db.create_all()
-        print(">>> Tables created.")
+if __name__ == "__main__":    
     app.run(host="0.0.0.0", port=5000, debug=True)
