@@ -163,5 +163,7 @@ def revoked_token_callback(jwt_header, jwt_data):
 
 if __name__ == "__main__":
     with app.app_context():
+        print(">>> Creating tables...")
         db.create_all()
+        print(">>> Tables created.")
     app.run(host="0.0.0.0", port=5000, debug=True)
