@@ -52,8 +52,9 @@ if database_url:
 print(f"DATABASE CONNECTING TO: {database_url}")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-app.config["SQLALCHEMY_DATABASE_URI"] = database_urlapp.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL")
 app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL")
 
 # JWT config — explicitly header-based, no CSRF
