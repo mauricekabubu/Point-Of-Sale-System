@@ -42,8 +42,15 @@ CORS(
 # Core configigurations
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+database_url = os.getenv("DATABASE_URL")
+
+if database_url.startswith("mysql://"):
+    database_url = database_url.replace("mysql://", "mysql+pymysql://", 1)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_urlapp.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL")
 
 # JWT config — explicitly header-based, no CSRF
