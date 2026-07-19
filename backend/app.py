@@ -45,8 +45,10 @@ app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 
 database_url = os.getenv("DATABASE_URL")
 
-if database_url.startswith("mysql://"):
+if database_url and database_url.startswith("mysql://"):
     database_url = database_url.replace("mysql://", "mysql+pymysql://", 1)
+
+print(f"DATABASE CONNECTING TO: {database_url}")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
