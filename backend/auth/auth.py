@@ -9,6 +9,8 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 from flask_mail import Message
 from dotenv import load_dotenv
+import smtplib
+
 
 load_dotenv()
 
@@ -324,9 +326,37 @@ def forgot_password():
             )
 
             print("STEP 7")
-            mail.send(msg)
-
-            print("STEP 8")
+            try:             
+             print("Connecting...")
+             smtp = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+         
+             print("Connected")
+         
+             smtp.starttls()
+             print("TLS Started")
+         
+             smtp.login(
+                 current_app.config["MAIL_USERNAME"],
+                 current_app.config["MAIL_PASSWORD"]
+             )
+         
+             print("Logged in")
+         
+             smtp.sendmail(
+                 current_app.config["MAIL_USERNAME"],
+                 user.email,
+                 f"Subject: Password Reset\n\nReset your password:\n{reset_link}"
+             )
+         
+             print("Email sent")
+         
+             smtp.quit()
+             
+                   
+            except Exception as e:
+                print("SMTP ERROR:", repr(e))
+                return jsonify({"error": str(e)}), 500
+                print("STEP 8")
 
         return jsonify({
             "message": "If that email is registered, a reset link has been sent."
