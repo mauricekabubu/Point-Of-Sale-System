@@ -1553,6 +1553,7 @@ body {
     const QUEUE_KEY = 'pos_offline_queue_v1';
   
     let isOnline = navigator.onLine; // optimistic first guess, corrected on first poll
+    window.__posOnline = isOnline; // exposed for the offline-first sales queue module below
     let pollTimer = null;
   
     // ---------- Badge ----------
@@ -1590,8 +1591,12 @@ body {
     function setOnline(nextState) {
       const changed = nextState !== isOnline;
       isOnline = nextState;
+      window.__posOnline = isOnline; // keep the offline-first sales queue module in sync
       renderBadge();
       toggleInternetOnlyControls();
+      // Let any other module (e.g. the offline sales queue below) react to
+      // connectivity changes without us needing to know it exists.
+      window.dispatchEvent(new CustomEvent('pos-online-status-changed', { detail: { isOnline } }));
       if (changed && isOnline) {
         flushQueue();
       }
@@ -1778,10 +1783,606 @@ body {
       start();
     }
   })();
+
+  // ================================================================
+  //  OFFLINE-FIRST SALES QUEUE  (IndexedDB, localStorage fallback)
+  // ================================================================
+  // Adds true offline sale support ON TOP of the offline-detection module
+  // above, without touching any endpoint, payment logic, or receipt markup:
+  //   1. Wraps checkout() so Cash / Other Payment sales complete locally
+  //      when there is no internet, using the same cart totals, receipt
+  //      renderer, and cart-clearing flow as an online sale.
+  //   2. Persists every offline sale (IndexedDB, falls back to
+  //      localStorage automatically if IndexedDB is unavailable).
+  //   3. Watches for connectivity returning and replays queued sales
+  //      through the EXISTING /services/sales/sale endpoint, one at a
+  //      time, with exponential backoff on failure.
+  //   4. Caches the product catalog offline (Feature 1), deducts stock
+  //      locally the instant an offline sale completes (Feature 2/8),
+  //      preserves 30 days of synced-sale history (Feature 5), and offers
+  //      a small Sync Queue dashboard (Feature 3) alongside the existing,
+  //      untouched queue badge.
+  (function () {
+    const DB_NAME    = 'codexlabs_pos_offline_db';
+    // Bumped from 1 → 2 to add the 'products' store (offline product
+    // cache) alongside the existing 'offline_sales' store. onupgradeneeded
+    // below checks each store independently, so this upgrades existing
+    // databases in place without touching any already-queued sales.
+    const DB_VERSION = 2;
+    const STORE          = 'offline_sales';
+    const PRODUCTS_STORE = 'products';
+    const LS_KEY          = 'codexlabs_pos_offline_sales_v1';   // localStorage fallback (sales)
+    const LS_PRODUCTS_KEY = 'codexlabs_pos_offline_products_v1'; // localStorage fallback (products)
+
+    // How long a synced sale is kept locally before being purged, forming
+    // a 30-day local audit trail (see markSynced()/cleanupOldSyncedSales()).
+    const SYNCED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+    // Bumped whenever the shape of the payload sent to the backend during
+    // replay changes, so future backend versions can tell old/new clients
+    // apart if they ever need to. The backend is free to ignore it.
+    const SYNC_PAYLOAD_VERSION = 1;
+    const LAST_SYNC_KEY = 'codexlabs_last_sync_success';
+
+    let dbPromise = null;
+    let useLocalStorageFallback = false;
+
+    // ---------- storage backend ----------
+    function openDB() {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve) => {
+        if (!window.indexedDB) { useLocalStorageFallback = true; resolve(null); return; }
+        try {
+          const req = indexedDB.open(DB_NAME, DB_VERSION);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE)) {
+              const store = db.createObjectStore(STORE, { keyPath: 'offline_id' });
+              store.createIndex('sync_status', 'sync_status', { unique: false });
+            }
+            // Offline product cache — added for the offline product
+            // browsing / search / barcode / stock-deduction requirements.
+            if (!db.objectStoreNames.contains(PRODUCTS_STORE)) {
+              db.createObjectStore(PRODUCTS_STORE, { keyPath: 'id' });
+            }
+          };
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = () => { useLocalStorageFallback = true; resolve(null); };
+        } catch (_) {
+          useLocalStorageFallback = true;
+          resolve(null);
+        }
+      });
+      return dbPromise;
+    }
+
+    function lsReadAll() {
+      try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+      catch (_) { return []; }
+    }
+    function lsWriteAll(arr) { localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+
+    // ---------- localStorage fallback (products) ----------
+    function lsReadProducts() {
+      try { return JSON.parse(localStorage.getItem(LS_PRODUCTS_KEY) || '[]'); }
+      catch (_) { return []; }
+    }
+    function lsWriteProducts(arr) { localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(arr)); }
+
+    async function addOfflineSale(record) {
+      if (useLocalStorageFallback) { const all = lsReadAll(); all.push(record); lsWriteAll(all); return record; }
+      const db = await openDB();
+      if (!db) { const all = lsReadAll(); all.push(record); lsWriteAll(all); return record; }
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).put(record);
+        tx.oncomplete = () => resolve(record);
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getAllOfflineSales() {
+      if (useLocalStorageFallback) return lsReadAll();
+      const db = await openDB();
+      if (!db) return lsReadAll();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readonly');
+        const req = tx.objectStore(STORE).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function updateOfflineSale(offlineId, patch) {
+      if (useLocalStorageFallback) {
+        const all = lsReadAll();
+        const idx = all.findIndex(s => s.offline_id === offlineId);
+        if (idx >= 0) { all[idx] = { ...all[idx], ...patch }; lsWriteAll(all); }
+        return;
+      }
+      const db = await openDB();
+      if (!db) {
+        const all = lsReadAll();
+        const idx = all.findIndex(s => s.offline_id === offlineId);
+        if (idx >= 0) { all[idx] = { ...all[idx], ...patch }; lsWriteAll(all); }
+        return;
+      }
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        const store = tx.objectStore(STORE);
+        const getReq = store.get(offlineId);
+        getReq.onsuccess = () => {
+          const existing = getReq.result;
+          if (existing) store.put({ ...existing, ...patch });
+        };
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function deleteOfflineSale(offlineId) {
+      if (useLocalStorageFallback) { lsWriteAll(lsReadAll().filter(s => s.offline_id !== offlineId)); return; }
+      const db = await openDB();
+      if (!db) { lsWriteAll(lsReadAll().filter(s => s.offline_id !== offlineId)); return; }
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).delete(offlineId);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getPendingOfflineSales() {
+      const all = await getAllOfflineSales();
+      const now = Date.now();
+      return all.filter(s =>
+        (s.sync_status === 'pending' || s.sync_status === 'failed') &&
+        (!s.next_retry_at || s.next_retry_at <= now)
+      );
+    }
+
+    async function getQueueCount() {
+      const all = await getAllOfflineSales();
+      return all.filter(s => s.sync_status !== 'synced').length;
+    }
+
+    // ---------- Offline product cache (Feature 1 — highest priority) ----------
+    // Called every time /services/product/products succeeds, so the local
+    // cache always mirrors the last known-good server state. Bulk-writes in
+    // a single transaction so this stays fast even for large catalogs.
+    async function cacheProducts(products) {
+      if (!Array.isArray(products) || !products.length) return;
+      if (useLocalStorageFallback) { lsWriteProducts(products); return; }
+      const db = await openDB();
+      if (!db) { lsWriteProducts(products); return; }
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(PRODUCTS_STORE, 'readwrite');
+        const store = tx.objectStore(PRODUCTS_STORE);
+        // Replace the cache wholesale so removed/renamed products don't
+        // linger — the server product list is always the source of truth
+        // whenever it's reachable.
+        store.clear();
+        products.forEach(p => store.put(p));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getCachedProducts() {
+      if (useLocalStorageFallback) return lsReadProducts();
+      const db = await openDB();
+      if (!db) return lsReadProducts();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(PRODUCTS_STORE, 'readonly');
+        const req = tx.objectStore(PRODUCTS_STORE).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    // Persist just the updated quantities after an offline stock deduction,
+    // without needing a full re-fetch from the server. Cheap upsert per
+    // product — fine at normal catalog sizes; for very large catalogs this
+    // could be batched, but correctness matters more than micro-optimizing
+    // a rare (offline-sale) code path.
+    async function persistProductQuantities(products) {
+      return cacheProducts(products);
+    }
+
+    window.OfflinePOS = {
+      addOfflineSale,
+      getAllOfflineSales,
+      getQueueCount,
+      cacheProducts,
+      getCachedProducts,
+      persistProductQuantities
+    };
+
+    // ---------- queue badge (purely visual, injected via JS) ----------
+    function ensureQueueBadge() {
+      let el = document.getElementById('offlineQueueBadge');
+      if (el) return el;
+      const anchor = document.getElementById('connectionBadge');
+      if (!anchor || !anchor.parentNode) return null;
+      el = document.createElement('span');
+      el.id = 'offlineQueueBadge';
+      el.className = 'connection-badge offline';
+      el.style.display = 'none';
+      anchor.parentNode.insertBefore(el, anchor.nextSibling);
+      return el;
+    }
+
+    async function refreshQueueBadge() {
+      const el = ensureQueueBadge();
+      if (!el) return;
+      const count = await getQueueCount();
+      if (count > 0) {
+        el.style.display = 'inline-flex';
+        el.textContent = `⏳ ${count} sale${count > 1 ? 's' : ''} pending sync`;
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    // ---------- Feature 3: Queue Dashboard ----------
+    // A small, separate modal — does NOT touch or replace the existing
+    // offlineQueueBadge/connectionBadge. It's opened via its own trigger
+    // button, injected next to the existing badges the same non-invasive
+    // way (created with JS, no HTML template changes).
+    function getReceiptQueueCounts() {
+      try {
+        const q = JSON.parse(localStorage.getItem('pos_offline_queue_v1') || '[]');
+        return {
+          email: q.filter(i => i.type === 'email').length,
+          whatsapp: q.filter(i => i.type === 'whatsapp').length
+        };
+      } catch (_) {
+        return { email: 0, whatsapp: 0 };
+      }
+    }
+
+    function getLastSyncSuccessLabel() {
+      const t = localStorage.getItem(LAST_SYNC_KEY);
+      if (!t) return 'Never';
+      const d = new Date(Number(t));
+      return isNaN(d.getTime()) ? 'Never' : d.toLocaleString();
+    }
+
+    function ensureQueueDashboardTrigger() {
+      let btn = document.getElementById('offlineQueueDashboardBtn');
+      if (btn) return btn;
+      const anchor = document.getElementById('connectionBadge');
+      if (!anchor || !anchor.parentNode) return null;
+      btn = document.createElement('button');
+      btn.id = 'offlineQueueDashboardBtn';
+      btn.type = 'button';
+      btn.title = 'Sync queue';
+      btn.innerHTML = '<i class="bi bi-stack"></i>';
+      btn.style.cssText = 'width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;' +
+        'background:none;border:1px solid var(--border, rgba(0,0,0,.08));border-radius:8px;' +
+        'color:var(--text2, #6b7280);font-size:16px;cursor:pointer;margin-right:8px;';
+      btn.addEventListener('click', openQueueDashboard);
+      anchor.parentNode.insertBefore(btn, anchor);
+      return btn;
+    }
+
+    function ensureQueueDashboardModal() {
+      let overlay = document.getElementById('offlineQueueDashboardModal');
+      if (overlay) return overlay;
+
+      overlay = document.createElement('div');
+      overlay.id = 'offlineQueueDashboardModal';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);' +
+        'z-index:800;display:none;align-items:center;justify-content:center;padding:20px;';
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeQueueDashboard(); });
+
+      const box = document.createElement('div');
+      box.style.cssText = 'background:var(--surface,#fff);border-radius:16px;box-shadow:var(--shadow-lg,0 8px 30px rgba(0,0,0,.2));' +
+        'max-width:420px;width:100%;max-height:85vh;overflow-y:auto;border:1px solid var(--border,rgba(0,0,0,.08));';
+
+      box.innerHTML = `
+        <div style="padding:18px 20px;border-bottom:1px solid var(--border,rgba(0,0,0,.08));display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:15px;font-weight:700;color:var(--text,#111827);">
+            <i class="bi bi-arrow-repeat" style="color:var(--primary,#2563eb);margin-right:6px;"></i>Sync Queue
+          </div>
+          <button id="offlineQueueDashboardClose" type="button" style="width:28px;height:28px;border:none;background:var(--surface2,#f9fafb);border-radius:8px;cursor:pointer;color:var(--text2,#6b7280);">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div id="offlineQueueDashboardBody" style="padding:20px;font-size:13px;color:var(--text2,#6b7280);"></div>
+        <div style="padding:14px 20px;border-top:1px solid var(--border,rgba(0,0,0,.08));">
+          <button id="offlineQueueSyncNowBtn" type="button" style="width:100%;height:44px;border:none;border-radius:10px;
+            background:var(--primary,#2563eb);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">
+            <i class="bi bi-arrow-repeat"></i> Sync Now
+          </button>
+        </div>`;
+
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+
+      overlay.querySelector('#offlineQueueDashboardClose').addEventListener('click', closeQueueDashboard);
+      overlay.querySelector('#offlineQueueSyncNowBtn').addEventListener('click', async () => {
+        const btn = overlay.querySelector('#offlineQueueSyncNowBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Syncing…';
+        await trySyncQueue();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sync Now';
+        renderQueueDashboard();
+      });
+
+      return overlay;
+    }
+
+    function statRow(label, value, tone) {
+      const color = tone === 'warn' ? 'var(--warning,#d97706)' : tone === 'bad' ? 'var(--danger,#dc2626)' : 'var(--text,#111827)';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border,rgba(0,0,0,.06));">
+        <span>${label}</span><span style="font-weight:700;color:${color};">${value}</span>
+      </div>`;
+    }
+
+    async function renderQueueDashboard() {
+      const modal = ensureQueueDashboardModal();
+      const body = modal.querySelector('#offlineQueueDashboardBody');
+      if (!body) return;
+
+      const all = await getAllOfflineSales();
+      const pendingCount = all.filter(s => s.sync_status === 'pending').length;
+      const failedCount  = all.filter(s => s.sync_status === 'failed').length;
+      const receiptCounts = getReceiptQueueCounts();
+
+      body.innerHTML =
+        statRow('Pending offline sales', pendingCount, pendingCount ? 'warn' : null) +
+        statRow('Pending email receipts', receiptCounts.email, receiptCounts.email ? 'warn' : null) +
+        statRow('Pending WhatsApp receipts', receiptCounts.whatsapp, receiptCounts.whatsapp ? 'warn' : null) +
+        statRow('Currently syncing', syncInProgress ? 'Yes' : 'No', syncInProgress ? 'warn' : null) +
+        statRow('Last successful sync', getLastSyncSuccessLabel()) +
+        statRow('Failed synchronizations', failedCount, failedCount ? 'bad' : null);
+    }
+
+    function refreshQueueDashboardIfOpen() {
+      const modal = document.getElementById('offlineQueueDashboardModal');
+      if (modal && modal.style.display === 'flex') renderQueueDashboard();
+    }
+
+    function openQueueDashboard() {
+      const modal = ensureQueueDashboardModal();
+      modal.style.display = 'flex';
+      renderQueueDashboard();
+    }
+
+    function closeQueueDashboard() {
+      const modal = document.getElementById('offlineQueueDashboardModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    // ---------- sync engine ----------
+    let syncInProgress = false;
+    let lastSyncError  = null;
+
+    // Records of the sale replayed to the backend now carry extra metadata
+    // (offline_id, created_at, subtotal/tax/tax_rate/total, sync_version) on
+    // top of the original items/payment_method fields — nothing existing is
+    // removed, the backend is free to ignore what it doesn't recognise.
+    async function syncOneSale(sale) {
+      await updateOfflineSale(sale.offline_id, { sync_status: 'syncing' });
+      try {
+        await apiFetch('/services/sales/sale', {
+          method: 'POST',
+          body: JSON.stringify({
+            items: sale.items,
+            payment_method: sale.payment_method,
+            // Extra sync metadata (additive only):
+            offline_id: sale.offline_id,
+            created_at: sale.created_at,
+            subtotal: sale.subtotal,
+            tax: sale.tax,
+            tax_rate: sale.tax_rate,
+            total: sale.total,
+            sync_version: SYNC_PAYLOAD_VERSION
+          })
+        });
+        // Preserve synced history instead of deleting immediately — kept
+        // locally for SYNCED_RETENTION_MS (30 days) as an audit trail, then
+        // swept by cleanupOldSyncedSales(). getPendingOfflineSales() only
+        // ever looks at 'pending'/'failed' sales, so a 'synced' record can
+        // never be replayed again (no duplicates).
+        await updateOfflineSale(sale.offline_id, {
+          sync_status: 'synced',
+          synced_at: Date.now(),
+          error: null
+        });
+        localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+        lastSyncError = null;
+        if (typeof showToast === 'function') {
+          showToast(`Offline sale synced (was ${sale.offline_id})`, 'success');
+        }
+        return true;
+      } catch (err) {
+        lastSyncError = err.message;
+        const attempts = (sale.attempts || 0) + 1;
+        const backoffMs = Math.min(5000 * Math.pow(2, attempts), 5 * 60 * 1000); // cap at 5 min
+        await updateOfflineSale(sale.offline_id, {
+          sync_status: 'failed',
+          attempts,
+          next_retry_at: Date.now() + backoffMs,
+          error: err.message
+        });
+        return false;
+      }
+    }
+
+    // Deletes 'synced' sales older than the 30-day retention window. Never
+    // touches 'pending'/'failed'/'syncing' records — only ever prunes rows
+    // that have already been safely confirmed by the backend.
+    async function cleanupOldSyncedSales() {
+      try {
+        const all = await getAllOfflineSales();
+        const cutoff = Date.now() - SYNCED_RETENTION_MS;
+        const stale = all.filter(s => s.sync_status === 'synced' && (s.synced_at || 0) < cutoff);
+        for (const s of stale) {
+          await deleteOfflineSale(s.offline_id);
+        }
+      } catch (_) { /* best-effort housekeeping — never blocks the cashier */ }
+    }
+
+    async function trySyncQueue() {
+      if (syncInProgress) return;
+      const online = (typeof window.__posOnline === 'boolean') ? window.__posOnline : navigator.onLine;
+      if (!online) return;
+
+      syncInProgress = true;
+      let anySucceeded = false;
+      try {
+        const pending = await getPendingOfflineSales();
+        for (const sale of pending) {
+          const stillOnline = (typeof window.__posOnline === 'boolean') ? window.__posOnline : navigator.onLine;
+          if (!stillOnline) break; // stop the batch immediately if connectivity drops
+          const ok = await syncOneSale(sale); // one failure never stops the rest of the queue
+          if (ok) anySucceeded = true;
+        }
+      } finally {
+        syncInProgress = false;
+        refreshQueueBadge();
+        refreshQueueDashboardIfOpen();
+        // Background cache refresh — whenever a sync pass lands at least
+        // one sale, silently pull fresh products + tax settings so the
+        // cashier's local cache reconciles with the server (server is the
+        // source of truth). This never interrupts the current screen; it
+        // just re-renders the product grid with the latest data.
+        if (anySucceeded) {
+          try { if (typeof loadProducts === 'function') loadProducts(); } catch (_) {}
+          try { if (typeof loadBusinessTaxRate === 'function') loadBusinessTaxRate(); } catch (_) {}
+        }
+      }
+    }
+
+    // ---------- offline stock deduction (Feature 2) ----------
+    // Immediately reduces PRODUCT_DATA quantities for whatever was in the
+    // cart, re-renders the grid so it, search results, and barcode lookups
+    // (which all just read PRODUCT_DATA live) reflect the new stock right
+    // away, and persists the updated quantities to the offline product
+    // cache so a refresh while still offline keeps the correct numbers.
+    // This is local-only until the sale synchronises — the server total is
+    // reconciled afterwards via the background cache refresh in
+    // trySyncQueue().
+    function decrementLocalStock(cartItemsSnapshot) {
+      if (typeof PRODUCT_DATA === 'undefined' || !Array.isArray(PRODUCT_DATA)) return;
+      cartItemsSnapshot.forEach(entry => {
+        const p = PRODUCT_DATA.find(x => x.id === entry.id);
+        if (p) p.quantity = Math.max(0, (Number(p.quantity) || 0) - entry.qty);
+      });
+      if (typeof renderProducts === 'function') renderProducts(PRODUCT_DATA);
+      const countEl = document.getElementById('productCount');
+      if (countEl) {
+        countEl.textContent = `${PRODUCT_DATA.length} product${PRODUCT_DATA.length !== 1 ? 's' : ''} (offline cache)`;
+      }
+      persistProductQuantities(PRODUCT_DATA);
+    }
+
+    // ---------- checkout() wrapper: complete Cash / Other Payment sales offline ----------
+    function wrapGlobal(name, wrapper) {
+      const original = window[name];
+      if (typeof original !== 'function') return;
+      window[name] = function (...args) { return wrapper(original, ...args); };
+    }
+
+    async function completeOfflineSale() {
+      const btn = document.getElementById('checkoutBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Saving offline…';
+      }
+      try {
+        const cartItems = Object.values(cart);
+        const subtotal  = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+        const tax       = Math.round(subtotal * (businessTaxRate / 100));
+        const total     = subtotal + tax;
+        const offlineId = 'OFF-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+
+        const record = {
+          offline_id: offlineId,
+          created_at: new Date().toISOString(),
+          payment_method: selectedPayment,
+          items: cartToApiItems(),
+          cart_snapshot: cartItems.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+          subtotal, tax, tax_rate: businessTaxRate, total,
+          sync_status: 'pending',
+          attempts: 0,
+          next_retry_at: null,
+          error: null
+        };
+
+        await addOfflineSale(record);
+        refreshQueueBadge();
+        refreshQueueDashboardIfOpen();
+
+        // Feature 2 / 8 — deduct the sold quantities from the locally
+        // cached products immediately, before the sale ever reaches the
+        // backend, so stock is never oversold while offline.
+        decrementLocalStock(record.cart_snapshot);
+
+        // Mirror exactly what the online path sets so showReceiptForSale()
+        // and closeReceiptModal() behave identically either way.
+        activeSaleId           = offlineId;
+        activePaymentReference = offlineId;
+        captureSaleTaxFields({ tax_rate: businessTaxRate, tax_amount: tax, subtotal, total });
+
+        showReceiptForSale(offlineId, selectedPayment, true /* pendingSync */);
+        showToast('Offline sale saved — will sync automatically once back online', 'success');
+
+        trySyncQueue(); // harmless no-op if we really are still offline
+
+      } catch (err) {
+        showToast(`Failed to save offline sale: ${err.message}`, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Complete Payment';
+        }
+      }
+    }
+
+    wrapGlobal('checkout', async function (original) {
+      if (!selectedPayment) { showToast('Please select a payment method', 'error'); return; }
+      if (!Object.keys(cart).length) { showToast('Cart is empty', 'error'); return; }
+
+      const offlineNow = (typeof window.__posOnline === 'boolean') ? !window.__posOnline : !navigator.onLine;
+
+      // Only Cash / Other Payment can complete without any network call.
+      // M-Pesa always goes through its own modal — its STK / Lipa options
+      // are already disabled while offline by the module above, so that
+      // path is left completely untouched.
+      if (offlineNow && selectedPayment !== 'M-Pesa') {
+        return completeOfflineSale();
+      }
+      return original();
+    });
+
+    // ---------- triggers to attempt a sync ----------
+    window.addEventListener('online', () => trySyncQueue());
+    window.addEventListener('pos-online-status-changed', (e) => {
+      if (e && e.detail && e.detail.isOnline) trySyncQueue();
+    });
+    // Safety-net poll, independent of the badge module above, so queued
+    // sales are never stuck if an event happens to be missed.
+    setInterval(trySyncQueue, 15000);
+
+    function init() {
+      refreshQueueBadge();
+      ensureQueueDashboardTrigger();
+      cleanupOldSyncedSales();
+      trySyncQueue();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
  
 
   // ================================================================
-  //  PRODUCTS
+  //  PRODUCTS — load from API, with offline-first IndexedDB cache
   // ================================================================
   let PRODUCT_DATA = [];
   let allProducts  = [];
@@ -1794,7 +2395,36 @@ body {
       renderProducts(PRODUCT_DATA);
       document.getElementById('productCount').textContent =
         `${PRODUCT_DATA.length} product${PRODUCT_DATA.length !== 1 ? 's' : ''}`;
+
+      // Feature 1 / 7 / 9 — cache the freshly-downloaded catalog for
+      // offline browsing, and to survive a startup with no connectivity.
+      if (window.OfflinePOS && typeof window.OfflinePOS.cacheProducts === 'function') {
+        window.OfflinePOS.cacheProducts(PRODUCT_DATA);
+      }
     } catch (err) {
+      // Backend unreachable — fall back to the last cached product list
+      // instead of an empty/error grid, per the offline-first requirement.
+      // Only the original error state (below) is shown if there is truly
+      // no cache at all.
+      let cached = [];
+      try {
+        if (window.OfflinePOS && typeof window.OfflinePOS.getCachedProducts === 'function') {
+          cached = await window.OfflinePOS.getCachedProducts();
+        }
+      } catch (_) { /* ignore cache read errors, fall through to error state */ }
+
+      if (cached && cached.length) {
+        PRODUCT_DATA = cached;
+        allProducts  = cached;
+        renderProducts(cached);
+        document.getElementById('productCount').textContent =
+          `${cached.length} product${cached.length !== 1 ? 's' : ''} (offline cache)`;
+        if (typeof showToast === 'function') {
+          showToast('Offline Mode: Showing cached products', 'success');
+        }
+        return;
+      }
+
       document.getElementById('productGrid').innerHTML = `
         <div style="padding:32px;text-align:center;color:var(--danger);font-size:14px;grid-column:1/-1;">
           <i class="bi bi-exclamation-triangle" style="font-size:28px;display:block;margin-bottom:8px;"></i>
@@ -2185,7 +2815,7 @@ body {
       </div>`;
   }
 
-  function showReceiptForSale(saleId, method) {
+  function showReceiptForSale(saleId, method, pendingSync = false) {
     const cartItems = Object.values(cart);
 
     const subtotal = (activeSaleSubtotal !== null)
@@ -2207,11 +2837,42 @@ body {
     // without touching any of the existing calculation/print logic.
     currentReceiptData = {
       saleId, method, items: cartItems, subtotal, tax, taxRate, total,
+      pendingSync,
       receiptNo: 'RCT-' + String(saleId).padStart(6, '0')
     };
 
     document.getElementById('receiptContent').innerHTML = buildReceiptHTML(saleId, method, cartItems, subtotal, tax, total, taxRate);
+
+    // Offline sales are marked clearly as "Pending Sync" — this only
+    // tweaks the already-rendered badges/notes, it never changes the
+    // receipt markup or calculations for the normal online path.
+    if (pendingSync) {
+      markReceiptPendingSync();
+    }
+
     document.getElementById('checkoutModal').classList.add('show');
+  }
+
+  function markReceiptPendingSync() {
+    const statusBadge = document.querySelector('#receiptContent .receipt-status-badge');
+    if (statusBadge) {
+      statusBadge.innerHTML = '<i class="bi bi-cloud-arrow-up"></i> Pending Sync';
+      statusBadge.style.background = 'var(--warning-light)';
+      statusBadge.style.color = 'var(--warning)';
+    }
+    const payBadge = document.querySelector('#receiptContent .receipt-pay-badge');
+    if (payBadge) {
+      payBadge.className = 'receipt-pay-badge pending';
+      payBadge.innerHTML = '<i class="bi bi-cloud-arrow-up"></i> Pending Sync';
+    }
+    const infoCard = document.querySelector('#receiptContent .receipt-info-card');
+    if (infoCard && !document.getElementById('offlineSyncNote')) {
+      const note = document.createElement('div');
+      note.id = 'offlineSyncNote';
+      note.style.cssText = 'grid-column:1/-1;background:var(--warning-light);border:1px solid var(--warning);border-radius:8px;padding:8px 10px;font-size:11.5px;color:var(--warning);font-weight:600;display:flex;align-items:center;gap:6px;';
+      note.innerHTML = '<i class="bi bi-wifi-off"></i> Saved offline — this sale will sync automatically once internet is back.';
+      infoCard.appendChild(note);
+    }
   }
 
   function closeReceiptModal() {
@@ -2228,7 +2889,14 @@ body {
     updateCartUI();
     selectedPayment = null;
     document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-    loadProducts();
+
+    // Reload stock after successful sale — skipped while offline so we
+    // don't replace a perfectly good product grid with a "failed to
+    // load" state right after a successful offline sale.
+    if (navigator.onLine || window.__posOnline !== false) {
+      loadProducts();
+    }
+
     showToast('Sale completed!', 'success');
   }
 
