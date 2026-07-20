@@ -453,6 +453,10 @@ def c2b_register():
         }
 
         response = requests.post(url, json=payload, headers=headers, timeout=15)
+        
+        print("STATUS:", response.status_code)
+        print("BODY:", response.text)
+
         response_data = _safe_json(response)
         logger.info("C2B REGISTER | Safaricom response %s: %s",
                     response.status_code, response_data)
