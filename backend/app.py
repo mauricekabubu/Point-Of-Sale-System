@@ -76,6 +76,13 @@ app.config["MAIL_PASSWORD"] = os.getenv("PASSWORD")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("SENDGRID_SENDER")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("DEL_EMAIL")
 
+
+print("MAIL_USERNAME:", current_app.config["MAIL_USERNAME"])
+print("MAIL_SERVER:", current_app.config["MAIL_SERVER"])
+print("MAIL_PORT:", current_app.config["MAIL_PORT"])
+print("MAIL_USE_TLS:", current_app.config["MAIL_USE_TLS"])
+print("MAIL_PASSWORD SET:", bool(current_app.config["MAIL_PASSWORD"]))
+
 # Image upload config 
 # image beyond 16MB RAM should not be allowed
 app.config["MAX_CONTENT_LENGTH"] = 16*1024*1024 
