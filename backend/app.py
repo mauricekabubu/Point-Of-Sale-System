@@ -76,6 +76,8 @@ app.config["MAIL_PASSWORD"] = os.getenv("PASSWORD")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("SENDGRID_SENDER")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("DEL_EMAIL")
 
+import socket
+print(socket.getaddrinfo("smtp.yourprovider.com", 587))
 
 print("MAIL_USERNAME:", app.config["MAIL_USERNAME"])
 print("MAIL_SERVER:", app.config["MAIL_SERVER"])
