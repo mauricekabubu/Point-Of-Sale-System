@@ -684,6 +684,132 @@ tbody tr:hover td { background: var(--primary-soft); }
 
 .btn-view-sm:hover { background: var(--primary-hover); }
 
+/* ─── NEW: sync status badges (Feature 9) ─────────────────
+   Reuses the existing .badge shape/sizing — only adds new
+   color variants, nothing about .badge itself changes. */
+.badge-synced   { background: var(--green-bg);  color: var(--green-text); }
+.badge-pending-sync { background: #FEF3C7; color: #B45309; }
+.badge-syncing  { background: var(--primary-soft); color: var(--primary); }
+.badge-failed-sync  { background: var(--red-bg); color: var(--red-text); }
+.badge-pending  { background: #FEF3C7; color: #B45309; }
+.badge-cancelled { background: var(--surface-2); color: var(--text-muted); }
+body.dark-mode .badge-pending-sync,
+body.dark-mode .badge-pending { background: rgba(217,119,6,0.15); color: #FBBF24; }
+
+/* ─── NEW: search-match highlighting (Feature 4) ── */
+mark.search-hit {
+  background: rgba(250, 204, 21, 0.45);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+body.dark-mode mark.search-hit { background: rgba(250, 204, 21, 0.3); }
+
+/* ─── NEW: extra filters row + date presets (Feature 5) ── */
+.filters-row-2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  align-items: center;
+}
+.date-preset-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 99px;
+  padding: 6px 13px;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.date-preset-btn:hover { border-color: var(--primary); color: var(--primary); }
+.date-preset-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+.filters-row-2 .form-select { width: auto; min-width: 140px; }
+
+/* ─── NEW: summary bar actions — sort + export (Features 6, 11) ── */
+.summary-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.export-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 6px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--transition);
+}
+.export-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+#sortSelect { min-height: 34px; padding: 5px 10px; font-size: 12.5px; width: auto; }
+
+/* ─── NEW: pagination bar (Feature 7) ── */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-light);
+}
+.pagination-controls { display: flex; align-items: center; gap: 6px; }
+.page-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.page-btn:hover:not(:disabled) { background: var(--primary); color: white; border-color: var(--primary); }
+.page-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.page-info { font-size: 12.5px; color: var(--text-secondary); padding: 0 6px; white-space: nowrap; }
+#pageSizeSelect { width: auto; min-height: 34px; padding: 5px 10px; font-size: 12.5px; }
+
+/* ─── NEW: "new transaction" live-update toast (Feature 10) ── */
+.live-toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 3000;
+  animation: fadeIn 0.25s ease;
+  cursor: pointer;
+}
+.live-toast i { color: var(--green-text); }
+.tx-row-new { animation: rowFlash 1.6s ease; }
+@keyframes rowFlash {
+  0%   { background: rgba(99,102,241,0.18); }
+  100% { background: transparent; }
+}
+
+@media (max-width: 991px) {
+  .filters-row-2 { justify-content: flex-start; }
+  .summary-bar { flex-wrap: wrap; }
+  .pagination-bar { justify-content: center; text-align: center; }
+}
+
 /* ─── RESPONSIVE ───────────────────────────────────────── */
 @media (max-width: 991px) {
   #sidebarMenu { left: -240px; width: 220px; }
@@ -831,8 +957,42 @@ tbody tr:hover td { background: var(--primary-soft); }
                 <option>completed</option>
                 <option>pending</option>
                 <option>failed</option>
+                <option>cancelled</option>
+                <option>refunded</option>
               </select>
             </div>
+          </div>
+
+          <!-- NEW (Feature 5): date presets + sync status + cashier filter.
+               These are additive filters only — none of the original
+               filter inputs above were removed or renamed, so existing
+               loadTransactions() query params keep working unchanged. -->
+          <div class="filters-row-2">
+            <button type="button" class="date-preset-btn" data-preset="today">Today</button>
+            <button type="button" class="date-preset-btn" data-preset="yesterday">Yesterday</button>
+            <button type="button" class="date-preset-btn" data-preset="week">This Week</button>
+            <button type="button" class="date-preset-btn" data-preset="month">This Month</button>
+            <button type="button" class="date-preset-btn" data-preset="clear">All Time</button>
+
+            <select id="syncStatusFilter" class="form-select" title="Sync status">
+              <option value="">All Sync Status</option>
+              <option value="synced">Synced</option>
+              <option value="pending">Pending Sync</option>
+              <option value="failed">Failed Sync</option>
+            </select>
+
+            <select id="cashierFilter" class="form-select" title="Cashier">
+              <option value="">All Cashiers</option>
+            </select>
+
+            <select id="sortSelect" title="Sort by">
+              <option value="date_desc">Newest First</option>
+              <option value="date_asc">Oldest First</option>
+              <option value="amount_desc">Highest Amount</option>
+              <option value="amount_asc">Lowest Amount</option>
+              <option value="cashier">Cashier</option>
+              <option value="payment">Payment Method</option>
+            </select>
           </div>
         </div>
 
@@ -845,6 +1005,13 @@ tbody tr:hover td { background: var(--primary-soft); }
           <div class="summary-stat">
             <span class="summary-label">Total Amount</span>
             <span class="summary-value" id="totalAmount">—</span>
+          </div>
+
+          <!-- NEW (Feature 11): export current filtered/sorted results -->
+          <div class="summary-actions">
+            <button class="export-btn" id="exportCsvBtn" title="Export CSV"><i class="bi bi-filetype-csv"></i> CSV</button>
+            <button class="export-btn" id="exportExcelBtn" title="Export Excel"><i class="bi bi-file-earmark-spreadsheet"></i> Excel</button>
+            <button class="export-btn" id="exportPdfBtn" title="Export PDF"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
           </div>
         </div>
 
@@ -884,6 +1051,23 @@ tbody tr:hover td { background: var(--primary-soft); }
           </div>
         </div>
 
+        <!-- NEW (Feature 7): pagination bar. Uses window.pagination as
+             already returned by /services/sales/history — no backend
+             change needed as long as that response shape is kept. -->
+        <div class="pagination-bar" id="paginationBar" style="display:none;">
+          <div class="page-info" id="pageRangeInfo"></div>
+          <div class="pagination-controls">
+            <button class="page-btn" id="prevPageBtn"><i class="bi bi-chevron-left"></i> Prev</button>
+            <span class="page-info" id="pageCurrentInfo"></span>
+            <button class="page-btn" id="nextPageBtn">Next <i class="bi bi-chevron-right"></i></button>
+          </div>
+          <select id="pageSizeSelect" class="form-select">
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+          </select>
+        </div>
+
       </div>
     </div>
   </div>
@@ -917,6 +1101,17 @@ tbody tr:hover td { background: var(--primary-soft); }
   // ─── STATE ───────────────────────────────────────────────
   let allTransactions = [];   // raw data from /services/sales/history
 
+  // NEW: extra client-side state for Features 5, 6, 7, 10, 11.
+  // None of this replaces allTransactions/window.pagination — it only adds
+  // to how the already-fetched page is displayed.
+  let currentPage      = 1;
+  let currentPageSize  = 25;
+  let currentSort      = "date_desc";
+  let lastSearchQuery  = "";
+  let knownCashiers    = new Set();     // populated as pages load (Feature 5 cashier filter)
+  let liveUpdateTopId  = null;          // id of the newest visible transaction, for Feature 10
+  let livePollTimer    = null;
+
   // ─── HELPERS ─────────────────────────────────────────────
   function fmt(amount) {
     return `KES ${Number(amount).toLocaleString("en-KE", { minimumFractionDigits: 0 })}`;
@@ -936,9 +1131,49 @@ tbody tr:hover td { background: var(--primary-soft); }
 
   function badgeHTML(status) {
     const s = (status || "").toLowerCase();
-    const cls = s === "completed" ? "badge-completed" : "badge-refunded";
-    const label = s.charAt(0).toUpperCase() + s.slice(1);
+    // Original behavior preserved exactly: completed → green, everything
+    // else → red. New status values below only get their own color if the
+    // backend actually sends them; anything unrecognized still falls back
+    // to the original badge-refunded styling so nothing regresses.
+    let cls = "badge-refunded";
+    if (s === "completed") cls = "badge-completed";
+    else if (s === "pending") cls = "badge-pending";
+    else if (s === "cancelled" || s === "canceled") cls = "badge-cancelled";
+    else if (s === "refunded") cls = "badge-refunded";
+    const label = s ? s.charAt(0).toUpperCase() + s.slice(1) : "Unknown";
     return `<span class="badge ${cls}">${label}</span>`;
+  }
+
+  // NEW (Feature 9): sync-status badge for offline sales. Only rendered
+  // when a transaction actually carries a sync_status field — online sales
+  // without that field simply don't get this badge, so existing rows are
+  // unaffected.
+  function syncBadgeHTML(syncStatus) {
+    if (!syncStatus) return "";
+    const s = String(syncStatus).toLowerCase();
+    let cls = "badge-pending-sync", label = "Pending Sync";
+    if (s === "synced")  { cls = "badge-synced";  label = "Synced"; }
+    else if (s === "syncing") { cls = "badge-syncing"; label = "Syncing…"; }
+    else if (s === "failed")  { cls = "badge-failed-sync"; label = "Failed Sync"; }
+    else if (s === "pending") { cls = "badge-pending-sync"; label = "Pending Sync"; }
+    return `<span class="badge ${cls}" style="margin-left:4px;">${label}</span>`;
+  }
+
+  // NEW (Feature 4): wraps matches of the current search query in <mark>.
+  // Falls back to escHtml-only rendering when there's no active query or
+  // no match, so normal rows look exactly as before.
+  function highlightMatch(text) {
+    const raw = String(text ?? "");
+    const escaped = escHtml(raw);
+    const q = lastSearchQuery.trim();
+    if (!q) return escaped;
+    try {
+      const escapedQuery = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const re = new RegExp(`(${escapedQuery})`, "ig");
+      return escaped.replace(re, "<mark class=\"search-hit\">$1</mark>");
+    } catch (_) {
+      return escaped; // never let a bad regex break rendering
+    }
   }
 
   // OFFLINE-FIRST — REPORTS / TRANSACTIONS MODULE (informational only)
@@ -995,17 +1230,28 @@ tbody tr:hover td { background: var(--primary-soft); }
   // All filtering (search, payment, status, date range) and pagination is
   // handled entirely by the backend — the frontend just forwards the current
   // filter values as query params and renders whatever the backend returns.
-  async function loadTransactions(page = 1) {
-    setTableLoading();
+  async function loadTransactions(page = 1, { silent = false } = {}) {
+    currentPage = page;
+    if (!silent) setTableLoading();
 
+    lastSearchQuery = document.getElementById("searchInput").value.trim();
+
+    // NEW: sync_status / cashier / sort / per_page are sent alongside the
+    // original params. If the backend doesn't recognise them yet it will
+    // simply ignore them (query params it doesn't use), so this is safe to
+    // ship ahead of any backend change — once the backend does support
+    // them, filtering/sorting/pagination server-side will "just work".
     const params = new URLSearchParams({
         page,
-        per_page: 20,
-        search: document.getElementById("searchInput").value.trim(),
+        per_page: currentPageSize,
+        search: lastSearchQuery,
         payment: document.getElementById("paymentFilter").value,
         status: document.getElementById("statusFilter").value,
         start_date: document.getElementById("startDate").value,
-        end_date: document.getElementById("endDate").value
+        end_date: document.getElementById("endDate").value,
+        sync_status: document.getElementById("syncStatusFilter")?.value || "",
+        cashier: document.getElementById("cashierFilter")?.value || "",
+        sort: currentSort
     });
 
     try {
@@ -1028,19 +1274,111 @@ tbody tr:hover td { background: var(--primary-soft); }
         id:            s.sale_id,
         date:          s.date,           // ISO string from .isoformat()
         cashier:       s.seller?.name || s.seller?.username || "—",
+        cashierUsername: s.seller?.username || "",
+        cashierRole:   s.seller?.role || "",
         total:         s.total_amount,
         payment:       s.payment_method,
-        status:        s.status || "completed"   // history endpoint doesn't return status; default to completed
+        status:        s.status || "completed",   // history endpoint doesn't return status; default to completed
+        // NEW optional fields (Feature 2/9) — undefined/omitted safely if
+        // the backend response doesn't include them yet; UI just hides
+        // whatever isn't present.
+        receiptNo:     s.receipt_number || s.receipt_no || null,
+        taxAmount:     s.tax_amount ?? null,
+        discount:      s.discount ?? null,
+        customerName:  s.customer_name || null,
+        itemsCount:    s.items_count ?? null,
+        paymentRef:    s.payment_reference || null,
+        offlineId:     s.offline_id || null,
+        syncStatus:    s.sync_status || null
       }));
 
-      renderTable(allTransactions);
+      // Feature 5: grow the cashier dropdown with any names seen so far
+      // (best-effort — a full roster would need its own admin endpoint,
+      // which this task intentionally avoids adding).
+      populateCashierFilter(allTransactions);
+
+      // Feature 6: sort the currently loaded page client-side, instantly,
+      // with no extra request — matches "should not require reloading".
+      const sorted = applyClientSort(allTransactions, currentSort);
+
+      renderTable(sorted);
 
       // Save pagination info if needed
       window.pagination = data.pagination;
+      renderPagination(data.pagination);
+
+      // Feature 10: remember the newest id we've shown so the live-update
+      // poller can tell whether a brand-new sale has appeared.
+      if (page === 1 && sorted.length) {
+        liveUpdateTopId = sorted[0].id;
+      }
 
     } catch (err) {
-      setTableError(err.message);
+      if (!silent) setTableError(err.message);
     }
+  }
+
+  // NEW (Feature 6): pure client-side sort of the currently loaded page.
+  // Does not mutate the original array reference used elsewhere.
+  function applyClientSort(data, mode) {
+    const copy = data.slice();
+    switch (mode) {
+      case "date_asc":    copy.sort((a, b) => new Date(a.date) - new Date(b.date)); break;
+      case "amount_desc": copy.sort((a, b) => Number(b.total) - Number(a.total)); break;
+      case "amount_asc":  copy.sort((a, b) => Number(a.total) - Number(b.total)); break;
+      case "cashier":     copy.sort((a, b) => String(a.cashier).localeCompare(String(b.cashier))); break;
+      case "payment":     copy.sort((a, b) => String(a.payment).localeCompare(String(b.payment))); break;
+      case "date_desc":
+      default:            copy.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+    return copy;
+  }
+
+  // NEW (Feature 5): keep the cashier filter dropdown populated with every
+  // distinct cashier name seen across loaded pages, without disturbing the
+  // currently selected value.
+  function populateCashierFilter(rows) {
+    const select = document.getElementById("cashierFilter");
+    if (!select) return;
+    let added = false;
+    rows.forEach(r => {
+      if (r.cashier && r.cashier !== "—" && !knownCashiers.has(r.cashier)) {
+        knownCashiers.add(r.cashier);
+        added = true;
+      }
+    });
+    if (!added) return;
+    const current = select.value;
+    const names = Array.from(knownCashiers).sort();
+    select.innerHTML = `<option value="">All Cashiers</option>` +
+      names.map(n => `<option value="${escHtml(n)}" ${n === current ? "selected" : ""}>${escHtml(n)}</option>`).join("");
+  }
+
+  // NEW (Feature 7): renders Prev/Next + page X of Y using whatever shape
+  // window.pagination already comes back as. Falls back to hiding the bar
+  // entirely if the backend doesn't send pagination info, so this never
+  // breaks the page on an older backend response.
+  function renderPagination(pagination) {
+    const bar = document.getElementById("paginationBar");
+    if (!bar) return;
+    if (!pagination || typeof pagination !== "object") {
+      bar.style.display = "none";
+      return;
+    }
+    const total      = pagination.total ?? pagination.total_count ?? null;
+    const totalPages = pagination.total_pages ?? pagination.pages ?? null;
+    const page       = pagination.page ?? currentPage;
+
+    bar.style.display = "flex";
+    document.getElementById("pageRangeInfo").textContent =
+      total != null ? `${total} total transaction${total === 1 ? "" : "s"}` : "";
+    document.getElementById("pageCurrentInfo").textContent =
+      totalPages != null ? `Page ${page} of ${totalPages}` : `Page ${page}`;
+
+    const prevBtn = document.getElementById("prevPageBtn");
+    const nextBtn = document.getElementById("nextPageBtn");
+    prevBtn.disabled = page <= 1;
+    nextBtn.disabled = totalPages != null ? page >= totalPages : (allTransactions.length < currentPageSize);
   }
 
   // ─── FETCH SINGLE SALE DETAIL ────────────────────────────
@@ -1129,15 +1467,18 @@ tbody tr:hover td { background: var(--primary-soft); }
     } else {
       data.forEach(tx => {
         totalAmt += Number(tx.total);
+        const isNew = liveUpdateTopId !== null && tx.id > liveUpdateTopId;
+        const receiptLine = tx.receiptNo
+          ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${escHtml(tx.receiptNo)}</div>` : "";
         tableBody.innerHTML += `
-          <tr onclick="viewTransaction(${tx.id})">
-            <td><span class="tx-id">#${tx.id}</span></td>
+          <tr onclick="viewTransaction(${tx.id})" class="${isNew ? "tx-row-new" : ""}">
+            <td><span class="tx-id">#${highlightMatch(tx.id)}</span>${receiptLine}</td>
             <td><span class="tx-date">${fmtDate(tx.date)}</span></td>
-            <td><span class="tx-cashier">${escHtml(tx.cashier)}</span></td>
-            <td><span class="tx-items">—</span></td>
+            <td><span class="tx-cashier">${highlightMatch(tx.cashier)}</span></td>
+            <td><span class="tx-items">${tx.itemsCount != null ? tx.itemsCount : "—"}</span></td>
             <td><span class="tx-total">${fmt(tx.total)}</span></td>
-            <td><span class="tx-payment">${escHtml(tx.payment)}</span></td>
-            <td>${badgeHTML(tx.status)}</td>
+            <td><span class="tx-payment">${highlightMatch(tx.payment)}</span></td>
+            <td>${badgeHTML(tx.status)}${syncBadgeHTML(tx.syncStatus)}</td>
             <td>
               <button class="btn-view" onclick="event.stopPropagation(); viewTransaction(${tx.id})">
                 <i class="bi bi-eye" style="font-size:12px;"></i> View
@@ -1175,8 +1516,8 @@ tbody tr:hover td { background: var(--primary-soft); }
                 <div style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Total</div>
                 <div class="tx-card-total">${fmt(tx.total)}</div>
               </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                ${badgeHTML(tx.status)}
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                ${badgeHTML(tx.status)}${syncBadgeHTML(tx.syncStatus)}
                 <button class="btn-view-sm" onclick="event.stopPropagation(); viewTransaction(${tx.id})">View</button>
               </div>
             </div>
@@ -1210,6 +1551,191 @@ tbody tr:hover td { background: var(--primary-soft); }
   document.getElementById("statusFilter").addEventListener("change", () => loadTransactions(1));
   document.getElementById("startDate").addEventListener("change", () => loadTransactions(1));
   document.getElementById("endDate").addEventListener("change", () => loadTransactions(1));
+
+  // NEW: sync-status / cashier filters (Feature 5)
+  document.getElementById("syncStatusFilter")?.addEventListener("change", () => loadTransactions(1));
+  document.getElementById("cashierFilter")?.addEventListener("change", () => loadTransactions(1));
+
+  // NEW: sort (Feature 6) — re-sorts the already-loaded page instantly,
+  // no network round-trip required.
+  document.getElementById("sortSelect")?.addEventListener("change", (e) => {
+    currentSort = e.target.value;
+    renderTable(applyClientSort(allTransactions, currentSort));
+  });
+
+  // NEW: page size + prev/next (Feature 7)
+  document.getElementById("pageSizeSelect")?.addEventListener("change", (e) => {
+    currentPageSize = Number(e.target.value) || 25;
+    loadTransactions(1);
+  });
+  document.getElementById("prevPageBtn")?.addEventListener("click", () => {
+    if (currentPage > 1) loadTransactions(currentPage - 1);
+  });
+  document.getElementById("nextPageBtn")?.addEventListener("click", () => {
+    loadTransactions(currentPage + 1);
+  });
+
+  // NEW: date range presets (Feature 5)
+  document.querySelectorAll(".date-preset-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".date-preset-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyDatePreset(btn.dataset.preset);
+    });
+  });
+
+  function toISODate(d) { return d.toISOString().slice(0, 10); }
+
+  function applyDatePreset(preset) {
+    const startInput = document.getElementById("startDate");
+    const endInput    = document.getElementById("endDate");
+    const now = new Date();
+    let start = null, end = null;
+
+    if (preset === "today") {
+      start = end = now;
+    } else if (preset === "yesterday") {
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      start = end = y;
+    } else if (preset === "week") {
+      const day = now.getDay() || 7; // Monday-start week
+      const monday = new Date(now); monday.setDate(now.getDate() - day + 1);
+      start = monday; end = now;
+    } else if (preset === "month") {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = now;
+    } else if (preset === "clear") {
+      startInput.value = "";
+      endInput.value = "";
+      loadTransactions(1);
+      return;
+    }
+
+    startInput.value = toISODate(start);
+    endInput.value   = toISODate(end);
+    loadTransactions(1);
+  }
+
+  // NEW (Feature 11): export the currently loaded + sorted + filtered page.
+  // Exports only what's on screen — consistent with "current filters,
+  // search, sorting, date range" since all of those already shaped
+  // allTransactions before this point.
+  function getExportRows() {
+    return applyClientSort(allTransactions, currentSort);
+  }
+
+  function exportRowsToCSV(rows) {
+    const headers = ["Sale ID","Date","Cashier","Payment","Status","Sync Status","Total","Receipt No","Payment Reference"];
+    const lines = [headers.join(",")];
+    rows.forEach(tx => {
+      const cells = [
+        tx.id,
+        fmtDate(tx.date),
+        tx.cashier,
+        tx.payment,
+        tx.status,
+        tx.syncStatus || "",
+        tx.total,
+        tx.receiptNo || "",
+        tx.paymentRef || ""
+      ].map(v => `"${String(v ?? "").replace(/"/g, '""')}"`);
+      lines.push(cells.join(","));
+    });
+    return lines.join("\n");
+  }
+
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url  = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById("exportCsvBtn")?.addEventListener("click", () => {
+    const csv = exportRowsToCSV(getExportRows());
+    downloadBlob(csv, `transactions_${toISODate(new Date())}.csv`, "text/csv;charset=utf-8;");
+  });
+
+  // Excel: reuses the same CSV builder — CSV opens natively in Excel and
+  // avoids pulling in a spreadsheet library just for this export.
+  document.getElementById("exportExcelBtn")?.addEventListener("click", () => {
+    const csv = exportRowsToCSV(getExportRows());
+    downloadBlob(csv, `transactions_${toISODate(new Date())}.xls`, "application/vnd.ms-excel");
+  });
+
+  // PDF: opens a plain print-friendly window (same pattern as receipt
+  // printing elsewhere in this app) and lets the browser's print-to-PDF
+  // handle the actual PDF generation — no new dependency required.
+  document.getElementById("exportPdfBtn")?.addEventListener("click", () => {
+    const rows = getExportRows();
+    const win = window.open("", "EXPORT_PDF", "width=800,height:600");
+    if (!win) { alert("Please allow pop-ups to export PDF."); return; }
+    const doc = win.document;
+    doc.title = "Transactions Export";
+    const style = doc.createElement("style");
+    style.textContent = `
+      body{font-family:sans-serif;padding:24px;color:#0F172A;}
+      table{width:100%;border-collapse:collapse;font-size:12px;}
+      th,td{border:1px solid #E2E8F0;padding:6px 8px;text-align:left;}
+      th{background:#F1F5F9;}
+      h2{margin-bottom:12px;}
+    `;
+    doc.head.appendChild(style);
+    const table = doc.createElement("table");
+    const theadHtml = "<tr><th>Sale ID</th><th>Date</th><th>Cashier</th><th>Payment</th><th>Status</th><th>Total</th></tr>";
+    const rowsHtml = rows.map(tx => `<tr><td>#${tx.id}</td><td>${fmtDate(tx.date)}</td><td>${escHtml(tx.cashier)}</td><td>${escHtml(tx.payment)}</td><td>${escHtml(tx.status)}</td><td>${fmt(tx.total)}</td></tr>`).join("");
+    table.innerHTML = `<thead>${theadHtml}</thead><tbody>${rowsHtml}</tbody>`;
+    const h2 = doc.createElement("h2"); h2.textContent = "Transaction History Export";
+    doc.body.appendChild(h2);
+    doc.body.appendChild(table);
+    doc.close();
+    setTimeout(() => { win.focus(); win.print(); }, 300);
+  });
+
+  // NEW (Feature 10): lightweight live-update polling. Only acts when the
+  // cashier is looking at page 1 sorted newest-first — otherwise a
+  // background insert would be confusing, so it stays silent and just
+  // lets the next manual load pick it up.
+  function startLiveUpdatePolling() {
+    if (livePollTimer) clearInterval(livePollTimer);
+    livePollTimer = setInterval(async () => {
+      if (currentPage !== 1) return;
+      try {
+        const params = new URLSearchParams({
+          page: 1, per_page: currentPageSize,
+          search: document.getElementById("searchInput").value.trim(),
+          payment: document.getElementById("paymentFilter").value,
+          status: document.getElementById("statusFilter").value,
+          start_date: document.getElementById("startDate").value,
+          end_date: document.getElementById("endDate").value,
+          sync_status: document.getElementById("syncStatusFilter")?.value || "",
+          cashier: document.getElementById("cashierFilter")?.value || "",
+          sort: currentSort
+        });
+        const res = await fetch(`${API_BASE}/services/sales/history?${params}`, { headers: authHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+        const newest = (data.sales || [])[0];
+        if (newest && liveUpdateTopId !== null && newest.sale_id > liveUpdateTopId && currentSort === "date_desc") {
+          showLiveToast();
+          loadTransactions(1, { silent: true });
+        }
+      } catch (_) { /* silent — this is a background convenience poll */ }
+    }, 20000);
+  }
+
+  function showLiveToast() {
+    const existing = document.querySelector(".live-toast");
+    if (existing) existing.remove();
+    const toast = document.createElement("div");
+    toast.className = "live-toast";
+    toast.innerHTML = `<i class="bi bi-check-circle-fill"></i> New sale received — list updated`;
+    toast.addEventListener("click", () => toast.remove());
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
 
   // ─── MODAL — VIEW TRANSACTION ────────────────────────────
   async function viewTransaction(saleId) {
@@ -1280,6 +1806,19 @@ tbody tr:hover td { background: var(--primary-soft); }
           </div>`).join("")
       : `<div style="color:var(--text-muted); font-size:13px; padding:8px 0;">No items found.</div>`;
 
+    // NEW (Feature 2/8): extra fields only render if present — nothing is
+    // invented, and the original 4-field modal-meta grid still renders
+    // exactly as before when these are absent.
+    const extraMetaHTML = [
+      local.receiptNo ? metaItem("Receipt No.", escHtml(local.receiptNo)) : "",
+      local.customerName ? metaItem("Customer", escHtml(local.customerName)) : "",
+      local.paymentRef ? metaItem("Payment Reference", escHtml(local.paymentRef)) : "",
+      local.offlineId ? metaItem("Offline ID", escHtml(local.offlineId)) : "",
+      local.syncStatus ? metaItem("Sync Status", syncBadgeHTML(local.syncStatus)) : "",
+      local.taxAmount != null ? metaItem("Tax", fmt(local.taxAmount)) : "",
+      local.discount ? metaItem("Discount", fmt(local.discount)) : ""
+    ].join("");
+
     modal.innerHTML = `
       <div class="modal-backdrop-custom" id="modalBackdrop">
         <div class="modal-box">
@@ -1287,7 +1826,7 @@ tbody tr:hover td { background: var(--primary-soft); }
             <span class="modal-title-custom">Transaction #${saleId}</span>
             <button class="modal-close" onclick="closeModal()"><i class="bi bi-x"></i></button>
           </div>
-          <div class="modal-body-custom">
+          <div class="modal-body-custom" id="modalPrintArea">
             <div class="modal-meta">
               <div class="modal-meta-item">
                 <div class="modal-meta-label">Date</div>
@@ -1305,6 +1844,7 @@ tbody tr:hover td { background: var(--primary-soft); }
                 <div class="modal-meta-label">Status</div>
                 <div class="modal-meta-value">${badgeHTML(status)}</div>
               </div>
+              ${extraMetaHTML}
             </div>
 
             <div class="modal-section-title">Items</div>
@@ -1315,6 +1855,11 @@ tbody tr:hover td { background: var(--primary-soft); }
               <span class="modal-total-value">${fmt(detail.total)}</span>
             </div>
           </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; padding:0 24px 20px;">
+            <button class="btn-view" onclick="printModalReceipt()"><i class="bi bi-printer"></i> Print</button>
+            <button class="btn-view" onclick="emailModalReceipt(${saleId})"><i class="bi bi-envelope"></i> Email</button>
+            <button class="btn-view" onclick="whatsappModalReceipt(${saleId})"><i class="bi bi-whatsapp"></i> WhatsApp</button>
+          </div>
         </div>
       </div>`;
 
@@ -1322,6 +1867,65 @@ tbody tr:hover td { background: var(--primary-soft); }
       if (e.target === e.currentTarget) closeModal();
     });
     document.addEventListener("keydown", handleEsc);
+
+    // Stash the fetched detail so the share/print actions below can reuse
+    // it without a second API call.
+    window.__currentModalDetail = { saleId, detail, local };
+  }
+
+  // NEW (Feature 8): small helper for the extra modal-meta tiles above.
+  function metaItem(label, valueHtml) {
+    return `<div class="modal-meta-item"><div class="modal-meta-label">${escHtml(label)}</div><div class="modal-meta-value">${valueHtml}</div></div>`;
+  }
+
+  // NEW (Feature 8): print just the modal's content, same popup-window
+  // pattern used for receipt printing elsewhere in this POS.
+  function printModalReceipt() {
+    const area = document.getElementById("modalPrintArea");
+    if (!area) return;
+    const win = window.open("", "PRINT_TX", "width=420,height=720");
+    if (!win) { alert("Please allow pop-ups to print."); return; }
+    const doc = win.document;
+    doc.title = "Transaction Receipt";
+    const style = doc.createElement("style");
+    style.textContent = `body{font-family:sans-serif;padding:20px;color:#0F172A;} .modal-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;} .modal-meta-item{background:#F1F5F9;border-radius:8px;padding:8px 10px;} .modal-meta-label{font-size:10px;text-transform:uppercase;color:#94A3B8;font-weight:700;} .modal-meta-value{font-size:13px;font-weight:600;} .receipt-item{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid #eee;} .modal-total-row{display:flex;justify-content:space-between;font-weight:700;padding-top:10px;}`;
+    doc.head.appendChild(style);
+    doc.body.appendChild(area.cloneNode(true));
+    doc.close();
+    setTimeout(() => { win.focus(); win.print(); }, 300);
+  }
+
+  // NEW (Feature 8): opens the user's mail client with a plain-text summary
+  // of this transaction — no backend email-sending endpoint is assumed.
+  function emailModalReceipt(saleId) {
+    const ctx = window.__currentModalDetail;
+    if (!ctx) return;
+    const body = buildShareText(ctx);
+    const subject = encodeURIComponent(`Transaction #${saleId} Receipt`);
+    window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
+  }
+
+  // NEW (Feature 8): opens WhatsApp Web/app with the same summary text.
+  function whatsappModalReceipt(saleId) {
+    const ctx = window.__currentModalDetail;
+    if (!ctx) return;
+    const text = encodeURIComponent(buildShareText(ctx));
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  }
+
+  function buildShareText(ctx) {
+    const { saleId, detail } = ctx;
+    const lines = [
+      `Transaction #${saleId}`,
+      `Date: ${fmtDate(detail.date)}`,
+      `Cashier: ${detail.seller?.username || "—"}`,
+      `Payment: ${detail.payment_method || "—"}`,
+      "",
+      ...(detail.items || []).map(i => `${i.product_name} x${i.quantity} — ${fmt(i.subtotal)}`),
+      "",
+      `Total: ${fmt(detail.total)}`
+    ];
+    return lines.join("\n");
   }
 
   function closeModal() {
@@ -1383,6 +1987,7 @@ tbody tr:hover td { background: var(--primary-soft); }
 
   // ─── INIT ────────────────────────────────────────────────
   loadTransactions();
+  startLiveUpdatePolling(); // NEW (Feature 10) — additive, doesn't affect initial load
 </script>
 </body>
 </html>
