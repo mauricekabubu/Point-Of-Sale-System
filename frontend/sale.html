@@ -2313,14 +2313,17 @@ body {
           body: JSON.stringify({
             items: sale.items,
             payment_method: sale.payment_method,
-            // Extra sync metadata (additive only):
             offline_id: sale.offline_id,
             created_at: sale.created_at,
             subtotal: sale.subtotal,
             tax: sale.tax,
             tax_rate: sale.tax_rate,
             total: sale.total,
-            sync_version: SYNC_PAYLOAD_VERSION
+            sync_version: SYNC_PAYLOAD_VERSION,
+            // NEW — only present for offline Manual Till sales; undefined otherwise
+            payment_type: sale.payment_type,
+            payment_reference: sale.payment_reference,
+            mpesa_transaction_code: sale.mpesa_transaction_code
           })
         });
         // Preserve synced history instead of deleting immediately — kept
