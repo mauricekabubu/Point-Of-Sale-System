@@ -200,18 +200,83 @@ docker compose down
 Example configuration:
 
 ```env
-SECRET_KEY=your_secret_key
+# ==========================
+# Flask
+# ==========================
+SECRET_KEY=your-secret-key
+JWT_SECRET_KEY=your-jwt-secret-key
 
-DATABASE_URL=mysql+pymysql://user:password@db:3306/pos
+# ==========================
+# Database
+# ==========================
+MYSQL_ROOT_PASSWORD=your-root-password
+MYSQL_DATABASE=pos_db
+MYSQL_USER=your-db-user
+MYSQL_PASSWORD=your-db-password
 
-JWT_SECRET_KEY=your_jwt_secret
+DB_HOST=db
+DB_PORT=3306
 
-SENDGRID_API_KEY=your_sendgrid_api_key
+# SQLAlchemy (optional)
+DATABASE_URL=mysql+pymysql://your-db-user:your-db-password@db:3306/pos_db
 
-OPENAI_API_KEY=your_openai_api_key
+# ==========================
+# SendGrid
+# ==========================
+SENDGRID_API_KEY=your-sendgrid-api-key
+SENDGRID_SENDER=you@example.com
 
-MPESA_CONSUMER_KEY=your_consumer_key
-MPESA_CONSUMER_SECRET=your_consumer_secret
+# ==========================
+# Email (SMTP)
+# ==========================
+DEL_EMAIL=you@example.com
+PASSWORD=your-email-app-password
+
+# ==========================
+# Frontend
+# ==========================
+FRONTEND_URL=http://localhost:5500
+
+# ==========================
+# Safaricom Daraja
+# ==========================
+CONSUMER_KEY=your-consumer-key
+CONSUMER_SECRET=your-consumer-secret
+
+SHORT_CODE=174379
+PASSKEY=your-passkey
+
+PARTY_A=174379
+PARTY_B=174379
+
+INITIATOR_NAME=your-initiator-name
+INITIATOR_PASSWORD=your-initiator-password
+
+PHONE_NUMBER=254700000000
+
+CALLBACK_URL=https://your-domain.com/services/payments/api/pay/callback
+C2B_CONFIRMATION_URL=https://your-domain.com/services/payments/api/pay/c2b/confirm
+C2B_VALIDATION_URL=https://your-domain.com/services/payments/api/pay/c2b/validate
+
+C2B_SHORT_CODE=600992
+
+NGROK_AUTH_TOKEN=your-ngrok-token
+
+# ==========================
+# Safaricom Endpoints
+# ==========================
+C2B_SAFARICOM_SANDBOX_URL=https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl
+SAFARICOM_SANDBOX_TOKEN_URL=https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
+SAFARICOM_SANDBOX_STK_PUSH_URL=https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest
+MYSQL_ROOT_PASSWORD=your_root_password
+MYSQL_DATABASE=database_name
+MYSQL_USER=Your_username
+MYSQL_PASSWORD=Your_Mysql_password
+DB_HOST=host_name
+DB_PORT=3306
+DB_USER=user
+DB_PASSWORD=password
+DB_NAME=database_name
 ```
 
 ---
