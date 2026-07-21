@@ -900,6 +900,46 @@ body {
   opacity: .7;
 }
 
+/* ── Offline-mode mobile fix (topbar badges/button were overflowing) ── */
+@media (max-width: 768px) {
+  .topbar {
+    height: auto;
+    min-height: var(--topbar-h);
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding: 10px 16px;
+  }
+  .topbar-search {
+    order: 3;
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  .topbar-actions {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .connection-badge,
+  #offlineQueueBadge {
+    font-size: 10.5px;
+    padding: 3px 8px;
+    margin-right: 4px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #offlineQueueDashboardBtn {
+    width: 32px;
+    height: 32px;
+    margin-right: 4px;
+  }
+}
+
+@media (max-width: 420px) {
+  .connection-badge,
+  #offlineQueueBadge {
+    max-width: 110px;
+  }
+}
 </style>
 </head>
 <body>
