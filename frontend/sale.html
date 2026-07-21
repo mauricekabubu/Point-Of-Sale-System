@@ -2500,6 +2500,94 @@ body {
       return original();
     });
 
+    // Manual Till needs no payment-gateway call — it's just a cashier-confirmed
+    // sale record, exactly like Cash/Other Payment. So, like checkout(), it
+    // should complete straight to a local Pending-Sync sale when offline
+    // instead of throwing a raw network error. STK/Lipa are untouched — they
+    // genuinely need Safaricom and keep their "internet required" message.
+    wrapGlobal('startManualWaiting', async function (original) {
+      const offlineNow = (typeof window.__posOnline === 'boolean') ? !window.__posOnline : !navigator.onLine;
+      if (offlineNow) {
+        return completeOfflineManualTillSale();
+      }
+      return original();
+    });
+    
+    async function completeOfflineManualTillSale() {
+      const btn = document.getElementById('manualCompleteBtn');
+      if (!btn || btn.disabled) return; // respects the SMS-verification checkbox gate, same as online
+    
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i> Saving offline…';
+    
+      try {
+        const enteredTxnCode = document.getElementById('manualTxnCode').value.trim();
+        const cartItems = Object.values(cart);
+        const subtotal  = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
+        const tax       = Math.round(subtotal * (businessTaxRate / 100));
+        const total     = subtotal + tax;
+        const offlineId = 'OFF-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    
+        const record = {
+          offline_id: offlineId,
+          created_at: new Date().toISOString(),
+          payment_method: 'M-Pesa',
+          payment_type: 'manual',
+          payment_reference: activePaymentReference,   // the till reference already shown to the customer
+          mpesa_transaction_code: enteredTxnCode || null,
+          items: cartToApiItems(),
+          cart_snapshot: cartItems.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+          subtotal, tax, tax_rate: businessTaxRate, total,
+          sync_status: 'pending',
+          attempts: 0,
+          next_retry_at: null,
+          error: null
+        };
+    
+        await addOfflineSale(record);
+        refreshQueueBadge();
+        refreshQueueDashboardIfOpen();
+    
+        // Same immediate local stock deduction Cash/Other Payment get offline.
+        decrementLocalStock(record.cart_snapshot);
+    
+        // activeSaleId becomes the offline id (for sync tracking); the
+        // customer-facing till reference stays in activePaymentReference so
+        // the receipt still shows what the customer actually paid against.
+        activeSaleId = offlineId;
+        manualTxnCode = enteredTxnCode;
+        captureSaleTaxFields({ tax_rate: businessTaxRate, tax_amount: tax, subtotal, total });
+    
+        closeMpesaModal();
+        showReceiptForSale(offlineId, 'M-Pesa', true /* pendingSync */);
+        showToast('Offline Manual Till sale saved — will sync automatically once back online', 'success');
+    
+        trySyncQueue(); // harmless no-op if still offline
+    
+      } catch (err) {
+        showToast(`Failed to save offline Manual Till sale: ${err.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Complete Sale';
+      }
+    }
+
+    body: JSON.stringify({
+      items: sale.items,
+      payment_method: sale.payment_method,
+      offline_id: sale.offline_id,
+      created_at: sale.created_at,
+      subtotal: sale.subtotal,
+      tax: sale.tax,
+      tax_rate: sale.tax_rate,
+      total: sale.total,
+      sync_version: SYNC_PAYLOAD_VERSION,
+      // NEW — only present for offline Manual Till sales; undefined otherwise
+      payment_type: sale.payment_type,
+      payment_reference: sale.payment_reference,
+      mpesa_transaction_code: sale.mpesa_transaction_code
+    })
+
     // ---------- triggers to attempt a sync ----------
     window.addEventListener('online', () => trySyncQueue());
     window.addEventListener('pos-online-status-changed', (e) => {
