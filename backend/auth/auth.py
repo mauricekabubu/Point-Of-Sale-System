@@ -1,7 +1,7 @@
 from flask import Blueprint,request, jsonify,current_app
 from werkzeug.security import check_password_hash, generate_password_hash
 from models.model import Users, Cashier, Business,TokenBlockList
-from extensions.extension import db,mail
+from extensions.extension import db
 from flask_jwt_extended import jwt_required, get_jwt,create_access_token, create_refresh_token,current_user, get_jwt_identity
 import phonenumbers
 import os
@@ -9,6 +9,8 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 from flask_mail import Message
 from dotenv import load_dotenv
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 load_dotenv()
 
@@ -317,16 +319,30 @@ def forgot_password():
             reset_link = f"{current_app.config['FRONTEND_URL']}/reset.html?token={token}"
 
             print("STEP 6")
-            msg = Message(
-                subject="Password Reset — CodexLabs POS",
-                recipients=[user.email],
-                body=f"Reset link: {reset_link}"
-            )
+            try:
+                print("Sending via SendGrid...")
+
+                message = Mail(
+                    from_email=os.environ["SENDGRID_FROM_EMAIL"],
+                    to_emails=user.email,
+                    subject="Password Reset — CodexLabs POS",
+                    html_content=f'<p>Reset your password using the link below:</p><p><a href="{reset_link}">{reset_link}</a></p>'
+                )
+
+                sg = SendGridAPIClient(os.environ["SENDGRID_API_KEY"])
+                response = sg.send(message)
+
+                if response.status_code >= 400:
+                    print("SendGrid error:", response.status_code, response.body)
+                    return jsonify({"error": f"SendGrid error {response.status_code}"}), 500
+
+                print("Email sent, status:", response.status_code)
+
+            except Exception as e:
+                print("SENDGRID ERROR:", repr(e))
+                return jsonify({"error": str(e)}), 500
 
             print("STEP 7")
-            mail.send(msg)
-
-            print("STEP 8")
 
         return jsonify({
             "message": "If that email is registered, a reset link has been sent."
