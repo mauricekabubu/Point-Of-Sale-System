@@ -1415,7 +1415,9 @@ tbody tr:hover td { background: var(--primary-soft); }
   }
 
   // ─── INIT ────────────────────────────────────────────────
-  loadTransactions();
+  if (requireAuthOrRedirect()) {
+    loadTransactions();
+  }
 </script>
 </body>
 </html>

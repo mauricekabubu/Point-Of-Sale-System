@@ -42,8 +42,19 @@ CORS(
 # Core configigurations
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+
+database_url = os.getenv("DATABASE_URL")
+
+if database_url:
+    database_url = database_url.strip()
+    database_url = database_url.replace("mysql://", "mysql+pymysql://", 1)
+
+print(f"DATABASE CONNECTING TO: {database_url}")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL")
 app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL")
 
 # JWT config — explicitly header-based, no CSRF
@@ -65,7 +76,17 @@ app.config["MAIL_PASSWORD"] = os.getenv("PASSWORD")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("SENDGRID_SENDER")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("DEL_EMAIL")
 
+import socket
+print(socket.getaddrinfo("smtp.yourprovider.com", 587))
+
+print("MAIL_USERNAME:", app.config["MAIL_USERNAME"])
+print("MAIL_SERVER:", app.config["MAIL_SERVER"])
+print("MAIL_PORT:", app.config["MAIL_PORT"])
+print("MAIL_USE_TLS:", app.config["MAIL_USE_TLS"])
+print("MAIL_PASSWORD SET:", bool(app.config["MAIL_PASSWORD"]))
+
 # Image upload config 
+
 # image beyond 16MB RAM should not be allowed
 app.config["MAX_CONTENT_LENGTH"] = 16*1024*1024 
 app.config["ALLOWED_EXTENSIONS"] = [".jpg", ".webp", ".png", ".jfif", ".jpeg", ".gif"]
@@ -78,6 +99,12 @@ db.init_app(app)
 jwt.init_app(app)
 mail.init_app(app)
 migrate.init_app(app, db)
+
+with app.app_context():    
+    print(">>> Creating tables...")
+    db.create_all()
+    print(">>> Tables created.")
+
 start_network_monitor()
 start_sync_service(app)
 
@@ -150,7 +177,5 @@ def revoked_token_callback(jwt_header, jwt_data):
     return jsonify({"message": "Token has been revoked"}), 401
 
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
+if __name__ == "__main__":    
     app.run(host="0.0.0.0", port=5000, debug=True)

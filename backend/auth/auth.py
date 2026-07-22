@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
+
 load_dotenv()
 
 auth_bp = Blueprint("auth", __name__)
@@ -343,6 +344,7 @@ def forgot_password():
                 return jsonify({"error": str(e)}), 500
 
             print("STEP 7")
+            
 
         return jsonify({
             "message": "If that email is registered, a reset link has been sent."
