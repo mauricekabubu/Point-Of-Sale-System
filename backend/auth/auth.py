@@ -8,6 +8,9 @@ import os
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 from flask_mail import Message
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
 from dotenv import load_dotenv
 load_dotenv()
 
